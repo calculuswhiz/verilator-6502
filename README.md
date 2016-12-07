@@ -1,8 +1,9 @@
 Tutorial for making verilog projects with verilator:
 
 Make sure you have these first:
-    - Block v/sv files
-    - A toplevel v/sv that uses all of them. When you link to C++, this is what you'll use for testing.
+
+- Block v/sv files
+- A toplevel v/sv that uses all of them. When you link to C++, this is what you'll use for testing.
 
 Then write the cpp file. This file should simulate the waveform inputs and write to a .vcd file. Example here:
 
