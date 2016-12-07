@@ -1,0 +1,58 @@
+#  net <in/out> loc=<Pin name>;
+#  Load a bitstream:
+# python2.7 xsload.py --fpga ~/Documents/395ECE/xilinx-6502/project/topLevel.bit
+net clk             loc=A9;
+
+# Forgetting this for now. Using test memory instead. Sorry :(
+# net mem_data [0]    loc=P6;
+# net mem_data [1]    loc=T6;
+# net mem_data [2]    loc=T5;
+# net mem_data [3]    loc=P5;
+# net mem_data [4]    loc=R5;
+# net mem_data [5]    loc=N5;
+# net mem_data [6]    loc=P4;
+# net mem_data [7]    loc=N4;
+# net mem_data [8]    loc=P12;
+# net mem_data [9]    loc=R12;
+# net mem_data [10]   loc=T13;
+# net mem_data [11]   loc=T14;
+# net mem_data [12]   loc=R14;
+# net mem_data [13]   loc=T15;
+# net mem_data [14]   loc=T12;
+# net mem_data [15]   loc=P11;
+
+# net mem_addr_l[0]    loc=E4;
+# net mem_addr_l[1]    loc=E3;
+# net mem_addr_l[2]    loc=D3;
+# net mem_addr_l[3]    loc=C3;
+# net mem_addr_l[4]    loc=B12;
+# net mem_addr_l[5]    loc=A12;
+# net mem_addr_l[6]    loc=D12;
+# net mem_addr_l[7]    loc=E12;
+
+# net mem_addr_h[0]    loc=G16;
+# net mem_addr_h[1]    loc=G12;
+# net mem_addr_h[2]    loc=F4;
+# net mem_addr_h[3]    loc=G11;
+# net mem_addr_h[4]    loc=H13;
+# net mem_addr_h[5]    loc=;
+# net mem_addr_h[6]    loc=;
+# net mem_addr_h[7]    loc=;
+
+# Chan 20-15
+net sevenOut[0]     loc=K3;
+net sevenOut[1]     loc=M1;
+net sevenOut[2]     loc=M2;
+net sevenOut[3]     loc=R1;
+net sevenOut[4]     loc=R2;
+net sevenOut[5]     loc=T4;
+# Chan 0-5
+net sevenOut[6]     loc=R7;
+net sevenOut[7]     loc=R15;
+net sevenOut[8]     loc=R16;
+net sevenOut[9]     loc=M15;
+net sevenOut[10]    loc=M16;
+net sevenOut[11]    loc=K15;
+
+# Debug LED:
+net DEBUGLED        loc=B15;    # (Chan14)
