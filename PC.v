@@ -30,16 +30,16 @@ end
 always @ (posedge clk)
 begin 
     if (L_inc)
-        data=data+1'b1;
+        data<=data+1'b1;
     else if (H_inc)
     begin
-        data[15:8]=data[15:8]+1'b1;
-        data[7:0] =data[7:0];
+        data[15:8]<=data[15:8]+1'b1;
+        data[7:0] <=data[7:0];
     end
     else if (load_pc_h|load_pc_l)
     begin
-    	data [15:8] = load_pc_h?PCH_in:data[15:8];
-    	data [7:0] = load_pc_l?PCL_in:data[7:0];
+    	data [15:8] <= load_pc_h?PCH_in:data[15:8];
+    	data [7:0]  <= load_pc_l?PCL_in:data[7:0];
     end
 end
 

@@ -1,10 +1,10 @@
 // A simple tristate-buffer
 module tristate (
-    input   [7:0] in,
-    input   enable,
-    output  [7:0] out
+    input  wire [7:0] in,
+    input  wire enable,
+    output wire [7:0] out
 );
 
-assign out = enable?in:8'bzzzzzzzz;
+assign out = enable?in:8'bz;
 
 endmodule

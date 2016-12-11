@@ -1,13 +1,16 @@
 // This is only a ROM right now.
 module testmemory (
     // input clk,    // Clock
+
+    /* verilator lint_off UNUSED */
     input [15:0] tm_address,
+    /* verilator lint_on UNUSED */
     // input rW,
     
     output [7:0] tm_data
 );
 
-reg [7:0] TM_DATA [7:0];
+reg [7:0] TM_DATA [(1<<8)-1:0];
 
 initial
 begin 
@@ -16,7 +19,7 @@ end
 
 // always @ (posedge clk)
 // begin 
-    assign tm_data = TM_DATA[tm_address[2:0]];
+    assign tm_data = TM_DATA[tm_address[7:0]];
 // end
 
 endmodule

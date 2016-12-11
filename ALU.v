@@ -34,6 +34,7 @@ module ALU (
 always @ (a, b, carryIn, overflowIn, operation)
 begin 
     casez (operation)
+        /* verilator lint_off WIDTH */
         4'h00: // add carry
         begin
             f = a+b+carryIn;
@@ -106,6 +107,7 @@ begin
             carry=1'b0;
             overflow=overflowIn;
         end
+        /* verilator lint_on WIDTH */
     endcase
     negative = f[7];
     zero = (f==0)?1'b1:1'b0;

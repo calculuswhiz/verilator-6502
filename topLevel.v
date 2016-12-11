@@ -13,7 +13,7 @@ module topLevel (
 // Clock divider:
 // 12MHz/2^17 = 96Hz
 // Higher divfactor = slower processor.
-parameter divfactor = 18;
+parameter divfactor = 0;
 reg [divfactor:0] clkdiv;
 initial
 begin 
@@ -22,9 +22,10 @@ end
 
 always @ (posedge clk)
 begin
-    clkdiv = clkdiv+1'b1;
+    clkdiv <= clkdiv+1'b1;
 end
 
+/* verilator lint_off UNOPTFLAT */
 // Internal signals:
 // Enable:
 wire X_en, Y_en, Sd_en, Sm_en, A_en;
@@ -52,13 +53,14 @@ wire Smux_sel, Amux_sel;
 wire [2:0] ALU_Amux_sel, ALU_Bmux_sel;
 wire PCLmux_sel, PCHmux_sel;
 wire DLmux_sel, DHmux_sel;
-wire TLmux_sel, THmux_sel;
+wire TLmux_sel/*, THmux_sel*/;
 wire Pmux_sel;
 wire IRmux_sel;
 
 // Other ALU signals:
 wire [3:0] aluop;
 wire V_in, V_out, C_in, C_out, N_out, Z_out;
+/* verilator lint_on UNOPTFLAT */
 
 // GP-Buses:
 wire [7:0] data_bus;
@@ -70,7 +72,7 @@ wire [7:0] X_out, Y_out, S_out, A_out, ALU_out;
 wire [7:0] Xbuf_out, Ybuf_out, Smbuf_out, Sdbuf_out, Abuf_out;
 wire [7:0] ALUdbuf_out, ALUmbuf_out;
 wire [7:0] PCL_out, PCH_out;
-wire       PCL_carry;
+// wire       PCL_carry;
 wire [7:0] PCLmbuf_out, PCLdbuf_out, PCHmbuf_out, PCHdbuf_out;
 wire [7:0] DL_out, DH_out;
 wire [7:0] DLmbuf_out, DLdbuf_out, DHmbuf_out, DHdbuf_out;
@@ -88,7 +90,8 @@ wire [7:0] xferubuf_out, xferdbuf_out;
 wire [7:0] Smux_out, ALU_Amux_out, ALU_Bmux_out, Amux_out;
 wire [7:0] PCLmux_out, PCHmux_out;
 wire [7:0] DLmux_out, DHmux_out;
-wire [7:0] TLmux_out, THmux_out;
+// wire [7:0] TLmux_out, THmux_out;
+wire [7:0] TLmux_out;
 wire [7:0] Pmux_out;
 wire [7:0] IRmux_out;
 
@@ -97,7 +100,7 @@ wire [7:0] zeroin, zeroout;
 wire [7:0] ZLbuf_out, ZHbuf_out;
 
 // Test-memory signals:
-wire [15:0] address_bus;
+// wire [15:0] address_bus;
 wire [7:0]  mem_data;
 wire        mem_rw;
 wire [7:0]  membuf_out;
@@ -113,7 +116,6 @@ tristate membuf(
     .enable(mem_rw),
     .out(membuf_out)
 );
-assign xfer_bus = membuf_out;
 
 // Put stuff down from left to right (See the datapath diagram for more info.):
 gpReg X_reg(
@@ -129,7 +131,6 @@ tristate Xbuf(
     .enable(X_en),
     .out(Xbuf_out)
 );
-assign data_bus = Xbuf_out;
 
 gpReg Y_reg(
     .clk(clkdiv[divfactor]),
@@ -144,7 +145,6 @@ tristate Ybuf(
     .enable(Y_en),
     .out(Ybuf_out)
 );
-assign data_bus = Ybuf_out;
 
 mux2 Smux(
     .a(data_bus),
@@ -166,14 +166,12 @@ tristate Sdbuf(
     .enable(Sd_en),
     .out(Sdbuf_out)
 );
-assign data_bus = Sdbuf_out;
 
 tristate Smbuf(
     .in(S_out),
     .enable(Sm_en),
     .out(Smbuf_out)
 );
-assign memory_bus_l = Smbuf_out;
 
 mux8 ALU_Amux(
     .in0(A_out),
@@ -211,7 +209,9 @@ ALU ALU_6502(
     .overflow(V_out),
     .zero(Z_out),
     .carry(C_out),
+    /* verilator lint_off WIDTH */
     .f(ALU_out[7:0])
+    /* verilator lint_on WIDTH */
 );
 
 tristate ALUd_buf(
@@ -219,14 +219,12 @@ tristate ALUd_buf(
     .enable(ALUd_en),
     .out(ALUdbuf_out)
 );
-assign data_bus = ALUdbuf_out;
 
 tristate ALUm_buf(
     .in(ALU_out),
     .enable(ALUm_en),
     .out(ALUmbuf_out)
 );
-assign memory_bus_l = ALUmbuf_out;
 
 mux2 Amux(
     .a(data_bus),
@@ -248,7 +246,6 @@ tristate Abuf(
     .enable(A_en),
     .out(Abuf_out)
 );
-assign data_bus = Abuf_out;
 
 assign zeroin=8'h00;
 dev_zero zero_device(
@@ -261,14 +258,12 @@ tristate ZLbuf(
     .enable(Zl_en),
     .out(ZLbuf_out)
 );
-assign memory_bus_l = ZLbuf_out;
 
 tristate ZHbuf(
     .in(zeroout),
     .enable(Zh_en),
     .out(ZHbuf_out)
 );
-assign memory_bus_h = ZHbuf_out;
 
 mux2 PCLmux(
     .a(data_bus),
@@ -301,28 +296,24 @@ tristate PCLdbuf(
     .enable(PCLd_en),
     .out(PCLdbuf_out)
 );
-assign data_bus= PCLdbuf_out;
 
 tristate PCLmbuf(
     .in(PCL_out),
     .enable(PCLm_en),
     .out(PCLmbuf_out)
 );
-assign memory_bus_l= PCLmbuf_out;
 
 tristate PCHdbuf(
     .in(PCH_out),
     .enable(PCHd_en),
     .out(PCHdbuf_out)
 );
-assign data_bus= PCHdbuf_out;
 
 tristate PCHmbuf(
     .in(PCH_out),
     .enable(PCHm_en),
     .out(PCHmbuf_out)
 );
-assign memory_bus_h= PCHmbuf_out;
 
 // D section:
 mux2 DLmux(
@@ -356,28 +347,24 @@ tristate DLdbuf(
     .enable(DLd_en),
     .out(DLdbuf_out)
 );
-assign data_bus= DLdbuf_out;
 
 tristate DLmbuf(
     .in(DL_out),
     .enable(DLm_en),
     .out(DLmbuf_out)
 );
-assign memory_bus_l= DLmbuf_out;
 
 tristate DHdbuf(
     .in(DH_out),
     .enable(DHd_en),
     .out(DHdbuf_out)
 );
-assign data_bus= DHdbuf_out;
 
 tristate DHmbuf(
     .in(DH_out),
     .enable(DHm_en),
     .out(DHmbuf_out)
 );
-assign memory_bus_h= DHmbuf_out;
 
 // T section:
 mux2 TLmux(
@@ -397,12 +384,13 @@ mux2 TLmux(
 
 PC T_reg(
     .clk(clkdiv[divfactor]),
-    .load_pc_h(data_bus),  // Changed
+    .load_pc_h(TH_ld),  // Changed from data_bus. WHY?
     .load_pc_l(TL_ld),
     .L_inc(1'b0),
     .H_inc(TH_inc),
     .PCL_in(TLmux_out),
-    .PCH_in(THmux_out),
+    // .PCH_in(THmux_out),
+    .PCH_in(zeroout),
     .PCL_out(TL_out),
     .PCH_out(TH_out)
 );
@@ -412,28 +400,24 @@ tristate TLdbuf(
     .enable(TLd_en),
     .out(TLdbuf_out)
 );
-assign data_bus= TLdbuf_out;
 
 tristate TLmbuf(
     .in(TL_out),
     .enable(TLm_en),
     .out(TLmbuf_out)
 );
-assign memory_bus_l= TLmbuf_out;
 
 tristate THdbuf(
     .in(TH_out),
     .enable(THd_en),
     .out(THdbuf_out)
 );
-assign data_bus= THdbuf_out;
 
 tristate THmbuf(
     .in(TH_out),
     .enable(THm_en),
     .out(THmbuf_out)
 );
-assign memory_bus_h= THmbuf_out;
 
 mux2 Pmux(
     .a(ctl_pvect),
@@ -455,7 +439,6 @@ tristate Pbuf(
     .enable(Pd_en),
     .out(Pbuf_out)
 );
-assign data_bus = Pbuf_out;
 
 mux2 IRmux(
     .a(xfer_bus),
@@ -479,23 +462,22 @@ tristate IRbuf(
     .enable(IR_en),
     .out(IRbuf_out)
 );
-assign xfer_bus = IRbuf_out;
 
 tristate xferubuf(
     .in(data_bus),
     .enable(xferu_en),
     .out(xferubuf_out)
 );
-assign xfer_bus = xferubuf_out;
 
 tristate xferdbuf(
     .in(xfer_bus),
     .enable(xferd_en),
     .out(xferdbuf_out)
 );
-assign data_bus = xferdbuf_out;
 
-wire [8:0] state_out;
+/* verilator lint_off UNUSED */
+wire [11:0] state_out;
+/* verilator lint_on UNUSED */
 control CTL(
     .clk(clkdiv[divfactor]),
     .P_in(P_out),
@@ -520,7 +502,8 @@ control CTL(
     .ALU_Amux_sel(ALU_Amux_sel), .ALU_Bmux_sel(ALU_Bmux_sel),
     .PCLmux_sel(PCLmux_sel), .PCHmux_sel(PCHmux_sel),
     .DLmux_sel(DLmux_sel), .DHmux_sel(DHmux_sel),
-    .TLmux_sel(TLmux_sel), .THmux_sel(THmux_sel),
+    // .TLmux_sel(TLmux_sel), .THmux_sel(THmux_sel),
+    .TLmux_sel(TLmux_sel), .THmux_sel(zeroout[0]),
     .Pmux_sel(Pmux_sel),
     .IRmux_sel(IRmux_sel),
     .aluop(aluop),
@@ -558,14 +541,13 @@ pulser PULSER(
     .to_seven_seg(sevenOut)
 );
 
-// wire [7:0] dumbsignal;
-// tristate testTristate(
-//     .in(8'hff),
-//     .enable(clkdiv[divfactor]&clkdiv[18]),
-//     .out(dumbsignal)
-// );
+// ON = fetch, OFF = execute
 assign DEBUGLED = state_out[8];
 
-// assign sevenOut = 12'h65f;
+// A little hack to get verilator to cooperate (no tristate construct issue):
+assign data_bus = Xbuf_out|Ybuf_out|Sdbuf_out|ALUdbuf_out|Abuf_out|PCLdbuf_out|PCHdbuf_out|DLdbuf_out|DHdbuf_out|TLdbuf_out|THdbuf_out|Pbuf_out|xferdbuf_out;
+assign xfer_bus = membuf_out|IRbuf_out|xferubuf_out;
+assign memory_bus_h = ZHbuf_out|DHmbuf_out|PCHmbuf_out|THmbuf_out;
+assign memory_bus_l = ALUmbuf_out|Smbuf_out|ZLbuf_out|DLmbuf_out|PCLmbuf_out|TLmbuf_out;
 
 endmodule

@@ -26,9 +26,9 @@ end
 always @ (posedge clk or negedge rst_n)
 begin 
     if(~rst_n)
-        data=0;
+        data<=0;
     else if(load)
-        data=in;
+        data<=in;
 end
 
 assign out = data;

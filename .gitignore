@@ -1,2 +1,5 @@
-objdir/*
+obj_dir
 *~
+*.vcd
+*.gtkw
+*.o65

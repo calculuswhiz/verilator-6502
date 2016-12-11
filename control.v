@@ -1,4 +1,7 @@
 // This is what issues the control signals necessary for the processor to run.
+`include "opCodeHex.sv" // Holds all the opcode values as enum.
+typedef enum reg [3:0] { alu_adc = 4'h0, alu_sbc = 4'h1, alu_eor = 4'h2, alu_ora = 4'h3, alu_and = 4'h4, alu_inc = 4'h5, alu_dec = 4'h6, alu_ror = 4'h7, alu_rol = 4'h8, alu_asl = 4'h9, alu_lsr = 4'ha, alu_nop = 4'hf} aluop_t /* verilator public */; 
+parameter SIZE = 12;
 module control
 (
     /* Input and output port declarations */
@@ -42,21 +45,18 @@ module control
     output reg IRmux_sel,
 
     // Other ALU signals:
-    output reg [3:0] aluop,
+    /* verilator lint_off UNOPTFLAT */
+    output aluop_t aluop,
+    /* verilator lint_on UNOPTFLAT */
     output reg V_ctl, C_ctl,  // Selectively decide whether to send these flags to the ALU
     
     output reg mem_rw,   // Default to read
     
-    output [8:0] state_out
+    output cpu_state state_out
 );
 
 //States:
-parameter SIZE = 9;
-parameter alu_adc = 4'h0, alu_sbc = 4'h1, alu_eor = 4'h2, alu_ora = 4'h3, alu_and = 4'h4, alu_inc = 4'h5, alu_dec = 4'h6, alu_ror = 4'h7, alu_rol = 4'h8, alu_asl = 4'h9, alu_lsr = 4'ha, alu_nop = 4'hf;
-`include "opCodeHex.v" // Holds all the opcode values.
-
-reg [SIZE-1:0] state;
-reg [SIZE-1:0] next_state;
+cpu_state state, next_state;
 
 initial
 begin 
@@ -118,8 +118,8 @@ begin : state_actions
     // Selection:
     Smux_sel        = 0;
     Amux_sel        = 0;
-    ALU_Amux_sel    = 2'b00;
-    ALU_Bmux_sel    = 2'b00;
+    ALU_Amux_sel    = 3'b00;
+    ALU_Bmux_sel    = 3'b00;
     PCLmux_sel      = 0;
     PCHmux_sel      = 0;
     DLmux_sel       = 0;
@@ -136,6 +136,7 @@ begin : state_actions
          
     mem_rw  = 1;   // Default to read 
 
+    // $display("%s", state.name());
     /* State actions: */
     case(state)
         fetch1: /* Ready memory */;
@@ -197,6 +198,7 @@ begin : state_actions
     endcase
 end
 
+// Temporarily removed SAX_ZPG
 always @ (state, IR_in)
 begin : next_state_logic
     /* Next state information and conditions (if any)
@@ -205,7 +207,7 @@ begin : next_state_logic
     case(state)
         fetch1,
         JMP_ABS,
-        STA_ZPG, STX_ZPG, STY_ZPG, SAX_ZPG, ZEROPAGE_MW:
+        STA_ZPG, STX_ZPG, STY_ZPG, ZEROPAGE_MW:
             next_state = fetch2;
         fetch2,
         ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM, 
@@ -232,7 +234,7 @@ begin : next_state_logic
                 LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG,
                 ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG:
                     next_state = ZEROPAGE_R;
-                STA_ZPG, STX_ZPG, STY_ZPG, SAX_ZPG:
+                STA_ZPG, STX_ZPG, STY_ZPG:
                     next_state = {4'h0, IR_in[7:0]};
                 default: next_state = ERROR;
             endcase
