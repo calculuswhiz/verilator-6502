@@ -151,6 +151,10 @@ begin : state_actions
             xferd_en = 1;       // DL=M
             DL_ld    = 1;
         end
+        IMPLIED_ACCUMULATOR:
+        begin 
+            /* No actions taken. */
+        end
         ADC_IMM:
         begin
             PCL_inc = 1;        // PC+=1
@@ -180,10 +184,175 @@ begin : state_actions
             ctl_pvect[1]=alu_Z;
             P_ld = 1;
         end
-        NOP_IMP:
+        CMP_IMM:
+        begin 
+            PCL_inc = 1;        // PC += 1
+            IR_ld   = 1;        // Get next instruction
+            DLd_en  = 1;        // DL holds M
+            ALU_Bmux_sel = 3'b100;   // A-M (Don't set flags, don't use carry, don't store A)
+            C_ctl   = 1;        // Since we're subtracting.
+            aluop   = alu_sbc;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;
+            P_ld = 1;
+        end
+        CPX_IMM:
+        begin
+            PCL_inc = 1;        // PC += 1
+            IR_ld   = 1;        // Get next instruction
+            DLd_en  = 1;        // DL holds M
+            ALU_Amux_sel = 3'b001;  // X-M (Don't set flags, don't use carry, don't store A)
+            ALU_Bmux_sel = 3'b100;
+            C_ctl   = 1;        // Since we're subtracting.
+            aluop   = alu_sbc;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;
+            P_ld = 1; 
+        end
+        CPY_IMM:
+        begin
+            PCL_inc = 1;        // PC += 1
+            IR_ld   = 1;        // Get next instruction
+            DLd_en  = 1;        // DL holds M
+            ALU_Amux_sel = 3'b010;  // Y-M (Don't set flags, don't use carry, don't store A)
+            ALU_Bmux_sel = 3'b100;
+            C_ctl   = 1;        // Since we're subtracting.
+            aluop   = alu_sbc;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;
+            P_ld = 1;
+        end
+        EOR_IMM:
+        begin 
+            PCL_inc = 1;        // PC+=1
+            IR_ld = 1;          // Get next instruction
+            DLd_en = 1;         // DL holds operand
+            ALU_Bmux_sel = 3'b100;  // A^M
+            aluop = alu_eor;    
+            Amux_sel = 1;       // Store at A
+            A_ld = 1;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
+        end
+        LDA_IMM:
+        begin 
+            PCL_inc = 1;        // PC+=1
+            IR_ld   = 1;        // Get next instr
+            DLd_en  = 1;        // DL == M
+            A_ld    = 1;        // Store at A
+        end
+        LDX_IMM:
+        begin
+            PCL_inc = 1;        // PC += 1
+            IR_ld   = 1;        // Next IR
+            DLd_en  = 1;        // DL == M
+            X_ld    = 1;        // Store at X
+        end
+        LDY_IMM:
+        begin
+            PCL_inc = 1;        // PC += 1
+            IR_ld   = 1;        // Next IR
+            DLd_en  = 1;        // DL == M
+            Y_ld    = 1;        // Store at Y
+        end
+        ORA_IMM:
+        begin 
+            PCL_inc = 1;        // PC+=1
+            IR_ld = 1;          // Get next instruction
+            DLd_en = 1;         // DL holds operand
+            ALU_Bmux_sel = 3'b100;  // A&M
+            aluop = alu_ora;    
+            Amux_sel = 1;       // Store at A
+            A_ld = 1;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
+        end
+        SBC_IMM:
+        begin
+            PCL_inc = 1;        // PC+=1
+            IR_ld = 1;          // Get next instruction (pipeline)
+            DLd_en = 1;         // DL holds operand, move to data_bus
+            ALU_Bmux_sel = 3'b100;  // A+M+C
+            C_ctl = P_in[0];
+            aluop = alu_sbc;   
+            Amux_sel = 1;       // Store at A
+            A_ld = 1;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[6]=alu_V;
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;
+            P_ld = 1;
+        end
+        ASL_ACC:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            aluop   = alu_asl;  // A<<1
+            Amux_sel = 1;
+            A_ld    = 1;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;
+            P_ld = 1;
+        end
+        CLC_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ctl_pvect[0] = 0;
+            P_ld = 1;
+        end
+        CLD_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ctl_pvect[3] = 0;
+            P_ld = 1;
+        end
+        CLI_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ctl_pvect[2] = 0;
+            P_ld = 1;
+        end
+        CLV_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ctl_pvect[6] = 0;
+            P_ld = 1;
+        end
+        NOP_IMP:                // No-op
         begin 
             PCL_inc = 1;
             IR_ld = 1;          // Get next instruction.
+        end
+        SEC_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ctl_pvect[0] = 1;
+            P_ld = 1;
+        end
+        SED_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ctl_pvect[3] = 1;
+            P_ld = 1;
+        end
+        SEI_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ctl_pvect[2] = 1;
+            P_ld = 1;
         end
         JMP_ABS:
         begin 
@@ -211,13 +380,15 @@ begin : next_state_logic
             next_state = fetch2;
         fetch2,
         ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM, 
-        NOP_IMP:
+        ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
+        LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP,
+        SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
         begin // See opCodeHex.v for all encodings.
             // Use commas to separate same next-states.
             case({4'h0, IR_in[7:0]})
                 ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM:
                     next_state = IMMEDIATE;
-                NOP_IMP:
+                ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP, LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
                     next_state = IMPLIED_ACCUMULATOR;
                 JMP_ABS: // 1, "", fetch2
                     next_state = JMP_ABS_1;

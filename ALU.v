@@ -37,15 +37,20 @@ begin
         /* verilator lint_off WIDTH */
         4'h00: // add carry
         begin
-            f = a+b+carryIn;
+            f = a+b+{7'b0,carryIn};
             carry = f[8];
-            overflow = (a[7]^f[7])&(b[7]^f[7]);
+            overflow = a[7]^f[7];
         end
         4'h01: // subtract borrow
         begin
-            f = a-b-~carryIn;
-            carry = ~f[8];
-            overflow = (a[7]^f[7])&(b[7]^f[7]);
+            // f = a-b-carryIn;
+            // f = a-{carryIn,b};
+            f = a-b-{7'b0,~carryIn};
+            // $display("%d", carryIn);
+            carry = f[8];      // if a-b < 0 set P.C flag
+            overflow = ~((a[7]^f[7])&&(b[7]^f[7]));
+            // overflow = a[7]^f[7];
+            // $display("%d",f);
         end
         4'h02: // exclusive or
         begin
@@ -91,7 +96,7 @@ begin
         end
         4'h09: // Shift left
         begin
-            f = {b[6:0],1'b0};
+            f = {b[7:0],1'b0};
             carry = b[7];
             overflow = overflowIn;
         end

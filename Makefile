@@ -1,7 +1,7 @@
 all:
 	make build
 	make comp
-	make run
+	make assemble
 
 build:
 	verilator -Wall --trace --cc topLevel.v --exe tb_toplevel.cpp
@@ -9,12 +9,12 @@ build:
 comp:
 	make -C obj_dir -j -f VtopLevel.mk VtopLevel
 
-run:
-	obj_dir/VtopLevel
-
 assemble:
 	sh bytedump_asm.sh
 	make run
+
+run:
+	obj_dir/VtopLevel
 
 clean:
 	rm obj_dir/*

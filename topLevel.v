@@ -13,17 +13,19 @@ module topLevel (
 // Clock divider:
 // 12MHz/2^17 = 96Hz
 // Higher divfactor = slower processor.
+// 0 = lowest delay
 parameter divfactor = 0;
 reg [divfactor:0] clkdiv;
-initial
-begin 
-    clkdiv = 0;
-end
+assign clkdiv = clk;
+// initial
+// begin 
+//     clkdiv = 0;
+// end
 
-always @ (posedge clk)
-begin
-    clkdiv <= clkdiv+1'b1;
-end
+// always @ (posedge clk)
+// begin
+//     clkdiv <= clkdiv+1'b1;
+// end
 
 /* verilator lint_off UNOPTFLAT */
 // Internal signals:
@@ -541,7 +543,7 @@ pulser PULSER(
     .to_seven_seg(sevenOut)
 );
 
-// ON = fetch, OFF = execute
+// ON = decode, OFF = fetch/execute
 assign DEBUGLED = state_out[8];
 
 // A little hack to get verilator to cooperate (no tristate construct issue):
