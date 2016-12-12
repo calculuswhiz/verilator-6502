@@ -1,3 +1,5 @@
+`include "aluops.sv"    // alu operations enum.
+`include "opCodeHex.sv" // Holds all the opcode values as enum.
 module topLevel (
     input clk,    // Clock
     
@@ -53,14 +55,15 @@ wire P_ld, IR_ld;
 wire Smux_sel, Amux_sel;
 // wire SID_sel;
 wire [2:0] ALU_Amux_sel, ALU_Bmux_sel;
-wire PCLmux_sel, PCHmux_sel;
+wire [1:0] PCLmux_sel;
+wire PCHmux_sel;
 wire DLmux_sel, DHmux_sel;
 wire TLmux_sel/*, THmux_sel*/;
 wire Pmux_sel;
 wire IRmux_sel;
 
 // Other ALU signals:
-wire [3:0] aluop;
+aluop_t aluop;
 wire V_in, V_out, C_in, C_out, N_out, Z_out;
 /* verilator lint_on UNOPTFLAT */
 
@@ -267,9 +270,12 @@ tristate ZHbuf(
     .out(ZHbuf_out)
 );
 
-mux2 PCLmux(
-    .a(data_bus),
-    .b(memory_bus_l),
+// Had to make it a mux4 for jump instruction.
+mux4 PCLmux(
+    .in0(data_bus),
+    .in1(memory_bus_l),
+    .in2(DL_out),
+    .in3(zeroin),
     .sel(PCLmux_sel),
     .f(PCLmux_out)
 );

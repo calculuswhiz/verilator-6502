@@ -10,7 +10,7 @@ module testmemory (
     output [7:0] tm_data
 );
 
-reg [7:0] TM_DATA [(1<<8)-1:0];
+reg [7:0] TM_DATA [(1<<16)-1:0];
 
 initial
 begin 
@@ -19,7 +19,7 @@ end
 
 // always @ (posedge clk)
 // begin 
-    assign tm_data = TM_DATA[tm_address[7:0]];
+    assign tm_data = TM_DATA[tm_address[15:0]];
 // end
 
 endmodule

@@ -5,7 +5,7 @@ module ALU (
     input carryIn,
     input overflowIn,
 
-    input [3:0] operation,
+    input aluop_t operation,
 
     // Arithmetic flags:
     output reg negative,
@@ -14,10 +14,12 @@ module ALU (
     output reg carry,
 
     // Output: (top bit will be carry bit)
+    /* verilator lint_off UNOPTFLAT */
     output reg [8:0] f 
+    /* verilator lint_on UNOPTFLAT */
 );
 
-// Determine operation:
+// Determine operation (aluops.sv_:
 /*
     Only needs to support basic operations:
     (The control unit will handle when to use each one.)
@@ -35,13 +37,13 @@ always @ (a, b, carryIn, overflowIn, operation)
 begin 
     casez (operation)
         /* verilator lint_off WIDTH */
-        4'h00: // add carry
+        alu_adc: // add carry
         begin
             f = a+b+{7'b0,carryIn};
             carry = f[8];
             overflow = a[7]^f[7];
         end
-        4'h01: // subtract borrow
+        alu_sbc: // subtract borrow
         begin
             // f = a-b-carryIn;
             // f = a-{carryIn,b};
@@ -52,55 +54,55 @@ begin
             // overflow = a[7]^f[7];
             // $display("%d",f);
         end
-        4'h02: // exclusive or
+        alu_eor: // exclusive or
         begin
             f = a^b;
             carry = carryIn;
             overflow = overflowIn;
         end
-        4'h03: // bitwise or
+        alu_ora: // bitwise or
         begin
             f = a|b;
             carry = carryIn;
             overflow = overflowIn;
         end
-        4'h04: // bitwise and
+        alu_and: // bitwise and
         begin
             f = a&b;
             carry = carryIn;
             overflow = overflowIn;
         end
-        4'h05: // increment
+        alu_inc: // increment
         begin
             f = a+1'b1;
             carry = carryIn;
             overflow = overflowIn;
         end
-        4'h06: // decrement
+        alu_dec: // decrement
         begin
             f = a-1'b1;
             carry = carryIn;
             overflow = overflowIn;
         end
-        4'h07: // rotate right
+        alu_ror: // rotate right
         begin
             f = {carryIn,b[7:1]};
             carry = b[0];
             overflow = overflowIn;
         end
-        4'h08: // rotate left
+        alu_rol: // rotate left
         begin
             f = {b[6:0],carryIn};
             carry = b[7];
             overflow = overflowIn;
         end
-        4'h09: // Shift left
+        alu_asl: // Shift left
         begin
             f = {b[7:0],1'b0};
             carry = b[7];
             overflow = overflowIn;
         end
-        4'h0a: // Shift right
+        alu_lsr: // Shift right
         begin
             f = {1'b0, b[7:1]};
             carry = b[0];
@@ -109,7 +111,7 @@ begin
         default:  // NOP (Actually pass input a)
         begin
             f=a;
-            carry=1'b0;
+            carry=carryIn;
             overflow=overflowIn;
         end
         /* verilator lint_on WIDTH */

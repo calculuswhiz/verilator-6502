@@ -1,6 +1,4 @@
 // This is what issues the control signals necessary for the processor to run.
-`include "opCodeHex.sv" // Holds all the opcode values as enum.
-typedef enum reg [3:0] { alu_adc = 4'h0, alu_sbc = 4'h1, alu_eor = 4'h2, alu_ora = 4'h3, alu_and = 4'h4, alu_inc = 4'h5, alu_dec = 4'h6, alu_ror = 4'h7, alu_rol = 4'h8, alu_asl = 4'h9, alu_lsr = 4'ha, alu_nop = 4'hf} aluop_t /* verilator public */; 
 parameter SIZE = 12;
 module control
 (
@@ -38,7 +36,8 @@ module control
     output reg Smux_sel, Amux_sel,
     // output SID_sel,
     output reg [2:0] ALU_Amux_sel, ALU_Bmux_sel,
-    output reg PCLmux_sel, PCHmux_sel,
+    output reg [1:0] PCLmux_sel,
+    output reg PCHmux_sel,
     output reg DLmux_sel, DHmux_sel,
     output reg TLmux_sel, THmux_sel,
     output reg Pmux_sel,
@@ -67,7 +66,7 @@ end
 always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C)
 begin : state_actions
     /* Default output assignments */
-    ctl_pvect = 8'h00;
+    ctl_pvect = P_in;
     ctl_irvect = 8'h00;
     
     // Enable:
@@ -146,7 +145,8 @@ begin : state_actions
             IR_ld = 1;
         end
         JMP_ABS_1, IMMEDIATE:
-        begin 
+        begin
+            // $display("%s", state.name());
             PCL_inc  = 1;       // PC+=1
             xferd_en = 1;       // DL=M
             DL_ld    = 1;
@@ -244,6 +244,10 @@ begin : state_actions
             IR_ld   = 1;        // Get next instr
             DLd_en  = 1;        // DL == M
             A_ld    = 1;        // Store at A
+            ALU_Amux_sel = 3'b100;  // D status
+            ctl_pvect[7]=alu_N;
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
         end
         LDX_IMM:
         begin
@@ -251,6 +255,10 @@ begin : state_actions
             IR_ld   = 1;        // Next IR
             DLd_en  = 1;        // DL == M
             X_ld    = 1;        // Store at X
+            ALU_Amux_sel = 3'b001;  // check x's data
+            ctl_pvect[7]=alu_N;
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
         end
         LDY_IMM:
         begin
@@ -258,6 +266,10 @@ begin : state_actions
             IR_ld   = 1;        // Next IR
             DLd_en  = 1;        // DL == M
             Y_ld    = 1;        // Store at Y
+            ALU_Amux_sel = 3'b010;  // check x's data
+            ctl_pvect[7]=alu_N;
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
         end
         ORA_IMM:
         begin 
@@ -289,7 +301,7 @@ begin : state_actions
             P_ld = 1;
         end
         ASL_ACC:
-        begin 
+        begin
             PCL_inc = 1;
             IR_ld   = 1;
             aluop   = alu_asl;  // A<<1
@@ -328,10 +340,96 @@ begin : state_actions
             ctl_pvect[6] = 0;
             P_ld = 1;
         end
+        DEX_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ALU_Amux_sel = 3'b001;
+            aluop   = alu_dec;
+            ALUd_en = 1;
+            X_ld    = 1;
+            ctl_pvect[7]=alu_N;     // Set flags
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
+        end
+        DEY_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ALU_Amux_sel = 3'b010;
+            aluop   = alu_dec;
+            ALUd_en = 1;
+            Y_ld    = 1;
+            ctl_pvect[7]=alu_N;     // Set flags
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
+        end
+        INX_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ALU_Amux_sel = 3'b001;
+            aluop   = alu_inc;
+            ALUd_en = 1;
+            X_ld    = 1;
+            ctl_pvect[7]=alu_N;     // Set flags
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
+        end
+        INY_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            ALU_Amux_sel = 3'b010;
+            aluop   = alu_inc;
+            ALUd_en = 1;
+            Y_ld    = 1;
+            ctl_pvect[7]=alu_N;     // Set flags
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
+        end
+        LSR_ACC:
+        begin
+            PCL_inc = 1;
+            IR_ld   = 1;
+            aluop   = alu_lsr;  // A>>1
+            Amux_sel = 1;
+            A_ld    = 1;
+            ctl_pvect[7]=alu_N;     // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;     // Remember that the previous lsb is P.C
+            P_ld = 1;
+        end
         NOP_IMP:                // No-op
         begin 
             PCL_inc = 1;
             IR_ld = 1;          // Get next instruction.
+        end
+        ROL_ACC:
+        begin
+            PCL_inc = 1;
+            IR_ld   = 1;
+            aluop   = alu_rol;  // ror(A)
+            Amux_sel = 1;
+            A_ld    = 1;
+            C_ctl   = P_in[0];        // Rotate P.C in.
+            ctl_pvect[7]=alu_N;     // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;     // Remember that the previous lsb is P.C
+            P_ld = 1;
+        end
+        ROR_ACC:
+        begin
+            PCL_inc = 1;
+            IR_ld   = 1;
+            aluop   = alu_ror;  // ror(A)
+            Amux_sel = 1;
+            A_ld    = 1;
+            C_ctl   = P_in[0];        // Rotate P.C in.
+            ctl_pvect[7]=alu_N;     // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;     // Remember that the previous lsb is P.C
+            P_ld = 1;
         end
         SEC_IMP:
         begin 
@@ -354,13 +452,71 @@ begin : state_actions
             ctl_pvect[2] = 1;
             P_ld = 1;
         end
+        TAX_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            A_en    = 1;
+            X_ld    = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        TAY_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            A_en    = 1;
+            Y_ld    = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        TSX_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            Sd_en   = 1;
+            X_ld    = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        TXA_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            X_en    = 1;
+            A_ld    = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        TYA_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            Y_en    = 1;
+            A_ld    = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        TXS_IMP:
+        begin 
+            PCL_inc = 1;
+            IR_ld   = 1;
+            X_en    = 1;
+            S_ld    = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
         JMP_ABS:
         begin 
             xferd_en = 1;          // PCH = M
             PCH_ld = 1;
-            PCLm_en = 0;        // PCL = DL
-            DLm_en = 1;
-            PCLmux_sel = 1;
+            PCLmux_sel = 2; // PCL = DL
             PCL_ld = 1;
         end
         default: /* Do nothing */;
