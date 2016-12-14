@@ -8,6 +8,7 @@ module control
     input [7:0] P_in,
     input [7:0] IR_in,
     input alu_V, alu_C, alu_N, alu_Z,
+    input [7:0] mem_data,
     
     output reg [7:0] ctl_pvect, ctl_irvect,
     
@@ -138,22 +139,49 @@ begin : state_actions
     // $display("%s", state.name());
     /* State actions: */
     case(state)
-        fetch1: /* Ready memory */;
+        fetch1: /* Ready memory */
+            IR_ld = 1;  
         fetch2:
         begin // Give IR the first instruction, increment PC.
             PCL_inc = 1;
             IR_ld = 1;
         end
-        JMP_ABS_1, IMMEDIATE:
+        ABSOLUTE_1, IMMEDIATE:
         begin
             // $display("%s", state.name());
             PCL_inc  = 1;       // PC+=1
             xferd_en = 1;       // DL=M
             DL_ld    = 1;
         end
+        ABSOLUTE_2:
+        begin
+            PCL_inc = 1;        // PC+=1
+            xferd_en = 1;       // DH = M
+            DH_ld   = 1;
+        end
+        ABSOLUTE_RMW_R:
+        begin
+            PCLm_en = 0;    // Address using D (NOT PC).
+            PCHm_en = 0;
+            DLm_en  = 1;
+            DHm_en  = 1;
+            xferd_en = 1;
+            TL_ld   = 1;    // TL=M[D]
+        end
+        ABSOLUTE_RMW_W:
+        begin
+            PCLm_en = 0;    // Address using D (NOT PC).
+            PCHm_en = 0;
+            DLm_en  = 1;
+            DHm_en  = 1;
+            mem_rw  = 0;    // write mode
+            xferu_en = 1;
+            TLd_en  = 1;
+        end
         IMPLIED_ACCUMULATOR:
         begin 
             /* No actions taken. */
+            IR_ld = 1;
         end
         ADC_IMM:
         begin
@@ -512,6 +540,154 @@ begin : state_actions
             ctl_pvect[1] = alu_Z; // zero
             P_ld = 1;
         end
+        ADC_ABS:
+        begin 
+            PCLm_en = 0;    // A += M[D]
+            PCHm_en = 0;
+            DLm_en = 1;
+            DHm_en = 1;
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_adc;
+            C_ctl = P_in[0];
+            A_ld = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[6] = alu_V; // overflow
+            ctl_pvect[1] = alu_Z; // zero
+            ctl_pvect[0] = alu_C; // carry
+            P_ld = 1;
+        end
+        AND_ABS:
+        begin 
+            PCLm_en = 0;    // A &= M[D]
+            PCHm_en = 0;
+            DLm_en = 1;
+            DHm_en = 1;
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_and;
+            A_ld = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        BIT_ABS:
+        begin 
+            PCLm_en = 0;    // A & M[D]
+            PCHm_en = 0;
+            DLm_en = 1;
+            DHm_en = 1;
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_and;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[6] = alu_V; // overflow
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        CMP_ABS:
+        begin 
+            PCLm_en = 0;    // A - M[D]
+            PCHm_en = 0;
+            DLm_en = 1;
+            DHm_en = 1;
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_sbc;
+            C_ctl = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            ctl_pvect[0] = alu_C; // carry
+            P_ld = 1;
+        end
+        EOR_ABS:
+        begin 
+            PCLm_en = 0;    // A ^= M[D]
+            PCHm_en = 0;
+            DLm_en = 1;
+            DHm_en = 1;
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_eor;
+            A_ld = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        LDA_ABS:
+        begin 
+            PCLm_en = 0;    // A = M[D]
+            PCHm_en = 0;
+            DLm_en = 1;
+            DHm_en = 1;
+            xferd_en = 1;
+            A_ld = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        LDX_ABS:
+        begin 
+            PCLm_en = 0;    // X = M[D]
+            PCHm_en = 0;
+            DLm_en = 1;
+            DHm_en = 1;
+            xferd_en = 1;
+            X_ld = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        LDY_ABS:
+        begin 
+            PCLm_en = 0;    // Y = M[D]
+            PCHm_en = 0;
+            DLm_en = 1;
+            DHm_en = 1;
+            xferd_en = 1;
+            Y_ld = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        ORA_ABS:
+        begin 
+            PCLm_en = 0;    // A |= M[D]
+            PCHm_en = 0;
+            DLm_en = 1;
+            DHm_en = 1;
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_ora;
+            A_ld = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[1] = alu_Z; // zero
+            P_ld = 1;
+        end
+        SBC_ABS:
+        begin 
+            PCLm_en = 0;    // A -= M[D]
+            PCHm_en = 0;
+            DLm_en = 1;
+            DHm_en = 1;
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_sbc;
+            C_ctl = P_in[0];
+            A_ld = 1;
+            ctl_pvect[7] = alu_N; // negative
+            ctl_pvect[6] = alu_V; // overflow
+            ctl_pvect[1] = alu_Z; // zero
+            ctl_pvect[0] = alu_C; // carry
+            P_ld = 1;
+        end
         JMP_ABS:
         begin 
             xferd_en = 1;          // PCH = M
@@ -532,6 +708,9 @@ begin : next_state_logic
     case(state)
         fetch1,
         JMP_ABS,
+        ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS,SBC_ABS,
+        STA_ABS, STX_ABS, STY_ABS,
+        ABSOLUTE_RMW_W,
         STA_ZPG, STX_ZPG, STY_ZPG, ZEROPAGE_MW:
             next_state = fetch2;
         fetch2,
@@ -541,28 +720,47 @@ begin : next_state_logic
         SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
         begin // See opCodeHex.v for all encodings.
             // Use commas to separate same next-states.
-            case({4'h0, IR_in[7:0]})
+            case({4'h0, mem_data})
                 ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM:
                     next_state = IMMEDIATE;
                 ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP, LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
                     next_state = IMPLIED_ACCUMULATOR;
-                JMP_ABS: // 1, "", fetch2
-                    next_state = JMP_ABS_1;
+                ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS, SBC_ABS, JMP_ABS: // 1, "", fetch2
+                    next_state = ABSOLUTE_1;
                 default: next_state = ERROR;
             endcase
         end
-        IMMEDIATE, IMPLIED_ACCUMULATOR:
-            next_state = {4'h0, IR_in[7:0]};
-        JMP_ABS_1:
-            next_state = JMP_ABS;
+        IMMEDIATE, IMPLIED_ACCUMULATOR, ABSOLUTE_RMW_R:
+            next_state = {4'h0, IR_in};
+        ABSOLUTE_1:
+        begin
+            case({4'h0, IR_in})
+                JMP_ABS:
+                    next_state = JMP_ABS;
+                default: next_state = ABSOLUTE_2;
+            endcase
+        end
+        ABSOLUTE_2:
+        begin 
+            case({4'h0, IR_in})   // LAX and NOP not supported (yet?).
+                ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS, SBC_ABS, STA_ABS, STX_ABS, STY_ABS: // No SAX
+                    next_state = {4'h0, IR_in};
+                ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS: // No SLO, SRE, RLA, RRA, ISB, DCP
+                    next_state = ABSOLUTE_RMW_R;
+                default:
+                    next_state = ERROR;
+            endcase
+        end
+        ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS:
+            next_state = ABSOLUTE_RMW_W;
         ZEROPAGE:
         begin
-            case({4'h0, IR_in[7:0]})
+            case({4'h0, IR_in})
                 LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG,
                 ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG:
                     next_state = ZEROPAGE_R;
                 STA_ZPG, STX_ZPG, STY_ZPG:
-                    next_state = {4'h0, IR_in[7:0]};
+                    next_state = {4'h0, IR_in};
                 default: next_state = ERROR;
             endcase
         end
@@ -571,7 +769,7 @@ begin : next_state_logic
             case({4'h0, IR_in[7:0]})
                 LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG,
                 ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG:
-                    next_state = {4'h0, IR_in[7:0]};
+                    next_state = {4'h0, IR_in};
                 default: next_state = ERROR;
             endcase
         end

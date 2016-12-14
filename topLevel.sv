@@ -65,12 +65,12 @@ wire IRmux_sel;
 // Other ALU signals:
 aluop_t aluop;
 wire V_in, V_out, C_in, C_out, N_out, Z_out;
-/* verilator lint_on UNOPTFLAT */
 
 // GP-Buses:
+wire [7:0] xfer_bus;
 wire [7:0] data_bus;
 wire [7:0] memory_bus_h, memory_bus_l;
-wire [7:0] xfer_bus;
+/* verilator lint_on UNOPTFLAT */
 
 // Output data:
 wire [7:0] X_out, Y_out, S_out, A_out, ALU_out;
@@ -111,8 +111,10 @@ wire        mem_rw;
 wire [7:0]  membuf_out;
 
 testmemory MEM(
-    // .clk(clkdiv[divfactor]),
+    .clk(clkdiv[divfactor]),
     .tm_address({memory_bus_h, memory_bus_l}),
+    .tm_indata(xfer_bus),
+    .rW(mem_rw),
     .tm_data(mem_data)
 );
 
@@ -456,10 +458,10 @@ mux2 IRmux(
 );
 
 gpReg IR_reg(
-    // .clk(clkdiv[divfactor]),
-    // .load(IR_ld),
-    .clk(IR_ld),
-    .load(1'b1),
+    .clk(clkdiv[divfactor]),
+    .load(IR_ld),
+    // .clk(IR_ld),
+    // .load(1'b1),
     .rst_n(1'b1),
     .in(IRmux_out),
     .out(IR_out)
@@ -491,6 +493,8 @@ control CTL(
     .P_in(P_out),
     .IR_in(IR_out),
     .alu_V(V_out), .alu_C(C_out), .alu_N(N_out), .alu_Z(Z_out),
+    .mem_data(mem_data),
+
     .ctl_pvect(ctl_pvect), .ctl_irvect(ctl_irvect),
     .X_en(X_en), .Y_en(Y_en), .Sd_en(Sd_en), .Sm_en(Sm_en), .A_en(A_en),
     .PCLd_en(PCLd_en), .PCLm_en(PCLm_en), .PCHd_en(PCHd_en), .PCHm_en(PCHm_en),

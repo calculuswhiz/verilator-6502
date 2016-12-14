@@ -1,13 +1,16 @@
 *=$0000
 ;;; begin: ;;;
-nop
-nop
-nop
-nop
-nop
+lda baddata
+bit baddata
+bit gooddata
+bit zero
+
 trap:
-nop
-nop
-nop
-nop
 jmp trap
+
+gooddata:
+.byt $aa
+baddata:
+.byt $ff
+zero:
+.byt $00

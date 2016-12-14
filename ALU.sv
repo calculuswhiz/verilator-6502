@@ -70,7 +70,7 @@ begin
         begin
             f = a&b;
             carry = carryIn;
-            overflow = overflowIn;
+            overflow = f[6];
         end
         alu_inc: // increment
         begin
