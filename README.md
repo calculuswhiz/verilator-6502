@@ -1,3 +1,7 @@
+#6502 on verilator
+
+This project is a continuation on the work I did [here](https://github.com/calculuswhiz/xilinx-6502).
+
 Tutorial for making verilog projects with verilator:
 
 Make sure you have these first:
