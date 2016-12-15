@@ -1,9 +1,9 @@
 *=$0000
 ;;; begin: ;;;
-lda baddata
-bit baddata
-bit gooddata
-bit zero
+lda gooddata
+sta baddata
+ldx baddata
+ldy baddata
 
 trap:
 jmp trap

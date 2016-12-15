@@ -179,8 +179,7 @@ begin : state_actions
             TLd_en  = 1;
         end
         IMPLIED_ACCUMULATOR:
-        begin 
-            /* No actions taken. */
+        begin
             IR_ld = 1;
         end
         ADC_IMM:
@@ -688,6 +687,123 @@ begin : state_actions
             ctl_pvect[0] = alu_C; // carry
             P_ld = 1;
         end
+        /* rmw-abs */
+        // Experiment: what if we use the memory bus for data transfer here, since we're not addressing:
+        ASL_ABS:
+        begin 
+            PCLm_en = 0;    // TL <<= (TL) (via memory bus)
+            PCHm_en = 0;
+            TLm_en = 1;
+            ALU_Bmux_sel = 3'b110;      // mem low
+            aluop = alu_asl;
+            ALUd_en = 1;
+            TL_ld = 1;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;
+            P_ld = 1;
+        end
+        DEC_ABS:
+        begin 
+            PCLm_en = 0;    // TL += 1 (via memory bus)
+            PCHm_en = 0;
+            TLm_en = 1;
+            ALU_Amux_sel = 3'b110;      // mem low
+            aluop = alu_dec;
+            ALUd_en = 1;
+            TL_ld = 1;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
+        end
+        INC_ABS:
+        begin 
+            PCLm_en = 0;    // TL += 1 (via memory bus)
+            PCHm_en = 0;
+            TLm_en = 1;
+            ALU_Amux_sel = 3'b110;      // mem low
+            aluop = alu_inc;
+            ALUd_en = 1;
+            TL_ld = 1;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            P_ld = 1;
+        end
+        LSR_ABS:
+        begin 
+            PCLm_en = 0;    // TL >>= op(TL) (via memory bus)
+            PCHm_en = 0;
+            TLm_en = 1;
+            ALU_Bmux_sel = 3'b110;      // mem low
+            aluop = alu_lsr;
+            ALUd_en = 1;
+            TL_ld = 1;
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;
+            P_ld = 1;
+        end
+        ROL_ABS:
+        begin 
+            PCLm_en = 0;    // TL = rol(TL) (via memory bus)
+            PCHm_en = 0;
+            TLm_en = 1;
+            ALU_Bmux_sel = 3'b110;      // mem low
+            aluop = alu_rol;
+            ALUd_en = 1;
+            TL_ld = 1;
+            C_ctl = P_in[0];
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;
+            P_ld = 1;
+        end
+        ROR_ABS:
+        begin 
+            PCLm_en = 0;    // TL = ror(TL) (via memory bus)
+            PCHm_en = 0;
+            TLm_en = 1;
+            ALU_Bmux_sel = 3'b110;      // mem low
+            aluop = alu_ror;
+            ALUd_en = 1;
+            TL_ld = 1;
+            C_ctl = P_in[0];
+            ctl_pvect[7]=alu_N; // Set flags
+            ctl_pvect[1]=alu_Z;
+            ctl_pvect[0]=alu_C;
+            P_ld = 1;
+        end
+        /* w-abs */
+        STA_ABS:
+        begin 
+            PCLm_en = 0;    // Address using D (NOT PC).
+            PCHm_en = 0;
+            DLm_en  = 1;
+            DHm_en  = 1;
+            mem_rw  = 0;    // write mode
+            A_en = 1;
+            xferu_en = 1;
+        end
+        STX_ABS:
+        begin 
+            PCLm_en = 0;    // Address using D (NOT PC).
+            PCHm_en = 0;
+            DLm_en  = 1;
+            DHm_en  = 1;
+            mem_rw  = 0;    // write mode
+            X_en = 1;
+            xferu_en = 1;
+        end
+        STY_ABS:
+        begin 
+            PCLm_en = 0;    // Address using D (NOT PC).
+            PCHm_en = 0;
+            DLm_en  = 1;
+            DHm_en  = 1;
+            mem_rw  = 0;    // write mode
+            Y_en = 1;
+            xferu_en = 1;
+        end
         JMP_ABS:
         begin 
             xferd_en = 1;          // PCH = M
@@ -725,8 +841,10 @@ begin : next_state_logic
                     next_state = IMMEDIATE;
                 ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP, LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
                     next_state = IMPLIED_ACCUMULATOR;
-                ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS, SBC_ABS, JMP_ABS: // 1, "", fetch2
+                ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS, SBC_ABS, ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS, STA_ABS, STX_ABS, STY_ABS, JMP_ABS: // 1, "", fetch2
                     next_state = ABSOLUTE_1;
+                LDA, LDX, LDY, EOR, AND, ORA, ADC, SBC, CMP, BIT, ASL, LSR, ROL, ROR, INC, DEC, STA, STX, STY:
+                    next_state = ZEROPAGE
                 default: next_state = ERROR;
             endcase
         end
@@ -743,7 +861,7 @@ begin : next_state_logic
         ABSOLUTE_2:
         begin 
             case({4'h0, IR_in})   // LAX and NOP not supported (yet?).
-                ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS, SBC_ABS, STA_ABS, STX_ABS, STY_ABS: // No SAX
+                ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS, SBC_ABS, STA_ABS, STX_ABS, STY_ABS: // No SAX before a fight.
                     next_state = {4'h0, IR_in};
                 ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS: // No SLO, SRE, RLA, RRA, ISB, DCP
                     next_state = ABSOLUTE_RMW_R;
