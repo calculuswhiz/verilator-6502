@@ -207,11 +207,11 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  fetch low byte of address, increment PC
-                        DL=M[PC], PC+=1     (ABS_READ_1)
+                        DL=M[PC], PC+=1     (ABSOLUTE_1)
         3    PC     R  fetch high byte of address, increment PC
-                        DH=M[PC], PC+=1     (ABS_READ_2)
+                        DH=M[PC], PC+=1     (ABSOLUTE_2)
         4  address  R  read from effective address
-                        A=M[D]              (ABS_READ_3)
+                        A=M[D]              (depends)
 
      Read-Modify-Write instructions (ASL, LSR, ROL, ROR, INC, DEC,
                                      SLO, SRE, RLA, RRA, ISB, DCP)
@@ -245,7 +245,7 @@ different kinds of instructions.
         4  address  W  write register to effective address
                         M[D]=A/X/Y/(A&X)
 
-  Zero page addressing
+  Zero page addressing - Note, implementation consolidates a lot of this with absolute states above.
 
      Read instructions (LDA, LDX, LDY, EOR, AND, ORA, ADC, SBC, CMP, BIT,
                         LAX, NOP)
@@ -257,7 +257,7 @@ different kinds of instructions.
         2    PC     R  fetch address, increment PC
                         D=00,M[PC], PC+=1   (ZEROPAGE)
         3  address  R  read from effective address
-                        TL=M[D]             (ZEROPAGE_R)
+                        TL=M[D]             (depends)
 
      Read-Modify-Write instructions (ASL, LSR, ROL, ROR, INC, DEC,
                                      SLO, SRE, RLA, RRA, ISB, DCP)
@@ -274,7 +274,7 @@ different kinds of instructions.
                        and do the operation on it
                         TL=op(TL)           (depends)
         5  address  W  write the new value to effective address
-                        M[D]=TL             (ZEROPAGE_MW)
+                        M[D]=TL             (ZEROPAGE_W)
 
 
      Write instructions (STA, STX, STY, SAX)

@@ -1,9 +1,7 @@
 *=$0000
 ;;; begin: ;;;
-lda gooddata
-sta baddata
-ldx baddata
-ldy baddata
+lda #$08
+jmp zpzone
 
 trap:
 jmp trap
@@ -14,3 +12,10 @@ baddata:
 .byt $ff
 zero:
 .byt $00
+seven:
+.byt $77
+
+zpzone:
+sta seven
+ldx seven
+jmp trap

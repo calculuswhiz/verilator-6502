@@ -37,12 +37,12 @@ typedef enum reg [11:0] {
     
     // Non-instruction states are reserved at >0xff
     // e.g. fetch1, fetch2, jmp_abs_1.
-    // Note:  Originally 12 bits. Culled it down to 9 bits.
     fetch1 = 12'h101, fetch2 = 12'h102,
     IMMEDIATE = 12'h103,
     IMPLIED_ACCUMULATOR = 12'h104,
+    // Maybe consolidate ABSOLUTE_RMW_W/ZEROPAGE_w
     ABSOLUTE_1 = 12'h105, ABSOLUTE_2 = 12'h106, ABSOLUTE_RMW_R = 12'h107, ABSOLUTE_RMW_W = 12'h108,
-    ZEROPAGE = 12'h109, ZEROPAGE_MW = 12'h10a, ZEROPAGE_R = 12'h10b,
+    ZEROPAGE = 12'h109, ZEROPAGE_W = 12'h10a, ZEROPAGE_R = 12'h10b,
     ERROR = 12'h1ff
     } cpu_state /* verilator public */; 
 /* verilator lint_on UNDRIVEN */
