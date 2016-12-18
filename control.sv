@@ -8,6 +8,7 @@ module control
     input [7:0] P_in,
     input [7:0] IR_in,
     input alu_V, alu_C, alu_N, alu_Z,
+    input data_bus_sign,    // Tells us if positive or negative
     input [7:0] mem_data,
     
     output reg [7:0] ctl_pvect, ctl_irvect,
@@ -26,7 +27,7 @@ module control
     // Load:
     output reg X_ld, Y_ld, S_ld, A_ld,
     output reg PCL_ld, PCH_ld,
-    output reg PCL_inc, PCH_inc,
+    output reg PCL_inc, PCH_inc, PCH_dec,
     output reg DL_ld, DH_ld,
     output reg DH_inc,
     output reg TL_ld, TH_ld,
@@ -58,9 +59,18 @@ module control
 //States:
 cpu_state state, next_state;
 
+// If 0 - normal
+// If 1 - inc
+// If 2 - dec
+// If 3 - undefined
+/* verilator lint_off UNOPTFLAT */
+reg [1:0] page_invalid;
+/* verilator lint_on UNOPTFLAT */
+
 initial
 begin 
     state = fetch1;
+    page_invalid = 0;
 end
 
 
@@ -106,6 +116,7 @@ begin : state_actions
     PCH_ld  = 0;
     PCL_inc = 0;    // Yes, these are load signals too.
     PCH_inc = 0;
+    PCH_dec = 0;
     DL_ld   = 0;
     DH_ld   = 0;
     DH_inc  = 0;
@@ -146,9 +157,8 @@ begin : state_actions
             PCL_inc = 1;
             IR_ld = 1;
         end
-        ABSOLUTE_1, IMMEDIATE:
+        ABSOLUTE_1, BRANCH, IMMEDIATE:
         begin
-            // $display("%s", state.name());
             PCL_inc  = 1;       // PC+=1
             xferd_en = 1;       // DL=M
             DL_ld    = 1;
@@ -177,6 +187,63 @@ begin : state_actions
             mem_rw  = 0;    // write mode
             xferu_en = 1;
             TLd_en  = 1;
+        end
+        BRANCH_CHECK:
+        begin 
+            if( ( IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[0])) | // C
+                ( IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[1])) | // Z
+                (~IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[6])) | // V
+                (~IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[7])))  // N
+            begin 
+                // Branch taken:
+                IR_ld = 1;
+                PCLm_en = 0;
+                DLd_en = 1;             // PCL += DL
+                ALU_Amux_sel = 3'b100;
+                ALU_Bmux_sel = 3'b101;
+                aluop = alu_adc;
+                ALUm_en = 1;
+                PCLmux_sel = 1;
+                PCL_ld = 1;
+                // Fix PCH: if a: carry on positive addition, or b: no carry on negative addition.
+                if(~data_bus_sign & alu_C)
+                    page_invalid = 2'b01;
+                else if(data_bus_sign & ~alu_C)
+                    page_invalid = 2'b10;
+                else
+                    page_invalid = 2'b00;
+            end
+            else
+            begin 
+                // Branch not taken:
+                PCL_inc = 1;
+                IR_ld = 1;
+            end
+        end
+        BRANCH_TAKEN:
+        begin 
+            IR_ld = 1;
+            case(page_invalid)
+                2'b00:
+                    PCL_inc = 1;
+                2'b01: 
+                    PCH_inc = 1;
+                2'b10:
+                    PCH_dec = 1;
+                2'b11: // Error:
+                begin 
+                    $display("Error in branch taken.");
+                end
+            endcase
+        end
+        BRANCH_PAGE:
+        begin 
+            IR_ld = 1;
+            PCL_inc = 1;
+        end
+        DONE_BRANCH:
+        begin 
+            PCL_inc = 1;
         end
         IMPLIED_ACCUMULATOR:
         begin
@@ -209,6 +276,7 @@ begin : state_actions
             xferu_en = 1;
             mem_rw = 0;
         end
+        /* Uniques */
         ADC_IMM:
         begin
             PCL_inc = 1;        // PC+=1
@@ -852,7 +920,7 @@ begin : state_actions
         end
         /* Misc. */
         JMP_ABS:
-        begin 
+        begin
             xferd_en = 1;          // PCH = M
             PCH_ld = 1;
             PCLmux_sel = 2; // PCL = DL
@@ -880,22 +948,29 @@ begin : next_state_logic
         ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM, 
         ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
         LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP,
-        SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
+        SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP, BRANCH_TAKEN:
         begin // See opCodeHex.v for all encodings.
             // Use commas to separate same next-states.
-            case({4'h0, mem_data})
-                ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM:
-                    next_state = IMMEDIATE;
-                ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP, LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
-                    next_state = IMPLIED_ACCUMULATOR;
-                ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS, SBC_ABS, ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS, STA_ABS, STX_ABS, STY_ABS, JMP_ABS: // 1, "", fetch2
-                    next_state = ABSOLUTE_1;
-                LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG, ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG, STA_ZPG, STX_ZPG, STY_ZPG:
-                    next_state = ZEROPAGE;
-                default: next_state = ERROR;
-            endcase
+            if( state == BRANCH_TAKEN && page_invalid != 2'b00 )
+                next_state = BRANCH_PAGE;
+            else
+            begin
+                case({4'h0, mem_data})
+                    ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM:
+                        next_state = IMMEDIATE;
+                    ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP, LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
+                        next_state = IMPLIED_ACCUMULATOR;
+                    ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS, SBC_ABS, ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS, STA_ABS, STX_ABS, STY_ABS, JMP_ABS: // 1, "", fetch2
+                        next_state = ABSOLUTE_1;
+                    LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG, ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG, STA_ZPG, STX_ZPG, STY_ZPG:
+                        next_state = ZEROPAGE;
+                    BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVC_REL, BVS_REL:
+                        next_state = BRANCH;
+                    default: next_state = ERROR;
+                endcase
+            end
         end
-        IMMEDIATE, IMPLIED_ACCUMULATOR, ABSOLUTE_RMW_R, ZEROPAGE_R:
+        IMMEDIATE, IMPLIED_ACCUMULATOR, ABSOLUTE_RMW_R, ZEROPAGE_R, DONE_BRANCH, BRANCH_PAGE:
             next_state = {4'h0, IR_in};
         ABSOLUTE_1:
         begin
@@ -932,6 +1007,32 @@ begin : next_state_logic
                 default: next_state = ERROR;
             endcase
         end
+        BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVS_REL, BVC_REL:
+        begin 
+            next_state = BRANCH;
+        end
+        BRANCH:
+        begin 
+            next_state = BRANCH_CHECK;
+        end
+        BRANCH_CHECK:
+        begin 
+            /* Check flags, see if branch or not. */
+            if( ( IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[0])) | // C
+                ( IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[1])) | // Z
+                (~IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[6])) | // V
+                (~IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[7])))  // N
+                next_state = BRANCH_TAKEN;
+            else
+                next_state = DONE_BRANCH;
+        end
+        // BRANCH_TAKEN:
+        // begin 
+        //     if( page_invalid != 2'b00 )
+        //         next_state = BRANCH_PAGE;
+        //     else
+        //         next_state = {4'h0, IR_in};
+        // end
         ERROR: next_state = ERROR;
         default: next_state = ERROR;
     endcase

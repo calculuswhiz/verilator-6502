@@ -438,17 +438,25 @@ different kinds of instructions.
         1     PC      R  fetch opcode, increment PC
                             IR=M[PC], PC+=1
         2     PC      R  fetch operand, increment PC
-                            DL=M[PC], PC+=1
-        3     PC      R  Fetch opcode of next instruction,
+                            DL=M[PC], PC+=1                         (BRANCH)
+        3     PC      R  Fetch opcode of next instruction,          (BRANCH_CHECK)
                          If branch is taken, add operand to PCL.
                          Otherwise increment PC.
                             IR=M[PC], if taken, PCL+=DL, else PC+=1
-        4+    PC*     R  Fetch opcode of next instruction.
+        4+    PC*     R  Fetch opcode of next instruction.          (BRANCH_TAKEN)
                          Fix PCH. If it did not change, increment PC.
                             IR=M[PC], If PCH invalid, PCH+=1, else PC+=1 and done
-        5!    PC      R  Fetch opcode of next instruction,
+        5!    PC      R  Fetch opcode of next instruction,          (BRANCH_PAGE)
                          increment PC.
                             IR=M[PC], PC+=1
+                            
+        == Fix condition examples:
+        - PCL   REL:
+        - $ff + $01 = yes -> Carry on addition of positive #.
+        - $fe + $01 = no  -> No carry on addition of positive #.
+        - $01 + $ff = no  -> Carry on addition of negative #.
+        - $01 + $fe = yes -> No carry on addition of negative #.
+        
 
        Notes: The opcode fetch of the next instruction is included to
               this diagram for illustration purposes. When determining

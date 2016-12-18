@@ -44,7 +44,7 @@ wire Zl_en, Zh_en;
 // Load:
 wire X_ld, Y_ld, S_ld, A_ld;
 wire PCL_ld, PCH_ld;
-wire PCL_inc, PCH_inc;
+wire PCL_inc, PCH_inc, PCH_dec;
 wire DL_ld, DH_ld;
 wire DH_inc;
 wire TL_ld, TH_ld;
@@ -295,6 +295,7 @@ PC PC_reg(
     .load_pc_l(PCL_ld),
     .L_inc(PCL_inc),
     .H_inc(PCH_inc),
+    .H_dec(PCH_dec),
     .PCL_in(PCLmux_out),
     .PCH_in(PCHmux_out),
     .PCL_out(PCL_out),
@@ -346,6 +347,7 @@ PC D_reg(
     .load_pc_l(DL_ld),
     .L_inc(1'b0),
     .H_inc(DH_inc),
+    .H_dec(1'b0),
     .PCL_in(DLmux_out),
     .PCH_in(DHmux_out),
     .PCL_out(DL_out),
@@ -398,6 +400,7 @@ PC T_reg(
     .load_pc_l(TL_ld),
     .L_inc(1'b0),
     .H_inc(TH_inc),
+    .H_dec(1'b0),
     .PCL_in(TLmux_out),
     // .PCH_in(THmux_out),
     .PCH_in(zeroout),
@@ -493,6 +496,7 @@ control CTL(
     .P_in(P_out),
     .IR_in(IR_out),
     .alu_V(V_out), .alu_C(C_out), .alu_N(N_out), .alu_Z(Z_out),
+    .data_bus_sign(data_bus[7]),
     .mem_data(mem_data),
 
     .ctl_pvect(ctl_pvect), .ctl_irvect(ctl_irvect),
@@ -506,7 +510,7 @@ control CTL(
     .Zl_en(Zl_en), .Zh_en(Zh_en),
     .X_ld(X_ld), .Y_ld(Y_ld), .S_ld(S_ld), .A_ld(A_ld),
     .PCL_ld(PCL_ld), .PCH_ld(PCH_ld),
-    .PCL_inc(PCL_inc), .PCH_inc(PCH_inc),
+    .PCL_inc(PCL_inc), .PCH_inc(PCH_inc), .PCH_dec(PCH_dec),
     .DL_ld(DL_ld), .DH_ld(DH_ld), .DH_inc(DH_inc),
     .TL_ld(TL_ld), .TH_ld(TH_ld), .TH_inc(TH_inc),
     .P_ld(P_ld), .IR_ld(IR_ld),

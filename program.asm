@@ -1,21 +1,19 @@
 *=$0000
 ;;; begin: ;;;
-lda #$08
-jmp zpzone
+jmp text
+
+data:
+number:
+.byt $0a
+
+text:
+;;;;Program start;;;;
+lda #$00
+loop:
+adc number
+dec number
+ldx number
+bne loop
 
 trap:
-jmp trap
-
-gooddata:
-.byt $aa
-baddata:
-.byt $ff
-zero:
-.byt $00
-seven:
-.byt $77
-
-zpzone:
-sta seven
-ldx seven
 jmp trap

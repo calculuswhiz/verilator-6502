@@ -11,7 +11,9 @@ module PC
     
     // These both override the load signals, so there's no need to set them.
     input L_inc,
-    input H_inc,    // Set this value high to correct invalidation.
+    // If invalid: (Note that inc overrides dec)
+    input H_inc,
+    input H_dec,
     
 	input [7:0]    PCL_in,
 	input [7:0]    PCH_in,
@@ -34,6 +36,11 @@ begin
     else if (H_inc)
     begin
         data[15:8]<=data[15:8]+1'b1;
+        data[7:0] <=data[7:0];
+    end
+    else if (H_dec)
+    begin 
+        data[15:8]<=data[15:8]-1'b1;
         data[7:0] <=data[7:0];
     end
     else if (load_pc_h|load_pc_l)
