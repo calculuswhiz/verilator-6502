@@ -1,0 +1,13 @@
+# ALU operations:
+0 ADC
+1 SBC
+2 EOR
+3 ORA
+4 AND
+5 INC
+6 DEC
+7 ROR
+8 ROL
+9 ASL
+a LSR
+f PAS

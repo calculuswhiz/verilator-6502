@@ -41,9 +41,10 @@ typedef enum reg [11:0] {
     IMMEDIATE = 12'h103,
     IMPLIED_ACCUMULATOR = 12'h104,
     // Maybe consolidate ABSOLUTE_RMW_W/ZEROPAGE_w
-    ABSOLUTE_1 = 12'h105, ABSOLUTE_2 = 12'h106, ABSOLUTE_RMW_R = 12'h107, ABSOLUTE_RMW_W = 12'h108,
+    ABSOLUTE_1 = 12'h105, ABSOLUTE_2 = 12'h106, ABSOLUTE_R = 12'h107, ABSOLUTE_W = 12'h108,
     ZEROPAGE = 12'h109, ZEROPAGE_W = 12'h10a, ZEROPAGE_R = 12'h10b,
     BRANCH = 12'h10c, BRANCH_CHECK = 12'h10d, BRANCH_TAKEN = 12'h10e, BRANCH_PAGE = 12'h10f, DONE_BRANCH = 12'h110,
+    ZEROPAGE_X = 12'h111, ZEROPAGE_Y = 12'h112,
     ERROR = 12'h1ff
     } cpu_state /* verilator public */; 
 /* verilator lint_on UNDRIVEN */

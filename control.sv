@@ -141,7 +141,7 @@ begin : state_actions
     IRmux_sel       = 0;
         
     // Other ALU signals:
-    aluop   = alu_nop;
+    aluop   = alu_pas;
     V_ctl   = 0;    // Need V_ctl?
     C_ctl   = 0;
          
@@ -150,6 +150,7 @@ begin : state_actions
     // $display("%s", state.name());
     /* State actions: */
     case(state)
+        /* General states: */
         fetch1: /* Ready memory */
             IR_ld = 1;  
         fetch2:
@@ -169,7 +170,7 @@ begin : state_actions
             xferd_en = 1;       // DH = M
             DH_ld   = 1;
         end
-        ABSOLUTE_RMW_R:
+        ABSOLUTE_R:
         begin
             PCLm_en = 0;    // Address using D (NOT PC).
             PCHm_en = 0;
@@ -178,7 +179,7 @@ begin : state_actions
             xferd_en = 1;
             TL_ld   = 1;    // TL=M[D]
         end
-        ABSOLUTE_RMW_W:
+        ABSOLUTE_W:
         begin
             PCLm_en = 0;    // Address using D (NOT PC).
             PCHm_en = 0;
@@ -276,7 +277,27 @@ begin : state_actions
             xferu_en = 1;
             mem_rw = 0;
         end
-        /* Uniques */
+        ZEROPAGE_X:
+        begin 
+            DLd_en = 1;         // D += X
+            ALU_Amux_sel = 3'b100;
+            ALU_Bmux_sel = 3'b001;
+            aluop = alu_adc;
+            ALUm_en = 1;
+            DLmux_sel = 1;
+            DL_ld = 1;
+        end
+        ZEROPAGE_Y:
+        begin 
+            DLd_en = 1;         // D += X
+            ALU_Amux_sel = 3'b100;
+            ALU_Bmux_sel = 3'b010;
+            aluop = alu_adc;
+            ALUm_en = 1;
+            DLmux_sel = 1;
+            DL_ld = 1;
+        end
+        /* imm */
         ADC_IMM:
         begin
             PCL_inc = 1;        // PC+=1
@@ -422,6 +443,7 @@ begin : state_actions
             ctl_pvect[0]=alu_C;
             P_ld = 1;
         end
+        /* imp/acc */
         ASL_ACC:
         begin
             PCL_inc = 1;
@@ -636,6 +658,7 @@ begin : state_actions
         end
         /* zpg/abs-r */
         ADC_ZPG,
+        ADC_ZPX,
         ADC_ABS:
         begin 
             PCLm_en = 0;    // A += M[D]
@@ -655,6 +678,7 @@ begin : state_actions
             P_ld = 1;
         end
         AND_ZPG,
+        AND_ZPX,
         AND_ABS:
         begin 
             PCLm_en = 0;    // A &= M[D]
@@ -687,6 +711,7 @@ begin : state_actions
             P_ld = 1;
         end
         CMP_ZPG,
+        CMP_ZPX,
         CMP_ABS:
         begin 
             PCLm_en = 0;    // A - M[D]
@@ -704,6 +729,7 @@ begin : state_actions
             P_ld = 1;
         end
         EOR_ZPG,
+        EOR_ZPX,
         EOR_ABS:
         begin 
             PCLm_en = 0;    // A ^= M[D]
@@ -720,6 +746,7 @@ begin : state_actions
             P_ld = 1;
         end
         LDA_ZPG,
+        LDA_ZPX,
         LDA_ABS:
         begin 
             PCLm_en = 0;    // A = M[D]
@@ -733,6 +760,7 @@ begin : state_actions
             P_ld = 1;
         end
         LDX_ZPG,
+        LDX_ZPY,
         LDX_ABS:
         begin 
             PCLm_en = 0;    // X = M[D]
@@ -746,6 +774,7 @@ begin : state_actions
             P_ld = 1;
         end
         LDY_ZPG,
+        LDY_ZPX,
         LDY_ABS:
         begin 
             PCLm_en = 0;    // Y = M[D]
@@ -759,6 +788,7 @@ begin : state_actions
             P_ld = 1;
         end
         ORA_ZPG,
+        ORA_ZPX,
         ORA_ABS:
         begin 
             PCLm_en = 0;    // A |= M[D]
@@ -775,6 +805,7 @@ begin : state_actions
             P_ld = 1;
         end
         SBC_ZPG,
+        SBC_ZPX,
         SBC_ABS:
         begin 
             PCLm_en = 0;    // A -= M[D]
@@ -795,6 +826,7 @@ begin : state_actions
         end
         /* rmw/zpg-abs */
         ASL_ZPG,
+        ASL_ZPX,
         ASL_ABS:
         begin 
             PCLm_en = 0;    // TL <<= (TL) (via memory bus)
@@ -810,6 +842,7 @@ begin : state_actions
             P_ld = 1;
         end
         DEC_ZPG,
+        DEC_ZPX,
         DEC_ABS:
         begin 
             PCLm_en = 0;    // TL += 1 (via memory bus)
@@ -824,6 +857,7 @@ begin : state_actions
             P_ld = 1;
         end
         INC_ZPG,
+        INC_ZPX,
         INC_ABS:
         begin 
             PCLm_en = 0;    // TL += 1 (via memory bus)
@@ -838,6 +872,7 @@ begin : state_actions
             P_ld = 1;
         end
         LSR_ZPG,
+        LSR_ZPX,
         LSR_ABS:
         begin 
             PCLm_en = 0;    // TL >>= op(TL) (via memory bus)
@@ -853,6 +888,7 @@ begin : state_actions
             P_ld = 1;
         end
         ROL_ZPG,
+        ROL_ZPX,
         ROL_ABS:
         begin 
             PCLm_en = 0;    // TL = rol(TL) (via memory bus)
@@ -869,6 +905,7 @@ begin : state_actions
             P_ld = 1;
         end
         ROR_ZPG,
+        ROR_ZPX,
         ROR_ABS:
         begin 
             PCLm_en = 0;    // TL = ror(TL) (via memory bus)
@@ -886,6 +923,7 @@ begin : state_actions
         end
         /* abs/zpg-w */
         STA_ZPG,
+        STA_ZPX,
         STA_ABS:
         begin 
             PCLm_en = 0;    // Address using D (NOT PC).
@@ -897,6 +935,7 @@ begin : state_actions
             xferu_en = 1;
         end
         STX_ZPG,
+        STX_ZPY,
         STX_ABS:
         begin 
             PCLm_en = 0;    // Address using D (NOT PC).
@@ -908,6 +947,7 @@ begin : state_actions
             xferu_en = 1;
         end
         STY_ZPG,
+        STY_ZPX,
         STY_ABS:
         begin 
             PCLm_en = 0;    // Address using D (NOT PC).
@@ -937,18 +977,18 @@ begin : next_state_logic
      * for transitioning between states */
     next_state = state;
     case(state)
-        fetch1,
+        fetch1, ABSOLUTE_W, ZEROPAGE_W,
         JMP_ABS,
         ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS,SBC_ABS,
         STA_ABS, STX_ABS, STY_ABS,
-        ABSOLUTE_RMW_W,
-        LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG, STA_ZPG, STX_ZPG, STY_ZPG, ZEROPAGE_W:
+        LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG, STA_ZPG, STX_ZPG, STY_ZPG,
+        LDA_ZPX, LDX_ZPY, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX, STA_ZPX, STX_ZPY, STY_ZPX:
             next_state = fetch2;
-        fetch2,
+        fetch2, BRANCH_TAKEN,
         ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM, 
         ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
         LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP,
-        SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP, BRANCH_TAKEN:
+        SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
         begin // See opCodeHex.v for all encodings.
             // Use commas to separate same next-states.
             if( state == BRANCH_TAKEN && page_invalid != 2'b00 )
@@ -962,15 +1002,19 @@ begin : next_state_logic
                         next_state = IMPLIED_ACCUMULATOR;
                     ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS, SBC_ABS, ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS, STA_ABS, STX_ABS, STY_ABS, JMP_ABS: // 1, "", fetch2
                         next_state = ABSOLUTE_1;
-                    LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG, ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG, STA_ZPG, STX_ZPG, STY_ZPG:
+                    LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG, ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG, STA_ZPG, STX_ZPG, STY_ZPG,
+                    LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX, ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX, STA_ZPX, STY_ZPX, LDX_ZPY, STX_ZPY:
                         next_state = ZEROPAGE;
                     BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVC_REL, BVS_REL:
                         next_state = BRANCH;
-                    default: next_state = ERROR;
+                    default:
+                    begin 
+                        next_state = ERROR;
+                    end
                 endcase
             end
         end
-        IMMEDIATE, IMPLIED_ACCUMULATOR, ABSOLUTE_RMW_R, ZEROPAGE_R, DONE_BRANCH, BRANCH_PAGE:
+        IMMEDIATE, IMPLIED_ACCUMULATOR, ABSOLUTE_R, ZEROPAGE_R, DONE_BRANCH, BRANCH_PAGE:
             next_state = {4'h0, IR_in};
         ABSOLUTE_1:
         begin
@@ -987,14 +1031,17 @@ begin : next_state_logic
                 SBC_ABS, STA_ABS, STX_ABS, STY_ABS: // No SAX before a fight.
                     next_state = {4'h0, IR_in};
                 ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS: // No SLO, SRE, RLA, RRA, ISB, DCP
-                    next_state = ABSOLUTE_RMW_R;
+                    next_state = ABSOLUTE_R;
                 default:
+                begin 
                     next_state = ERROR;
+                end
             endcase
         end
         ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS:
-            next_state = ABSOLUTE_RMW_W;
-        ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG:
+            next_state = ABSOLUTE_W;
+        ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG,
+        ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX:
             next_state = ZEROPAGE_W;
         ZEROPAGE:
         begin
@@ -1004,7 +1051,27 @@ begin : next_state_logic
                     next_state = {4'h0, IR_in};
                 ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG:
                     next_state = ZEROPAGE_R;
-                default: next_state = ERROR;
+                LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX, ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX, STA_ZPX, STY_ZPX:
+                    next_state = ZEROPAGE_X;
+                LDX_ZPY, STX_ZPY:
+                    next_state = ZEROPAGE_Y;
+                default:
+                begin 
+                    next_state = ERROR;
+                end
+            endcase
+        end
+        ZEROPAGE_X, ZEROPAGE_Y:
+        begin 
+            case({4'h0, IR_in})
+                LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX, STA_ZPX, STY_ZPX, STX_ZPY:
+                    next_state = {4'h0, IR_in};
+                ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX, LDX_ZPY:
+                    next_state = ZEROPAGE_R;
+                default:
+                begin 
+                    next_state = ERROR;
+                end
             endcase
         end
         BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVS_REL, BVC_REL:
@@ -1024,23 +1091,29 @@ begin : next_state_logic
                 (~IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[7])))  // N
                 next_state = BRANCH_TAKEN;
             else
-                next_state = DONE_BRANCH;
+                next_state = DONE_BRANCH;   // I don't know if this works yet. To debug, jump over a page.
         end
-        // BRANCH_TAKEN:
-        // begin 
-        //     if( page_invalid != 2'b00 )
-        //         next_state = BRANCH_PAGE;
-        //     else
-        //         next_state = {4'h0, IR_in};
-        // end
-        ERROR: next_state = ERROR;
-        default: next_state = ERROR;
+        ERROR:
+        begin 
+            $display("Machine is in error state.");
+            $finish();
+            next_state = ERROR;
+        end
+        default:
+        begin 
+            $display("State Error Encountered. %d", state);
+            next_state = ERROR;
+        end
     endcase
 end
 
 always @(posedge clk)
 begin: next_state_assignment
     /* Assignment of next state on clock edge */
+    if (next_state == ERROR)
+    begin 
+        $display("Error Encountered. %x", state);
+    end
     state <= next_state;
 end
 

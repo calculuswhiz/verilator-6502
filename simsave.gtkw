@@ -1,0 +1,193 @@
+[*]
+[*] GTKWave Analyzer v3.3.76 (w)1999-2016 BSI
+[*] Mon Dec 19 06:25:56 2016
+[*]
+[dumpfile] "/home/zach/Documents/6502-verilator/6502-sim.vcd"
+[dumpfile_mtime] "Mon Dec 19 06:25:24 2016"
+[dumpfile_size] 47094
+[savefile] "/home/zach/Documents/6502-verilator/simsave.gtkw"
+[timestart] 0
+[size] 1987 1030
+[pos] -1 -1
+*-3.812992 46 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] topLevel.
+[sst_width] 260
+[signals_width] 239
+[sst_expanded] 1
+[sst_vpaned_height] 295
+@28
+TOP.clk
+@800200
+-Registers
+@c00022
+topLevel.A_out[7:0]
+@28
+(0)topLevel.A_out[7:0]
+(1)topLevel.A_out[7:0]
+(2)topLevel.A_out[7:0]
+(3)topLevel.A_out[7:0]
+(4)topLevel.A_out[7:0]
+(5)topLevel.A_out[7:0]
+(6)topLevel.A_out[7:0]
+(7)topLevel.A_out[7:0]
+@1401200
+-group_end
+@22
+topLevel.DH_out[7:0]
+topLevel.DL_out[7:0]
+topLevel.IR_out[7:0]
+topLevel.TL_out[7:0]
+topLevel.TH_out[7:0]
+topLevel.S_out[7:0]
+topLevel.X_out[7:0]
+topLevel.Y_out[7:0]
+@1000200
+-Registers
+@800200
+-Bus
+@c00022
+topLevel.data_bus[7:0]
+@28
+(0)topLevel.data_bus[7:0]
+(1)topLevel.data_bus[7:0]
+(2)topLevel.data_bus[7:0]
+(3)topLevel.data_bus[7:0]
+(4)topLevel.data_bus[7:0]
+(5)topLevel.data_bus[7:0]
+(6)topLevel.data_bus[7:0]
+(7)topLevel.data_bus[7:0]
+@1401200
+-group_end
+@c00022
++{addr lo [7:0]} topLevel.memory_bus_l[7:0]
+@28
+(0)topLevel.memory_bus_l[7:0]
+(1)topLevel.memory_bus_l[7:0]
+(2)topLevel.memory_bus_l[7:0]
+(3)topLevel.memory_bus_l[7:0]
+(4)topLevel.memory_bus_l[7:0]
+(5)topLevel.memory_bus_l[7:0]
+(6)topLevel.memory_bus_l[7:0]
+(7)topLevel.memory_bus_l[7:0]
+@1401200
+-group_end
+@c00022
++{addr hi [7:0]} topLevel.memory_bus_h[7:0]
+@28
+(0)topLevel.memory_bus_h[7:0]
+(1)topLevel.memory_bus_h[7:0]
+(2)topLevel.memory_bus_h[7:0]
+(3)topLevel.memory_bus_h[7:0]
+(4)topLevel.memory_bus_h[7:0]
+(5)topLevel.memory_bus_h[7:0]
+(6)topLevel.memory_bus_h[7:0]
+(7)topLevel.memory_bus_h[7:0]
+@1401200
+-group_end
+@c00022
+topLevel.mem_data[7:0]
+@28
+(0)topLevel.mem_data[7:0]
+(1)topLevel.mem_data[7:0]
+(2)topLevel.mem_data[7:0]
+(3)topLevel.mem_data[7:0]
+(4)topLevel.mem_data[7:0]
+(5)topLevel.mem_data[7:0]
+(6)topLevel.mem_data[7:0]
+(7)topLevel.mem_data[7:0]
+@1401200
+-group_end
+@22
+topLevel.xfer_bus[7:0]
+@1000200
+-Bus
+@800200
+-ALU
+@2022
+^1 /home/zach/Documents/6502-verilator/filters/aluop_filter.txt
+topLevel.aluop[3:0]
+@22
+topLevel.ALU_out[7:0]
+@28
+topLevel.C_out
+@22
+topLevel.ALU_6502.f[8:0]
++{Operand A} topLevel.ALU_Amux_out[7:0]
++{Operand B} topLevel.ALU_Bmux_out[7:0]
+@28
+topLevel.C_in
+topLevel.ALU_6502.overflow
+topLevel.ALU_6502.negative
+topLevel.ALU_6502.zero
+topLevel.ALU_Amux_sel[2:0]
+topLevel.ALU_Bmux_sel[2:0]
+@1000200
+-ALU
+@800200
+-State
+@2023
+^2 /home/zach/Documents/6502-verilator/filters/state_filter.txt
+topLevel.state_out[11:0]
+@2022
+^2 /home/zach/Documents/6502-verilator/filters/state_filter.txt
+topLevel.CTL.next_state[11:0]
+@c00028
++{NV-BDIZC} topLevel.P_out[7:0]
+@28
+(0)topLevel.P_out[7:0]
+(1)topLevel.P_out[7:0]
+(2)topLevel.P_out[7:0]
+(3)topLevel.P_out[7:0]
+(4)topLevel.P_out[7:0]
+(5)topLevel.P_out[7:0]
+(6)topLevel.P_out[7:0]
+(7)topLevel.P_out[7:0]
+@1401200
+-group_end
+@28
+TOP.DEBUGLED
+@22
+topLevel.PCH_out[7:0]
+topLevel.PCL_out[7:0]
+@28
+topLevel.CTL.page_invalid[1:0]
+@1000200
+-State
+@200
+-
+@c00200
+-Other
+@28
+topLevel.CTL.PCL_inc
+topLevel.mem_rw
+topLevel.CTL.IR_ld
+topLevel.ALUd_en
+topLevel.ALUm_en
+topLevel.A_en
+topLevel.A_ld
+topLevel.DHd_en
+topLevel.DHm_en
+topLevel.DLd_en
+topLevel.DLm_en
+topLevel.IR_en
+topLevel.PCHd_en
+topLevel.PCHm_en
+topLevel.PCLd_en
+topLevel.PCLm_en
+topLevel.Pd_en
+topLevel.Sd_en
+topLevel.Sm_en
+topLevel.THd_en
+topLevel.THm_en
+topLevel.TLd_en
+topLevel.TLm_en
+topLevel.X_en
+topLevel.Y_en
+topLevel.Zh_en
+topLevel.Zl_en
+topLevel.xferd_en
+topLevel.xferu_en
+@1401200
+-Other
+[pattern_trace] 1
+[pattern_trace] 0

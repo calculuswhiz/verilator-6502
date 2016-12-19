@@ -1,8 +1,12 @@
 *=$0000
-;;; begin: ;;;
+;;; begin ;;;
+init:
+lda $00
 jmp text
 
 data:
+noninstruction:     ; Trigger error on purpose by jumping here.
+.byt $03
 number:
 .byt $0a
 
@@ -12,7 +16,6 @@ lda #$00
 loop:
 adc number
 dec number
-ldx number
 bne loop
 
 trap:
