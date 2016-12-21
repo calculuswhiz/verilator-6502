@@ -1,13 +1,14 @@
 /*
     These are all the byte registers:
-    - X and Y, Index registers ~ %sil, %dil
-    - A, Accumulator ~ %al
+    - S, Stack pointer ~ %spl
 */
 
-module gpReg #(parameter width = 8)
+module SPreg #(parameter width = 8)
 (
     input clk,
     input load,
+    input inc,
+    input dec,
     input rst_n,  // Asynchronous reset active low
     input [width-1:0] in,
     output [width-1:0] out
@@ -26,10 +27,14 @@ always @ (posedge clk or negedge rst_n)
 begin 
     if(~rst_n)
         data<=0;
+    else if(inc)
+        data<=in+1'b1;
+    else if(dec)
+        data<=in-1'b1;
     else if(load)
         data<=in;
 end
 
 assign out = data;
 
-endmodule : gpReg
+endmodule : SPreg

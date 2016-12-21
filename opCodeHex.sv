@@ -29,10 +29,10 @@ typedef enum reg [11:0] {
     ROR_ZPG = 12'h66, SBC_ZPG = 12'hE5, STA_ZPG = 12'h85, STX_ZPG = 12'h86, STY_ZPG = 12'h84,
 
     ADC_ZPX = 12'h75, AND_ZPX = 12'h35, ASL_ZPX = 12'h16, CMP_ZPX = 12'hD5, DEC_ZPX = 12'hD6, EOR_ZPX = 12'h55, INC_ZPX = 12'hF6, LDA_ZPX = 12'hB5,
-    LDY_ZPX = 12'hB4, LSR_ZPX = 12'h56, ORA_ZPX = 12'h15, ROL_ZPX = 12'h36, ROR_ZPX = 12'h76, SBC_ZPX = 12'hF5, STA_ZPX = 12'h95, STY_ZPX = 12'h94,
+    LDY_ZPX = 12'hB4, LSR_ZPX = 12'h56, ORA_ZPX = 12'h15, ROL_ZPX = 12'h36, ROR_ZPX = 12'h76, SBC_ZPX = 12'hF5, STA_ZPX = 12'h95, STY_ZPX = 12'h94, LDX_ZPY = 12'hB6, STX_ZPY = 12'h96,
 
     BCC_REL = 12'h90, BCS_REL = 12'hB0, BEQ_REL = 12'hF0, BMI_REL = 12'h30, BNE_REL = 12'hD0, BPL_REL = 12'h10, BVC_REL = 12'h50, BVS_REL = 12'h70,
-    JMP_IND = 12'h6C, LDX_ZPY = 12'hB6, STX_ZPY = 12'h96,
+    JMP_IND = 12'h6C,
     // End official opcodes.
     
     // Non-instruction states are reserved at >0xff
@@ -40,11 +40,15 @@ typedef enum reg [11:0] {
     fetch1 = 12'h101, fetch2 = 12'h102,
     IMMEDIATE = 12'h103,
     IMPLIED_ACCUMULATOR = 12'h104,
-    // Maybe consolidate ABSOLUTE_RMW_W/ZEROPAGE_w
     ABSOLUTE_1 = 12'h105, ABSOLUTE_2 = 12'h106, ABSOLUTE_R = 12'h107, ABSOLUTE_W = 12'h108,
     ZEROPAGE = 12'h109, ZEROPAGE_W = 12'h10a, ZEROPAGE_R = 12'h10b,
     BRANCH = 12'h10c, BRANCH_CHECK = 12'h10d, BRANCH_TAKEN = 12'h10e, BRANCH_PAGE = 12'h10f, DONE_BRANCH = 12'h110,
     ZEROPAGE_X = 12'h111, ZEROPAGE_Y = 12'h112,
-    ERROR = 12'h1ff
+    ABSOLUTE_X = 12'h113, ABSOLUTE_Y = 12'h114, ABSOLUTE_XYR = 12'h115, ABSOLUTE_XYR_PAGE = 12'h116,
+    
+    // ABX/Y second stages:
+    LDA_ABX_PG = 12'h2BD, LDA_ABY_PG = 12'h2B9, LDY_ABX_PG = 12'h2BC, LDX_ABY_PG = 12'h2BE, EOR_ABX_PG = 12'h25D, EOR_ABY_PG = 12'h259, AND_ABX_PG = 12'h23D, AND_ABY_PG = 12'h239, ORA_ABX_PG = 12'h21D, ORA_ABY_PG = 12'h219, ADC_ABX_PG = 12'h27D, ADC_ABY_PG = 12'h279, SBC_ABX_PG = 12'h2FD, SBC_ABY_PG = 12'h2F9, CMP_ABX_PG = 12'h2DD, CMP_ABY_PG = 12'h2D9,
+    
+    ERROR = 12'hfff
     } cpu_state /* verilator public */; 
 /* verilator lint_on UNDRIVEN */

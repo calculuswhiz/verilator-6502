@@ -1,7 +1,7 @@
 *=$0000
 ;;; begin ;;;
 init:
-lda $00
+lda zero
 jmp text
 
 data:
@@ -9,6 +9,8 @@ noninstruction:     ; Trigger error on purpose by jumping here.
 .byt $03
 number:
 .byt $0a
+zero:
+.byt $00
 
 text:
 ;;;;Program start;;;;

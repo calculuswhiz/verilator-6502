@@ -42,11 +42,11 @@ wire xferu_en, xferd_en;
 wire Zl_en, Zh_en;
 
 // Load:
-wire X_ld, Y_ld, S_ld, A_ld;
+wire X_ld, Y_ld, S_ld, S_inc, S_dec, A_ld;
 wire PCL_ld, PCH_ld;
 wire PCL_inc, PCH_inc, PCH_dec;
 wire DL_ld, DH_ld;
-wire DH_inc;
+wire DH_inc, DH_dec;
 wire TL_ld, TH_ld;
 wire TH_inc;
 wire P_ld, IR_ld;
@@ -57,8 +57,9 @@ wire Smux_sel, Amux_sel;
 wire [2:0] ALU_Amux_sel, ALU_Bmux_sel;
 wire [1:0] PCLmux_sel;
 wire PCHmux_sel;
-wire DLmux_sel, DHmux_sel;
-wire TLmux_sel/*, THmux_sel*/;
+wire [1:0] DLmux_sel;
+wire DHmux_sel;
+wire TLmux_sel;
 wire Pmux_sel;
 wire IRmux_sel;
 
@@ -160,9 +161,11 @@ mux2 Smux(
     .f(Smux_out)
 );
 
-gpReg S_reg(
+SPreg S_reg(
     .clk(clkdiv[divfactor]),    // Clock
     .load(S_ld),
+    .inc(S_inc),
+    .dec(S_dec),
     .rst_n(1'b1),
     .in(Smux_out),
     .out(S_out)
@@ -184,7 +187,7 @@ mux8 ALU_Amux(
     .in0(A_out),
     .in1(X_out),
     .in2(Y_out),
-    .in3(S_out),
+    .in3(DL_out),
     .in4(data_bus),
     .in5(PCL_out),
     .in6(memory_bus_l),
@@ -197,7 +200,7 @@ mux8 ALU_Bmux(
     .in0(A_out),
     .in1(X_out),
     .in2(Y_out),
-    .in3(S_out),
+    .in3(DL_out),
     .in4(data_bus),
     .in5(PCL_out),
     .in6(memory_bus_l),
@@ -327,9 +330,12 @@ tristate PCHmbuf(
 );
 
 // D section:
-mux2 DLmux(
-    .a(data_bus),
-    .b(memory_bus_l),
+// Changed to a mux4.
+mux4 DLmux(
+    .in0(data_bus),
+    .in1(memory_bus_l),
+    .in2(ALU_out),
+    .in3(zeroout),
     .sel(DLmux_sel),
     .f(DLmux_out)
 );
@@ -347,7 +353,7 @@ PC D_reg(
     .load_pc_l(DL_ld),
     .L_inc(1'b0),
     .H_inc(DH_inc),
-    .H_dec(1'b0),
+    .H_dec(DH_dec),
     .PCL_in(DLmux_out),
     .PCH_in(DHmux_out),
     .PCL_out(DL_out),
@@ -496,7 +502,7 @@ control CTL(
     .P_in(P_out),
     .IR_in(IR_out),
     .alu_V(V_out), .alu_C(C_out), .alu_N(N_out), .alu_Z(Z_out),
-    .data_bus_sign(data_bus[7]),
+    .ALUA_sign(ALU_Amux_out[7]),
     .mem_data(mem_data),
 
     .ctl_pvect(ctl_pvect), .ctl_irvect(ctl_irvect),
@@ -508,10 +514,10 @@ control CTL(
     .ALUd_en(ALUd_en), .ALUm_en(ALUm_en),
     .xferu_en(xferu_en), .xferd_en(xferd_en),
     .Zl_en(Zl_en), .Zh_en(Zh_en),
-    .X_ld(X_ld), .Y_ld(Y_ld), .S_ld(S_ld), .A_ld(A_ld),
+    .X_ld(X_ld), .Y_ld(Y_ld), .S_ld(S_ld), .S_inc(S_inc), .S_dec(S_dec), .A_ld(A_ld),
     .PCL_ld(PCL_ld), .PCH_ld(PCH_ld),
     .PCL_inc(PCL_inc), .PCH_inc(PCH_inc), .PCH_dec(PCH_dec),
-    .DL_ld(DL_ld), .DH_ld(DH_ld), .DH_inc(DH_inc),
+    .DL_ld(DL_ld), .DH_ld(DH_ld), .DH_inc(DH_inc), .DH_dec(DH_dec),
     .TL_ld(TL_ld), .TH_ld(TH_ld), .TH_inc(TH_inc),
     .P_ld(P_ld), .IR_ld(IR_ld),
     .Smux_sel(Smux_sel), .Amux_sel(Amux_sel),
