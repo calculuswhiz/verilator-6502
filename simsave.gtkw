@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.76 (w)1999-2016 BSI
-[*] Sat Dec 24 00:46:15 2016
+[*] Tue Dec 27 05:52:02 2016
 [*]
 [dumpfile] "/home/zach/Documents/6502-verilator/6502-sim.vcd"
-[dumpfile_mtime] "Fri Dec 23 23:02:22 2016"
-[dumpfile_size] 132011
+[dumpfile_mtime] "Tue Dec 27 05:50:44 2016"
+[dumpfile_size] 109055
 [savefile] "/home/zach/Documents/6502-verilator/simsave.gtkw"
 [timestart] 0
 [size] 1987 1030
 [pos] -1 -1
-*-4.730223 740 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-3.730223 22 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] topLevel.
 [sst_width] 260
 [signals_width] 278
@@ -19,7 +19,7 @@
 TOP.clk
 @800200
 -Registers
-@c00820
+@c00022
 topLevel.A_out[7:0]
 @28
 (0)topLevel.A_out[7:0]
@@ -41,9 +41,11 @@ topLevel.IR_out[7:0]
 @22
 topLevel.TL_out[7:0]
 topLevel.TH_out[7:0]
-topLevel.S_out[7:0]
+@23
 topLevel.X_out[7:0]
+@22
 topLevel.Y_out[7:0]
+topLevel.S_out[7:0]
 @1000200
 -Registers
 @800200
@@ -159,7 +161,7 @@ topLevel.CTL.page_invalid[1:0]
 -State
 @200
 -
-@c00200
+@800200
 -Other
 @28
 topLevel.CTL.PCL_inc
@@ -190,7 +192,7 @@ topLevel.Zh_en
 topLevel.Zl_en
 topLevel.xferd_en
 topLevel.xferu_en
-@1401200
+@1000200
 -Other
 [pattern_trace] 1
 [pattern_trace] 0

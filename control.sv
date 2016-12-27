@@ -29,7 +29,7 @@ module control
     output reg PCL_ld, PCH_ld,
     output reg PCL_inc, PCH_inc, PCH_dec,
     output reg DL_ld, DH_ld,
-    output reg DH_inc, DH_dec,
+    output reg DL_inc, DH_inc, DH_dec,
     output reg TL_ld, TH_ld,
     output reg TH_inc,
     output reg P_ld, IR_ld,
@@ -180,6 +180,7 @@ begin : state_actions
     PCH_dec = 0;
     DL_ld   = 0;
     DH_ld   = 0;
+    DL_inc  = 0;
     DH_inc  = 0;
     TL_ld   = 0;
     TH_ld   = 0;
@@ -211,7 +212,6 @@ begin : state_actions
          
     mem_rw  = 1;   // Default to read 
 
-    // $display("%s", state.name());
     /* State actions: */
     case(state)
         /* General states: */
@@ -333,6 +333,13 @@ begin : state_actions
         IMPLIED_ACCUMULATOR:
         begin
             IR_ld = 1;
+        end
+        INDIRECT_1:
+        begin 
+            address_D();
+            DL_inc = 1;
+            xferd_en = 1;
+            TL_ld = 1;
         end
         ZEROPAGE:
         begin 
@@ -950,7 +957,15 @@ begin : state_actions
             PCLmux_sel = 2;         // PCL = DL
             PCL_ld = 1;
         end
-        default: /* Do nothing */;
+        JMP_IND:
+        begin 
+            address_D();
+            xferd_en = 1;           // Get D+1 somehow?
+            PCH_ld = 1;
+            PCLmux_sel = 3;         // PCL = TL
+            PCL_ld = 1;
+        end
+        default: /*$display("Not implemented.")*/;
     endcase
 end
 
@@ -962,7 +977,7 @@ begin : next_state_logic
     next_state = state;
     case(state)
         fetch1, ABSOLUTE_W, ZEROPAGE_W,
-        JMP_ABS,
+        JMP_ABS, JMP_IND,
         ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS,SBC_ABS,
         STA_ABS, STX_ABS, STY_ABS,
         LDA_ABX_PG, LDY_ABX_PG, EOR_ABX_PG, AND_ABX_PG, ORA_ABX_PG, ADC_ABX_PG, SBC_ABX_PG, CMP_ABX_PG,
@@ -1024,7 +1039,7 @@ begin : next_state_logic
                             LDY_ABS, ORA_ABS, SBC_ABS,
                             ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
                             STA_ABS, STX_ABS, STY_ABS,
-                            JMP_ABS,
+                            JMP_ABS, JMP_IND,
                         ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX,
                             ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
                             ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
@@ -1073,6 +1088,8 @@ begin : next_state_logic
                     next_state = {4'h0, IR_in};
                 ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS: // No SLO, SRE, RLA, RRA, ISB, DCP
                     next_state = ABSOLUTE_R;
+                JMP_IND:
+                    next_state = INDIRECT_1;
                 default:
                 begin 
                     next_state = ERROR;
@@ -1120,6 +1137,15 @@ begin : next_state_logic
                 default:
                     next_state = ERROR;
             endcase 
+        end
+        INDIRECT_1:
+        begin 
+            case({4'h0, IR_in})
+                JMP_IND:
+                    next_state = {4'h0, IR_in};
+                default:
+                    next_state = ERROR;
+            endcase
         end
         ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
         ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:

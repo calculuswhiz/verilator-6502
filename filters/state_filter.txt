@@ -173,6 +173,7 @@
 114 ABSOLUTE_Y
 115 ABSOLUTE_XYR
 116 ABSOLUTE_XYR_PAGE
+117 INDIRECT_1
 # ABX/Y read instructions require extra unique states:
 2BD LDA_ABX_PG
 2B9 LDA_ABY_PG

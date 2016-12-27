@@ -13,27 +13,12 @@ zero:
 
 text:
 ;;;;Program start;;;;
-lda #$00
-ldx zero
-ldy #$4
-loop:
-lda     numdata, x
-sta     destdata, x
-lda     destdata, x
-inx
-dey
-bne     loop
-jmp     halt
+jmp     (indir)
 ;;;;;;;;;;;;;;;;;;;;;
 
 abs_data:
-string:
-.aasc "HI@"
-.byt 00
-numdata:
-.byt $aa, $bb, $cc, $dd
-destdata:
-.byt $66, $66, $66, $66
+indir:
+.word   halt
 
 halt:
 jmp halt

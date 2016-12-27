@@ -613,7 +613,7 @@ different kinds of instructions.
                             TL=M[D]
         4   pointer+1   R  fetch effective address high,
                            add Y to low byte of effective address
-                            TH=M[D], D+=Y
+                            TH=M[D+1], TL+=Y
         5   address+Y*  R  read from effective address,
                            fix high byte of effective address
                             If TH invalid, TH+=1, else M[T]=A and done
@@ -633,13 +633,14 @@ different kinds of instructions.
         1     PC      R  fetch opcode, increment PC
                             IR=M[PC], PC+=1
         2     PC      R  fetch pointer address low, increment PC
-                            DL=M[PC], PC+=1
+                            DL=M[PC], PC+=1                         (ABSOLUTE_1)
         3     PC      R  fetch pointer address high, increment PC
-                            DH=M[PC], PC+=1
+                            DH=M[PC], PC+=1                         (ABSOLUTE_2)
         4   pointer   R  fetch low address to latch
-                            TL=M[D]
+                            TL=M[D]                                 (INDIRECT_1)
         5  pointer+1* R  fetch PCH, copy latch to PCL
-                            PCH=M[D+1], PCL=TL              ??? Make new net ???
+                         (Made a new input for PCLmux.)
+                            PCH=M[D+1], PCL=TL                      (JMP_IND)
 
        Note: * The PCH will always be fetched from the same page
                than PCL, i.e. page boundary crossing is not handled.

@@ -46,7 +46,7 @@ wire X_ld, Y_ld, S_ld, S_inc, S_dec, A_ld;
 wire PCL_ld, PCH_ld;
 wire PCL_inc, PCH_inc, PCH_dec;
 wire DL_ld, DH_ld;
-wire DH_inc, DH_dec;
+wire DL_inc, DH_inc, DH_dec;
 wire TL_ld, TH_ld;
 wire TH_inc;
 wire P_ld, IR_ld;
@@ -280,7 +280,7 @@ mux4 PCLmux(
     .in0(data_bus),
     .in1(memory_bus_l),
     .in2(DL_out),
-    .in3(zeroin),
+    .in3(TL_out),               // Jump indirect
     .sel(PCLmux_sel),
     .f(PCLmux_out)
 );
@@ -351,7 +351,7 @@ PC D_reg(
     .clk(clkdiv[divfactor]),
     .load_pc_h(DH_ld),
     .load_pc_l(DL_ld),
-    .L_inc(1'b0),
+    .L_inc(DL_inc),
     .H_inc(DH_inc),
     .H_dec(DH_dec),
     .PCL_in(DLmux_out),
@@ -391,6 +391,15 @@ mux2 TLmux(
     .sel(TLmux_sel),
     .f(TLmux_out)
 );
+
+// mux4 TLmux(
+//     .in0(data_bus),
+//     .in1(memory_bus_l),
+//     .in2(DL_out),
+//     .in3(zeroin),
+//     .sel(TLmux_sel),
+//     .f(TLmux_out)
+// );
 
 // Removed:
 /*mux2 THmux( 
@@ -517,7 +526,7 @@ control CTL(
     .X_ld(X_ld), .Y_ld(Y_ld), .S_ld(S_ld), .S_inc(S_inc), .S_dec(S_dec), .A_ld(A_ld),
     .PCL_ld(PCL_ld), .PCH_ld(PCH_ld),
     .PCL_inc(PCL_inc), .PCH_inc(PCH_inc), .PCH_dec(PCH_dec),
-    .DL_ld(DL_ld), .DH_ld(DH_ld), .DH_inc(DH_inc), .DH_dec(DH_dec),
+    .DL_ld(DL_ld), .DH_ld(DH_ld), .DL_inc(DL_inc), .DH_inc(DH_inc), .DH_dec(DH_dec),
     .TL_ld(TL_ld), .TH_ld(TH_ld), .TH_inc(TH_inc),
     .P_ld(P_ld), .IR_ld(IR_ld),
     .Smux_sel(Smux_sel), .Amux_sel(Amux_sel),
