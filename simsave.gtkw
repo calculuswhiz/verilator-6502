@@ -1,25 +1,25 @@
 [*]
 [*] GTKWave Analyzer v3.3.76 (w)1999-2016 BSI
-[*] Mon Dec 19 06:25:56 2016
+[*] Sat Dec 24 00:46:15 2016
 [*]
 [dumpfile] "/home/zach/Documents/6502-verilator/6502-sim.vcd"
-[dumpfile_mtime] "Mon Dec 19 06:25:24 2016"
-[dumpfile_size] 47094
+[dumpfile_mtime] "Fri Dec 23 23:02:22 2016"
+[dumpfile_size] 132011
 [savefile] "/home/zach/Documents/6502-verilator/simsave.gtkw"
 [timestart] 0
 [size] 1987 1030
 [pos] -1 -1
-*-3.812992 46 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.730223 740 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] topLevel.
 [sst_width] 260
-[signals_width] 239
+[signals_width] 278
 [sst_expanded] 1
 [sst_vpaned_height] 295
 @28
 TOP.clk
 @800200
 -Registers
-@c00022
+@c00820
 topLevel.A_out[7:0]
 @28
 (0)topLevel.A_out[7:0]
@@ -35,7 +35,10 @@ topLevel.A_out[7:0]
 @22
 topLevel.DH_out[7:0]
 topLevel.DL_out[7:0]
+@2022
+^1 /home/zach/Documents/6502-verilator/filters/IR_filter.txt
 topLevel.IR_out[7:0]
+@22
 topLevel.TL_out[7:0]
 topLevel.TH_out[7:0]
 topLevel.S_out[7:0]
@@ -97,6 +100,8 @@ topLevel.mem_data[7:0]
 (7)topLevel.mem_data[7:0]
 @1401200
 -group_end
+@28
+topLevel.mem_rw
 @22
 topLevel.xfer_bus[7:0]
 @1000200
@@ -104,14 +109,13 @@ topLevel.xfer_bus[7:0]
 @800200
 -ALU
 @2022
-^1 /home/zach/Documents/6502-verilator/filters/aluop_filter.txt
+^2 /home/zach/Documents/6502-verilator/filters/aluop_filter.txt
 topLevel.aluop[3:0]
 @22
-topLevel.ALU_out[7:0]
++{Result [7:0]} topLevel.ALU_out[7:0]
 @28
-topLevel.C_out
++{C_out} topLevel.C_out
 @22
-topLevel.ALU_6502.f[8:0]
 +{Operand A} topLevel.ALU_Amux_out[7:0]
 +{Operand B} topLevel.ALU_Bmux_out[7:0]
 @28
@@ -125,11 +129,11 @@ topLevel.ALU_Bmux_sel[2:0]
 -ALU
 @800200
 -State
-@2023
-^2 /home/zach/Documents/6502-verilator/filters/state_filter.txt
-topLevel.state_out[11:0]
 @2022
-^2 /home/zach/Documents/6502-verilator/filters/state_filter.txt
+[color] 1
+^3 /home/zach/Documents/6502-verilator/filters/state_filter.txt
+topLevel.state_out[11:0]
+^3 /home/zach/Documents/6502-verilator/filters/state_filter.txt
 topLevel.CTL.next_state[11:0]
 @c00028
 +{NV-BDIZC} topLevel.P_out[7:0]
@@ -159,7 +163,6 @@ topLevel.CTL.page_invalid[1:0]
 -Other
 @28
 topLevel.CTL.PCL_inc
-topLevel.mem_rw
 topLevel.CTL.IR_ld
 topLevel.ALUd_en
 topLevel.ALUm_en

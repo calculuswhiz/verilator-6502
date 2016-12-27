@@ -5,6 +5,8 @@
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 
+#include <iostream>
+
 int main(int argc, char **argv, char **env) {
     // Pass argc and argv to verilator.
     Verilated::commandArgs(argc, argv);
@@ -27,19 +29,23 @@ int main(int argc, char **argv, char **env) {
     // Each one of these iterations is a time unit.
     int i;
     int dilationfactor = 2;         // how long the time unit is scaled to
-    for (i=0; i<100; i++) {
+    for (i=0; i<370; i++) {
         for (clk=0; clk<2; clk++) {
             tfp->dump (dilationfactor*i+clk);
             top->clk = !top->clk;
             top->eval ();
+            
+            // cout << "\033[37;54;1m" << Verilated::gotFinish() << endl;
+            if (Verilated::gotFinish())  // Might not be working...
+            {
+                cout << "I'm finished!\n";
+                return -1;
+            }
         }
-
-        // This example doesn't get this, but if we get a $finish, terminate early:
-        if (Verilated::gotFinish())
-          return 0;
     }
     // Close vcd file:
     tfp->close();
-
+    
+    cout << "\033[32mProgram has run to completion\033[0m\n";
     return 0;
 }

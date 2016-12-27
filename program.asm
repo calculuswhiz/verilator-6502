@@ -1,10 +1,9 @@
 *=$0000
 ;;; begin ;;;
 init:
-lda zero
 jmp text
 
-data:
+zpg_data:
 noninstruction:     ; Trigger error on purpose by jumping here.
 .byt $03
 number:
@@ -15,10 +14,26 @@ zero:
 text:
 ;;;;Program start;;;;
 lda #$00
+ldx zero
+ldy #$4
 loop:
-adc number
-dec number
-bne loop
+lda     numdata, x
+sta     destdata, x
+lda     destdata, x
+inx
+dey
+bne     loop
+jmp     halt
+;;;;;;;;;;;;;;;;;;;;;
 
-trap:
-jmp trap
+abs_data:
+string:
+.aasc "HI@"
+.byt 00
+numdata:
+.byt $aa, $bb, $cc, $dd
+destdata:
+.byt $66, $66, $66, $66
+
+halt:
+jmp halt

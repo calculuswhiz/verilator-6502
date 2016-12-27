@@ -60,13 +60,15 @@ module control
 //States:
 cpu_state state, next_state;
 
+/* verilator lint_off UNOPTFLAT */
 // If 0 - normal
 // If 1 - inc
 // If 2 - dec
 // If 3 - undefined
-/* verilator lint_off UNOPTFLAT */
 reg [1:0] page_invalid;
 /* verilator lint_on UNOPTFLAT */
+
+// wire [7:0] next_state_path;
 
 initial
 begin 
@@ -198,6 +200,9 @@ begin : state_actions
     THmux_sel       = 0;
     Pmux_sel        = 0;
     IRmux_sel       = 0;
+    
+    // For done_branch
+    // next_state_path = mem_data;
         
     // Other ALU signals:
     aluop   = alu_pas;
@@ -240,6 +245,7 @@ begin : state_actions
             DH_ld = 1;
             ALU_Amux_sel = 3'b001;  // X
             ALU_Bmux_sel = 3'b011;
+            aluop = alu_adc;
             DLmux_sel = 2'b10;
             DL_ld = 1;
             PCL_inc = 1;
@@ -251,6 +257,7 @@ begin : state_actions
             DH_ld = 1;
             ALU_Amux_sel = 3'b010;  // Y
             ALU_Bmux_sel = 3'b011;
+            aluop = alu_adc;
             DLmux_sel = 2'b10;
             DL_ld = 1;
             PCL_inc = 1;
@@ -259,12 +266,14 @@ begin : state_actions
         ABSOLUTE_XYR:
         begin 
             address_D();
+            xferd_en = 1;
             TL_ld = 1;
             Dpage_invd();
         end
         ABSOLUTE_XYR_PAGE:
         begin 
             address_D();
+            xferd_en = 1;
             TL_ld = 1;
         end
         ABSOLUTE_W:
@@ -321,10 +330,6 @@ begin : state_actions
             IR_ld = 1;
             PCL_inc = 1;
         end
-        DONE_BRANCH:
-        begin 
-            PCL_inc = 1;
-        end
         IMPLIED_ACCUMULATOR:
         begin
             IR_ld = 1;
@@ -352,6 +357,8 @@ begin : state_actions
         end
         ZEROPAGE_X:
         begin 
+            PCLm_en = 0;
+            PCHm_en = 0;
             DLd_en = 1;         // D += X
             ALU_Amux_sel = 3'b100;
             ALU_Bmux_sel = 3'b001;
@@ -362,6 +369,8 @@ begin : state_actions
         end
         ZEROPAGE_Y:
         begin 
+            PCLm_en = 0;
+            PCHm_en = 0;
             DLd_en = 1;         // D += X
             ALU_Amux_sel = 3'b100;
             ALU_Bmux_sel = 3'b010;
@@ -938,7 +947,7 @@ begin : state_actions
         begin
             xferd_en = 1;          // PCH = M
             PCH_ld = 1;
-            PCLmux_sel = 2; // PCL = DL
+            PCLmux_sel = 2;         // PCL = DL
             PCL_ld = 1;
         end
         default: /* Do nothing */;
@@ -959,58 +968,99 @@ begin : next_state_logic
         LDA_ABX_PG, LDY_ABX_PG, EOR_ABX_PG, AND_ABX_PG, ORA_ABX_PG, ADC_ABX_PG, SBC_ABX_PG, CMP_ABX_PG,
         ADC_ABY_PG, AND_ABY_PG, CMP_ABY_PG, EOR_ABY_PG, LDA_ABY_PG, LDX_ABY_PG, ORA_ABY_PG, SBC_ABY_PG,
         STA_ABX, STA_ABY,
-        LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG, STA_ZPG, STX_ZPG, STY_ZPG, 
-        LDA_ZPX, LDX_ZPY, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX, STA_ZPX, STX_ZPY, STY_ZPX:
+        LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG,
+        STA_ZPG, STX_ZPG, STY_ZPG, 
+        LDA_ZPX, LDX_ZPY, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
+        STA_ZPX, STX_ZPY, STY_ZPX:
             next_state = fetch2;
-        fetch2, BRANCH_TAKEN,
+        ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
+        LDA_ABX, LDY_ABX, EOR_ABX, AND_ABX, ORA_ABX, ADC_ABX, SBC_ABX, CMP_ABX:
+        begin
+            if( page_invalid != 2'b00 )
+            begin 
+                next_state = {4'h2, state[7:0]};
+            end
+            else
+            begin
+                next_state = fetch2;
+            end
+        end
+        fetch2, BRANCH_TAKEN, BRANCH_CHECK,
         ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM, 
         ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
         LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP,
-        SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP,
-        LDA_ABX, LDY_ABX, EOR_ABX, AND_ABX, ORA_ABX, ADC_ABX, SBC_ABX, CMP_ABX:
+        SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
         begin // See opCodeHex.v for all encodings.
             // Use commas to separate same next-states.
             if( page_invalid != 2'b00 )
                 case(state)
                     BRANCH_TAKEN:
                         next_state = BRANCH_PAGE;
-                    LDA_ABX, LDY_ABX, EOR_ABX, AND_ABX, ORA_ABX, ADC_ABX, SBC_ABX, CMP_ABX:
-                        next_state = {4'h2, state[7:0]};
                     default:
                         next_state = ERROR;
                 endcase
             else
             begin
-                case({4'h0, mem_data})
-                    ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM:
-                        next_state = IMMEDIATE;
-                    ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP, LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
-                        next_state = IMPLIED_ACCUMULATOR;
-                    ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS, SBC_ABS, ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS, STA_ABS, STX_ABS, STY_ABS, JMP_ABS,
-                    ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX, ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY, ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX, STA_ABX, STA_ABY:
-                        next_state = ABSOLUTE_1;
-                    LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG, ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG, STA_ZPG, STX_ZPG, STY_ZPG,
-                    LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX, ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX, STA_ZPX, STY_ZPX, LDX_ZPY, STX_ZPY:
-                        next_state = ZEROPAGE;
-                    BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVC_REL, BVS_REL:
-                        next_state = BRANCH;
-                    default:
-                    begin 
-                        next_state = ERROR;
-                    end
-                endcase
+                if( state == BRANCH_CHECK & 
+                    (( IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[0]))| // C
+                    ( IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[1])) | // Z
+                    (~IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[6])) | // V
+                    (~IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[7])) ) // N
+                  )
+                    next_state = BRANCH_TAKEN;
+                else
+                begin
+                    // case({4'h0, next_state_path})   // Source select. IR_out or mem_data. @relic
+                    case({4'h0, mem_data})
+                        ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM,
+                            ORA_IMM, SBC_IMM:
+                            next_state = IMMEDIATE;
+                        ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, 
+                            INY_IMP, LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC,
+                            RTI_IMP, RTS_IMP, SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP,
+                            TXS_IMP, TYA_IMP:
+                            next_state = IMPLIED_ACCUMULATOR;
+                        ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS,
+                            LDY_ABS, ORA_ABS, SBC_ABS,
+                            ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
+                            STA_ABS, STX_ABS, STY_ABS,
+                            JMP_ABS,
+                        ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX,
+                            ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
+                            ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
+                            STA_ABX, STA_ABY:
+                            next_state = ABSOLUTE_1;
+                        LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG,
+                            BIT_ZPG,
+                            ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG, STA_ZPG, STX_ZPG, STY_ZPG,
+                        LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
+                            ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX,
+                            STA_ZPX, STY_ZPX,
+                            LDX_ZPY, STX_ZPY:
+                            next_state = ZEROPAGE;
+                        BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVC_REL, BVS_REL:
+                            next_state = BRANCH;
+                        default:
+                        begin 
+                            next_state = ERROR;
+                        end
+                    endcase
+                end
             end
         end
-        IMMEDIATE, IMPLIED_ACCUMULATOR, ABSOLUTE_R, ZEROPAGE_R, DONE_BRANCH, BRANCH_PAGE:
+        IMMEDIATE, IMPLIED_ACCUMULATOR, ABSOLUTE_R, ZEROPAGE_R, BRANCH_PAGE:
             next_state = {4'h0, IR_in};
         ABSOLUTE_1:
         begin
             case({4'h0, IR_in})
                 JMP_ABS:
                     next_state = JMP_ABS;
-                ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX, ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX, STA_ABX:
+                ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX,
+                    ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
+                    STA_ABX:
                     next_state = ABSOLUTE_X;
-                ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY, STA_ABY:
+                ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
+                    STA_ABY:
                     next_state = ABSOLUTE_Y;
                 default: next_state = ABSOLUTE_2;
             endcase
@@ -1081,11 +1131,13 @@ begin : next_state_logic
         begin
             case({4'h0, IR_in})
                 LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG,
-                STA_ZPG, STX_ZPG, STY_ZPG:
+                    STA_ZPG, STX_ZPG, STY_ZPG:
                     next_state = {4'h0, IR_in};
                 ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG:
                     next_state = ZEROPAGE_R;
-                LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX, ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX, STA_ZPX, STY_ZPX:
+                LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
+                     ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX,
+                     STA_ZPX, STY_ZPX:
                     next_state = ZEROPAGE_X;
                 LDX_ZPY, STX_ZPY:
                     next_state = ZEROPAGE_Y;
@@ -1098,7 +1150,8 @@ begin : next_state_logic
         ZEROPAGE_X, ZEROPAGE_Y:
         begin 
             case({4'h0, IR_in})
-                LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX, STA_ZPX, STY_ZPX, STX_ZPY:
+                LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
+                    STA_ZPX, STY_ZPX, STX_ZPY:
                     next_state = {4'h0, IR_in};
                 ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX, LDX_ZPY:
                     next_state = ZEROPAGE_R;
@@ -1116,21 +1169,10 @@ begin : next_state_logic
         begin 
             next_state = BRANCH_CHECK;
         end
-        BRANCH_CHECK:
-        begin 
-            /* Check flags, see if branch or not. */
-            if( ( IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[0])) | // C
-                ( IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[1])) | // Z
-                (~IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[6])) | // V
-                (~IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[7])))  // N
-                next_state = BRANCH_TAKEN;
-            else
-                next_state = DONE_BRANCH;   // I don't know if this works yet. To debug, jump over a page.
-        end
         ERROR:
         begin 
-            $display("Machine is in error state.");
-            $finish();
+            $display("\033[31mMachine is in error state. Halting...\033[0m");
+            $finish;
             next_state = ERROR;
         end
         default:
@@ -1146,7 +1188,7 @@ begin: next_state_assignment
     /* Assignment of next state on clock edge */
     if (next_state == ERROR)
     begin 
-        $display("Error Encountered. %x", state);
+        $display("Error Encountered. %x:%s", state, state.name());
     end
     state <= next_state;
 end
