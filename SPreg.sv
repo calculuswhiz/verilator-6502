@@ -20,7 +20,7 @@ reg [width-1:0] data;
  */
 initial
 begin
-    data = 0;
+    data = 8'hff;
 end
 
 always @ (posedge clk or negedge rst_n)
@@ -28,9 +28,9 @@ begin
     if(~rst_n)
         data<=0;
     else if(inc)
-        data<=in+1'b1;
+        data<=data+1'b1;
     else if(dec)
-        data<=in-1'b1;
+        data<=data-1'b1;
     else if(load)
         data<=in;
 end

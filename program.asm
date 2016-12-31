@@ -13,7 +13,13 @@ zero:
 
 text:
 ;;;;Program start;;;;
-jmp     (indir)
+jsr testfunc
+jmp halt
+
+testfunc:
+    inx
+    iny
+    rts
 ;;;;;;;;;;;;;;;;;;;;;
 
 abs_data:

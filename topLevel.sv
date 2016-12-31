@@ -32,7 +32,7 @@ assign clkdiv = clk;
 /* verilator lint_off UNOPTFLAT */
 // Internal signals:
 // Enable:
-wire X_en, Y_en, Sd_en, Sm_en, A_en;
+wire X_en, Y_en, Sd_en, Sm_en, Spagem_en, A_en;
 wire PCLd_en, PCLm_en, PCHd_en, PCHm_en;
 wire DLd_en, DLm_en, DHd_en, DHm_en;
 wire TLd_en, TLm_en, THd_en, THm_en;
@@ -75,7 +75,7 @@ wire [7:0] memory_bus_h, memory_bus_l;
 
 // Output data:
 wire [7:0] X_out, Y_out, S_out, A_out, ALU_out;
-wire [7:0] Xbuf_out, Ybuf_out, Smbuf_out, Sdbuf_out, Abuf_out;
+wire [7:0] Xbuf_out, Ybuf_out, Smbuf_out, Spagebuf_out, Sdbuf_out, Abuf_out;
 wire [7:0] ALUdbuf_out, ALUmbuf_out;
 wire [7:0] PCL_out, PCH_out;
 // wire       PCL_carry;
@@ -181,6 +181,12 @@ tristate Smbuf(
     .in(S_out),
     .enable(Sm_en),
     .out(Smbuf_out)
+);
+
+tristate Spagebuf(
+    .in(8'h01),
+    .enable(Spagem_en),
+    .out(Spagebuf_out)
 );
 
 mux8 ALU_Amux(
@@ -515,7 +521,7 @@ control CTL(
     .mem_data(mem_data),
 
     .ctl_pvect(ctl_pvect), .ctl_irvect(ctl_irvect),
-    .X_en(X_en), .Y_en(Y_en), .Sd_en(Sd_en), .Sm_en(Sm_en), .A_en(A_en),
+    .X_en(X_en), .Y_en(Y_en), .Sd_en(Sd_en), .Sm_en(Sm_en), .Spagem_en(Spagem_en), .A_en(A_en),
     .PCLd_en(PCLd_en), .PCLm_en(PCLm_en), .PCHd_en(PCHd_en), .PCHm_en(PCHm_en),
     .DLd_en(DLd_en), .DLm_en(DLm_en), .DHd_en(DHd_en), .DHm_en(DHm_en),
     .TLd_en(TLd_en), .TLm_en(TLm_en), .THd_en(THd_en), .THm_en(THm_en),
@@ -578,7 +584,7 @@ assign DEBUGLED = state_out[8];
 // A little hack to get verilator to cooperate (no tristate construct issue):
 assign data_bus = Xbuf_out|Ybuf_out|Sdbuf_out|ALUdbuf_out|Abuf_out|PCLdbuf_out|PCHdbuf_out|DLdbuf_out|DHdbuf_out|TLdbuf_out|THdbuf_out|Pbuf_out|xferdbuf_out;
 assign xfer_bus = membuf_out|IRbuf_out|xferubuf_out;
-assign memory_bus_h = ZHbuf_out|DHmbuf_out|PCHmbuf_out|THmbuf_out;
+assign memory_bus_h = ZHbuf_out|DHmbuf_out|PCHmbuf_out|THmbuf_out|Spagebuf_out;
 assign memory_bus_l = ALUmbuf_out|Smbuf_out|ZLbuf_out|DLmbuf_out|PCLmbuf_out|TLmbuf_out;
 
 endmodule

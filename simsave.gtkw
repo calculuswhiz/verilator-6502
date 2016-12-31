@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.76 (w)1999-2016 BSI
-[*] Tue Dec 27 05:52:02 2016
+[*] Sat Dec 31 03:51:43 2016
 [*]
 [dumpfile] "/home/zach/Documents/6502-verilator/6502-sim.vcd"
-[dumpfile_mtime] "Tue Dec 27 05:50:44 2016"
-[dumpfile_size] 109055
+[dumpfile_mtime] "Sat Dec 31 03:44:39 2016"
+[dumpfile_size] 115057
 [savefile] "/home/zach/Documents/6502-verilator/simsave.gtkw"
 [timestart] 0
 [size] 1987 1030
 [pos] -1 -1
-*-3.730223 22 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-3.730223 19 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] topLevel.
 [sst_width] 260
 [signals_width] 278
@@ -41,9 +41,7 @@ topLevel.IR_out[7:0]
 @22
 topLevel.TL_out[7:0]
 topLevel.TH_out[7:0]
-@23
 topLevel.X_out[7:0]
-@22
 topLevel.Y_out[7:0]
 topLevel.S_out[7:0]
 @1000200
@@ -131,12 +129,15 @@ topLevel.ALU_Bmux_sel[2:0]
 -ALU
 @800200
 -State
-@2022
+@2023
 [color] 1
 ^3 /home/zach/Documents/6502-verilator/filters/state_filter.txt
 topLevel.state_out[11:0]
+@2022
 ^3 /home/zach/Documents/6502-verilator/filters/state_filter.txt
 topLevel.CTL.next_state[11:0]
+@22
+topLevel.CTL.next_state_path[7:0]
 @c00028
 +{NV-BDIZC} topLevel.P_out[7:0]
 @28

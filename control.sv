@@ -15,7 +15,7 @@ module control
     
     // Control signals:
     // Enable:
-    output reg X_en, Y_en, Sd_en, Sm_en, A_en,
+    output reg X_en, Y_en, Sd_en, Sm_en, Spagem_en, A_en,
     output reg PCLd_en, PCLm_en, PCHd_en, PCHm_en,
     output reg DLd_en, DLm_en, DHd_en, DHm_en,
     output reg TLd_en, TLm_en, THd_en, THm_en,
@@ -68,7 +68,7 @@ cpu_state state, next_state;
 reg [1:0] page_invalid;
 /* verilator lint_on UNOPTFLAT */
 
-// wire [7:0] next_state_path;
+wire [7:0] next_state_path;
 
 initial
 begin 
@@ -83,6 +83,21 @@ function void address_D;
     DHm_en  = 1;
 endfunction : address_D
 
+function void address_T;
+    PCLm_en = 0;    // Address using T (NOT PC).
+    PCHm_en = 0;
+    TLm_en  = 1;
+    THm_en  = 1;
+endfunction : address_T
+
+function void address_S();
+    PCLm_en = 0;    // Address with stack pointer
+    PCHm_en = 0;
+    Sm_en = 1;
+    Spagem_en = 1;
+endfunction : address_S
+
+// Flag setting functions:
 function void setNVZC();
     ctl_pvect[7]=alu_N;
     ctl_pvect[6]=alu_V;
@@ -104,6 +119,7 @@ function void setNZ();
     P_ld = 1;
 endfunction : setNZ
 
+// If page crossed, fix page D
 function void Dpage_invd();
     case(page_invalid)
         2'b00:
@@ -119,6 +135,7 @@ function void Dpage_invd();
     endcase
 endfunction : Dpage_invd
 
+// If page cross will happen, set invalid buffer
 function void set_invd();
     if(~ALUA_sign & alu_C)
         page_invalid = 2'b01;
@@ -128,11 +145,13 @@ function void set_invd();
         page_invalid = 2'b00;
 endfunction : set_invd
 
+// Fetch next instruction, increment PC
 function void fetchinst();
     PCL_inc = 1;
     IR_ld = 1;
 endfunction : fetchinst
 
+// Signal control:
 always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C)
 begin : state_actions
     /* Default output assignments */
@@ -144,6 +163,7 @@ begin : state_actions
     Y_en        = 0;
     Sd_en       = 0;
     Sm_en       = 0;
+    Spagem_en   = 0;
     A_en        = 0;
     PCLd_en     = 0;
     PCLm_en     = 1;    // Keep this as default addressor.
@@ -202,8 +222,8 @@ begin : state_actions
     Pmux_sel        = 0;
     IRmux_sel       = 0;
     
-    // For done_branch
-    // next_state_path = mem_data;
+    // Some stack instructions need to use IR_in.
+    next_state_path = mem_data;
         
     // Other ALU signals:
     aluop   = alu_pas;
@@ -309,12 +329,12 @@ begin : state_actions
                 fetchinst();
             end
         end
-        BRANCH_TAKEN:
+        BRANCH_TAKEN:   // Fix PC if page crossed.
         begin 
             IR_ld = 1;
             case(page_invalid)
                 2'b00:
-                    PCL_inc = 1;
+                    PCL_inc = 1;    // @@ Test this out.
                 2'b01: 
                     PCH_inc = 1;
                 2'b10:
@@ -340,6 +360,76 @@ begin : state_actions
             DL_inc = 1;
             xferd_en = 1;
             TL_ld = 1;
+        end
+        JSR_ABS_1:
+        begin
+            PCL_inc = 1;
+            xferd_en = 1;
+            DL_ld = 1;
+        end
+        JSR_ABS_2:
+        begin 
+            /* Might not need this. IDK what this is. See Insturction Timings. */
+            // S_dec = 1;
+        end
+        JSR_ABS_3:
+        begin
+            address_S();
+            PCHd_en = 1;
+            xferu_en = 1;
+            mem_rw = 0;
+            S_dec = 1;
+        end
+        JSR_ABS_4:
+        begin
+            address_S();
+            PCLd_en = 1;
+            xferu_en = 1;
+            mem_rw = 0;
+            S_dec = 1;
+        end
+        PLA_IMP_1, PLP_IMP_1:
+        begin 
+            S_inc = 1;
+        end
+        RTS_IMP_1:
+        begin 
+            S_inc = 1;
+        end
+        RTS_IMP_2:
+        begin 
+            S_inc = 1;
+            address_S();
+            xferd_en = 1;
+            PCL_ld = 1;
+        end
+        RTS_IMP_3:
+        begin 
+            // S_inc = 1;
+            address_S();
+            xferd_en = 1;
+            PCH_ld = 1;
+        end
+        XIN_1:      // DL+=X
+        begin 
+            ALU_Amux_sel = 3'b010;
+            ALU_Bmux_sel = 3'b001;
+            aluop = alu_adc;
+            ALUd_en = 1;
+            DL_ld = 1;
+        end
+        XIN_2:      // TL=M[D]  D+=1
+        begin 
+            DL_inc = 1;
+            address_D();
+            xferd_en = 1;
+            TL_ld = 1;
+        end
+        XIN_3:      // TH = M[D]
+        begin 
+            address_D();
+            xferd_en = 1;
+            TH_ld = 1;
         end
         ZEROPAGE:
         begin 
@@ -385,6 +475,55 @@ begin : state_actions
             ALUm_en = 1;
             DLmux_sel = 1;
             DL_ld = 1;
+        end
+        /* stack */
+        RTS_IMP:
+        begin 
+            PCL_inc = 1;
+        end
+        PHA_IMP:                // M[S|$0100] = A, S-=1
+        begin 
+            PCL_inc = 1;
+            address_S();
+            A_en = 1;
+            xferu_en = 1;
+            mem_rw = 0;
+            S_dec = 1;
+            next_state_path = IR_in;
+        end
+        PHP_IMP:                // M[S|$0100] = P, S-=1
+        begin 
+            PCL_inc = 1;
+            address_S();
+            Pd_en = 1;
+            xferu_en = 1;
+            mem_rw = 0;
+            S_dec = 1;
+            next_state_path = IR_in;
+        end
+        PLA_IMP:
+        begin 
+            PCL_inc = 1;
+            address_S();
+            xferd_en = 1;
+            A_ld = 1;
+            next_state_path = IR_in;
+        end
+        PLP_IMP:
+        begin 
+            PCL_inc = 1;
+            address_S();
+            xferd_en = 1;
+            Pmux_sel = 1;
+            P_ld = 1;
+            next_state_path = IR_in;
+        end
+        JSR_ABS:
+        begin
+            PCLmux_sel = 2'b10;
+            PCL_ld = 1;
+            xferd_en = 1;
+            PCH_ld = 1;
         end
         /* imm */
         ADC_IMM:
@@ -949,7 +1088,82 @@ begin : state_actions
             Y_en = 1;
             xferu_en = 1;
         end
-        /* Misc. */
+        /* xin */
+        LDA_XIN:  // A=M[T]
+        begin 
+            address_T();
+            xferd_en = 1;
+            A_ld = 1;
+            setNZ();
+        end
+        ORA_XIN:
+        begin 
+            address_T();
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_ora;
+            A_ld = 1;
+            setNZ(); 
+        end
+        EOR_XIN:
+        begin 
+           address_T();
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_eor;
+            A_ld = 1;
+            setNZ();  
+        end
+        AND_XIN:
+        begin 
+            address_T();
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_and;
+            A_ld = 1;
+            setNZ(); 
+        end
+        ADC_XIN:
+        begin 
+            address_T();
+            ALU_Bmux_sel = 3'b100;  // A+M+C
+            C_ctl = P_in[0];
+            aluop = alu_adc;   
+            Amux_sel = 1;       // Store at A
+            A_ld = 1;
+            setNVZC();
+        end
+        CMP_XIN:
+        begin 
+            address_T();
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;   // A-M (Don't set flags, don't use carry, don't store A)
+            C_ctl   = 1;        // Since we're subtracting.
+            aluop   = alu_sbc;
+            setNZC();
+        end
+        SBC_XIN:
+        begin 
+            address_T();
+            xferd_en = 1;
+            ALU_Bmux_sel = 3'b100;
+            Amux_sel = 1;
+            aluop = alu_sbc;
+            C_ctl = P_in[0];
+            A_ld = 1;
+            setNVZC();
+        end
+        STA_XIN:
+        begin 
+            address_T();
+            xferu_en = 1;
+            mem_rw = 0;
+            A_en = 1;
+        end
+        /* JMP */
         JMP_ABS:
         begin
             xferd_en = 1;          // PCH = M
@@ -972,11 +1186,10 @@ end
 // Temporarily removed SAX_ZPG
 always @ (state, IR_in)
 begin : next_state_logic
-    /* Next state information and conditions (if any)
-     * for transitioning between states */
     next_state = state;
     case(state)
         fetch1, ABSOLUTE_W, ZEROPAGE_W,
+        JSR_ABS, RTS_IMP,
         JMP_ABS, JMP_IND,
         ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS,SBC_ABS,
         STA_ABS, STX_ABS, STY_ABS,
@@ -986,7 +1199,8 @@ begin : next_state_logic
         LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG,
         STA_ZPG, STX_ZPG, STY_ZPG, 
         LDA_ZPX, LDX_ZPY, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
-        STA_ZPX, STX_ZPY, STY_ZPX:
+        STA_ZPX, STX_ZPY, STY_ZPX,
+        LDA_XIN, ORA_XIN, EOR_XIN, AND_XIN, ADC_XIN, CMP_XIN, SBC_XIN, STA_XIN:
             next_state = fetch2;
         ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
         LDA_ABX, LDY_ABX, EOR_ABX, AND_ABX, ORA_ABX, ADC_ABX, SBC_ABX, CMP_ABX:
@@ -1002,10 +1216,11 @@ begin : next_state_logic
         end
         fetch2, BRANCH_TAKEN, BRANCH_CHECK,
         ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM, 
-        ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
-        LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC, RTI_IMP, RTS_IMP, SEC_IMP,
-        SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP:
-        begin // See opCodeHex.v for all encodings.
+        ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
+        LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC, SEC_IMP,
+        SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP,
+        BRK_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, RTI_IMP:
+        begin // See opCodeHex.sv for all encodings.
             // Use commas to separate same next-states.
             if( page_invalid != 2'b00 )
                 case(state)
@@ -1025,15 +1240,18 @@ begin : next_state_logic
                     next_state = BRANCH_TAKEN;
                 else
                 begin
-                    // case({4'h0, next_state_path})   // Source select. IR_out or mem_data. @relic
-                    case({4'h0, mem_data})
+                    case({4'h0, next_state_path})   // Source select. IR_out or mem_data. @relic
+                    // case({4'h0, mem_data})
                         ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM,
                             ORA_IMM, SBC_IMM:
                             next_state = IMMEDIATE;
-                        ASL_ACC, BRK_IMP, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, 
-                            INY_IMP, LSR_ACC, NOP_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, ROL_ACC, ROR_ACC,
-                            RTI_IMP, RTS_IMP, SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP,
-                            TXS_IMP, TYA_IMP:
+                        JSR_ABS:
+                            next_state = JSR_ABS_1;
+                        ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, 
+                            INY_IMP, LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC,
+                            SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP,
+                            TXS_IMP, TYA_IMP,
+                            BRK_IMP, RTI_IMP, RTS_IMP, PHA_IMP, PHP_IMP, PLA_IMP, PLP_IMP:
                             next_state = IMPLIED_ACCUMULATOR;
                         ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS,
                             LDY_ABS, ORA_ABS, SBC_ABS,
@@ -1063,7 +1281,17 @@ begin : next_state_logic
                 end
             end
         end
-        IMMEDIATE, IMPLIED_ACCUMULATOR, ABSOLUTE_R, ZEROPAGE_R, BRANCH_PAGE:
+        /* Hardware implementation allows many instructions to skip this cycle, due to xfer_bus and data_bus being seperate. Unfortunately, I care about cycle accuracy, so this is staying.*/
+        IMPLIED_ACCUMULATOR:      
+        begin 
+            case({4'h0, IR_in})
+                PLA_IMP, PLP_IMP, RTI_IMP, RTS_IMP, BRK_IMP:
+                    next_state = {4'h2, IR_in};
+                default: // For non-stack instructions:
+                    next_state = {4'h0, IR_in};
+            endcase
+        end
+        IMMEDIATE, ABSOLUTE_R, ZEROPAGE_R, BRANCH_PAGE:
             next_state = {4'h0, IR_in};
         ABSOLUTE_1:
         begin
@@ -1141,12 +1369,28 @@ begin : next_state_logic
         INDIRECT_1:
         begin 
             case({4'h0, IR_in})
+                LDA_XIN, ORA_XIN, EOR_XIN, AND_XIN, ADC_XIN, CMP_XIN, SBC_XIN,
+                    STA_XIN:
+                    next_state = XIN_1;
                 JMP_IND:
                     next_state = {4'h0, IR_in};
                 default:
                     next_state = ERROR;
             endcase
         end
+        XIN_1, XIN_2:
+            next_state = state + 1'b1;
+        XIN_3:
+            next_state = {4'h0, IR_in};
+        BRK_IMP_1, RTI_IMP_1, RTS_IMP_1, JSR_ABS_1:
+            next_state = {4'h3, state[7:0]};
+        BRK_IMP_2, RTI_IMP_2, RTS_IMP_2, JSR_ABS_2:
+            next_state = {4'h4, state[7:0]};
+        BRK_IMP_3, JSR_ABS_3:
+            next_state = {4'h5, state[7:0]};
+        BRK_IMP_4, RTI_IMP_3, RTS_IMP_3, JSR_ABS_4,
+        PLA_IMP_1, PLP_IMP_1:
+            next_state = {4'h0, state[7:0]};
         ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
         ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:
             next_state = ABSOLUTE_W;

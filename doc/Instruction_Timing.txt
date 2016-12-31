@@ -79,17 +79,17 @@ different kinds of instructions.
                         IR = M[PC], PC=PC+1
         2    PC     R  read next instruction byte (and throw it away),
                        increment PC
-                        IR = M[PC]
+                        IR = M[PC] @                                   (IMPLIED_ACCUMULATOR)
         3  $0100,S  W  push PCH on stack (with B flag set), decrement S
-                        M[S] = PCH, S = S-1
+                        M[S] = PCH, S = S-1                             (BRK_IMP_1)
         4  $0100,S  W  push PCL on stack, decrement S
-                        M[S] = PCL, S = S-1
+                        M[S] = PCL, S = S-1                             (BRK_IMP_2)
         5  $0100,S  W  push P on stack, decrement S
-                        M[S] = P, S
+                        M[S] = P, S                                     (BRK_IMP_3)
         6   $FFFE   R  fetch PCL
-                        PCL=M[$FFFE]
+                        PCL=M[$FFFE]                                    (BRK_IMP_4)
         7   $FFFF   R  fetch PCH
-                        PCH=M[$FFFF]
+                        PCH=M[$FFFF]                                    (BRK_IMP)
 
      RTI
 
@@ -98,15 +98,15 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR = M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        IR = M[PC]
-        3  $0100,S  R  increment S
-                        S+=1
+                        IR = M[PC]                                      (IMPLIED_ACCUMULATOR)
+        3  $0100,S  R  increment S 
+                        S+=1                                            (RTI_IMP_1)
         4  $0100,S  R  pull P from stack, increment S
-                        P=M[S], S+=1
+                        P=M[S], S+=1                                    (RTI_IMP_2)
         5  $0100,S  R  pull PCL from stack, increment S
-                        PCL=M[S], S+=1
+                        PCL=M[S], S+=1                                  (RTI_IMP_3)
         6  $0100,S  R  pull PCH from stack
-                        PCL=M[S], S+=1
+                        PCL=M[S], S+=1                                  (RTI_IMP)
 
      RTS
 
@@ -115,15 +115,15 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        IR=M[PC]
+                        IR=M[PC]                                        (IMPLIED_ACCUMULATOR)
         3  $0100,S  R  increment S
-                        S+=1
+                        S+=1                                            (RTS_IMP_1)
         4  $0100,S  R  pull PCL from stack, increment S
-                        PCL=M[S], S+=1
+                        PCL=M[S], S+=1                                  (RTS_IMP_2)
         5  $0100,S  R  pull PCH from stack
-                        PCH=M[S], S+=1
+                        PCH=M[S], S+=1                                  (RTS_IMP_3)
         6    PC     R  increment PC
-                        PC+=1
+                        PC+=1                                           (RTS_IMP)
 
      PHA, PHP
 
@@ -132,9 +132,9 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        IR=M[PC]
+                        IR=M[PC]                                        (IMPLIED_ACCUMULATOR)
         3  $0100,S  W  push register on stack, decrement S
-                        M[S]=A/P, S-=1
+                        M[S|$0100]=A/P, S-=1                            (depends)
 
      PLA, PLP
 
@@ -143,11 +143,11 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        IR=M[PC]
+                        IR=M[PC]                                        (IMPLIED_ACCUMULATOR)
         3  $0100,S  R  increment S
-                        S+=1
+                        S+=1                                            (depends_1)
         4  $0100,S  R  pull register from stack
-                        A/P = M[S]
+                        A/P = M[S]                                      (depends)
 
      JSR
 
@@ -156,16 +156,16 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  fetch low address byte, increment PC
-                        DL=M[PC], PC+=1
+                        DL=M[PC], PC+=1                                 (JSR_ABS_1)
         3  $0100,S  R  internal operation (predecrement S?)
-                        S-=1?
+                        S-=1?                                           (JSR_ABS_2)
         4  $0100,S  W  push PCH on stack, decrement S
-                        M[S]=PCH, S-=1
+                        M[S]=PCH, S-=1                                  (JSR_ABS_3)
         5  $0100,S  W  push PCL on stack, decrement S
-                        M[S]=PCL, S-=1
+                        M[S]=PCL, S-=1                                  (JSR_ABS_4)
         6    PC     R  copy low address byte to PCL, fetch high address
                        byte to PCH
-                        PCL=DL, PCH=M[PC]
+                        PCL=DL, PCH=M[PC]                               (JSR_ABS)
 
   Accumulator or implied addressing
 
@@ -174,7 +174,7 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        Use M[PC]       (IMPLIED_ACCUMULATOR)
+                        Use M[PC]       (IMPLIED_ACCUMULATOR) (depends?)
 
   Immediate addressing
 
@@ -472,24 +472,25 @@ different kinds of instructions.
               ! If branch occurs to different page, this cycle will be
                 executed.
 
-  Indexed indirect addressing
+  Indexed indirect addressing (X)
 
-     Read instructions (LDA, ORA, EOR, AND, ADC, CMP, SBC, LAX)
+     Read instructions (LDA, ORA, EOR, AND, ADC, CMP, SBC,
+                        LAX)
 
         #    address   R/W description
        --- ----------- --- ------------------------------------------
         1      PC       R  fetch opcode, increment PC
                             IR=M[PC], PC+=1
         2      PC       R  fetch pointer address, increment PC
-                            D=00,M[PC], PC+=1
+                            D=00,M[PC], PC+=1                       (INDIRECT_1)
         3    pointer    R  read from the address, add X to it
-                            DL+=X
+                            DL+=X                                   (XIN_1)
         4   pointer+X   R  fetch effective address low
-                            TL=M[D]
+                            TL=M[D]  D+=1                           (XIN_2)
         5  pointer+X+1  R  fetch effective address high
-                            TH=M[D+1]
+                            TH=M[D]                                 (XIN_3)
         6    address    R  read from effective address
-                            A=M[T]
+                            A=M[T]                                  (depends)
 
        Note: The effective address is always fetched from zero page,
              i.e. the zero page boundary crossing is not handled.
@@ -520,22 +521,23 @@ different kinds of instructions.
        Note: The effective address is always fetched from zero page,
              i.e. the zero page boundary crossing is not handled.
 
-     Write instructions (STA, SAX)
+     Write instructions (STA,
+                        SAX)
 
         #    address   R/W description
        --- ----------- --- ------------------------------------------
         1      PC       R  fetch opcode, increment PC
                             IR=M[PC], PC+=1
         2      PC       R  fetch pointer address, increment PC
-                            D=00,M[PC], PC+=1
+                            D=00,M[PC], PC+=1                       (INDIRECT_1)
         3    pointer    R  read from the address, add X to it
-                            DL+=X
+                            DL+=X                                   (XIN_1)
         4   pointer+X   R  fetch effective address low
-                            TL=M[D]
+                            TL=M[D]  D+=1                           (XIN_2)
         5  pointer+X+1  R  fetch effective address high
-                            TL=M[D+1]
+                            TH=M[D]                                 (XIN_3)
         6    address    W  write to effective address
-                            M[T]=A/AX
+                            M[T]=A/AX                               (depends)
 
        Note: The effective address is always fetched from zero page,
              i.e. the zero page boundary crossing is not handled.
