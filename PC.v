@@ -18,6 +18,8 @@ module PC
 	input [7:0]    PCL_in,
 	input [7:0]    PCH_in,
     
+    input H_rst_n,
+    
 	output [7:0]   PCL_out,
 	output [7:0]   PCH_out
 );
@@ -31,7 +33,12 @@ end
 
 always @ (posedge clk)
 begin 
-    if (L_inc)
+    if (~H_rst_n)  // @TODO: be sure to make a reset for low as well.
+    begin 
+        data[15:8] <= 8'h00;
+        data [7:0] <= load_pc_l?PCL_in:data[7:0];       // Allow loading L if desired.
+    end
+    else if (L_inc)
         data<=data+1'b1;
     else if (H_inc)
     begin

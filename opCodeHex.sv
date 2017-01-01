@@ -46,7 +46,7 @@ typedef enum reg [11:0] {
     // 110 is free now. Probably refactor later.
     ZEROPAGE_X = 12'h111, ZEROPAGE_Y = 12'h112,
     ABSOLUTE_X = 12'h113, ABSOLUTE_Y = 12'h114, ABSOLUTE_XYR = 12'h115, ABSOLUTE_XYR_PAGE = 12'h116,
-    INDIRECT_1 = 12'h117, XIN_1 = 12'h118, XIN_2 = 12'h119, XIN_3 = 12'h11a,
+    INDIRECT_1 = 12'h117, XIN_1 = 12'h118, XIN_2 = 12'h119, XIN_3 = 12'h11a, XIN_4 = 12'h11b,
     
     // ABX/Y second stages:
     LDA_ABX_PG = 12'h2BD, LDA_ABY_PG = 12'h2B9, LDY_ABX_PG = 12'h2BC, LDX_ABY_PG = 12'h2BE, EOR_ABX_PG = 12'h25D, EOR_ABY_PG = 12'h259, AND_ABX_PG = 12'h23D, AND_ABY_PG = 12'h239, ORA_ABX_PG = 12'h21D, ORA_ABY_PG = 12'h219, ADC_ABX_PG = 12'h27D, ADC_ABY_PG = 12'h279, SBC_ABX_PG = 12'h2FD, SBC_ABY_PG = 12'h2F9, CMP_ABX_PG = 12'h2DD, CMP_ABY_PG = 12'h2D9,

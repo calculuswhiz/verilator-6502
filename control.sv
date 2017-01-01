@@ -14,6 +14,8 @@ module control
     output reg [7:0] ctl_pvect, ctl_irvect,
     
     // Control signals:
+    // Reset (neg. edge):
+    output reg DH_rst_n,
     // Enable:
     output reg X_en, Y_en, Sd_en, Sm_en, Spagem_en, A_en,
     output reg PCLd_en, PCLm_en, PCHd_en, PCHm_en,
@@ -157,6 +159,9 @@ begin : state_actions
     /* Default output assignments */
     ctl_pvect = P_in;
     ctl_irvect = 8'h00;
+    
+    // Reset:
+    DH_rst_n    = 1;    // Neg. edge triggered
     
     // Enable:
     X_en        = 0;
@@ -410,22 +415,29 @@ begin : state_actions
             xferd_en = 1;
             PCH_ld = 1;
         end
-        XIN_1:      // DL+=X
+        XIN_1:
+        begin
+            PCL_inc  = 1;       // PC+=1
+            xferd_en = 1;       // DL=M[PC]
+            DL_ld    = 1;
+            DH_rst_n = 0;
+        end
+        XIN_2:      // DL+=X
         begin 
-            ALU_Amux_sel = 3'b010;
+            ALU_Amux_sel = 3'b011;
             ALU_Bmux_sel = 3'b001;
             aluop = alu_adc;
             ALUd_en = 1;
             DL_ld = 1;
         end
-        XIN_2:      // TL=M[D]  D+=1
+        XIN_3:      // TL=M[D]  D+=1
         begin 
             DL_inc = 1;
             address_D();
             xferd_en = 1;
             TL_ld = 1;
         end
-        XIN_3:      // TH = M[D]
+        XIN_4:      // TH = M[D]
         begin 
             address_D();
             xferd_en = 1;
@@ -438,6 +450,7 @@ begin : state_actions
             DH_ld = 1;
             xferd_en = 1;
             DL_ld = 1;
+            DH_rst_n = 0;
         end
         ZEROPAGE_R:
         begin 
@@ -1129,6 +1142,7 @@ begin : state_actions
         ADC_XIN:
         begin 
             address_T();
+            xferd_en = 1;
             ALU_Bmux_sel = 3'b100;  // A+M+C
             C_ctl = P_in[0];
             aluop = alu_adc;   
@@ -1271,6 +1285,8 @@ begin : next_state_logic
                             STA_ZPX, STY_ZPX,
                             LDX_ZPY, STX_ZPY:
                             next_state = ZEROPAGE;
+                        LDA_XIN, ORA_XIN, EOR_XIN, AND_XIN, ADC_XIN, CMP_XIN, SBC_XIN, STA_XIN:
+                            next_state = XIN_1;
                         BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVC_REL, BVS_REL:
                             next_state = BRANCH;
                         default:
@@ -1369,18 +1385,17 @@ begin : next_state_logic
         INDIRECT_1:
         begin 
             case({4'h0, IR_in})
-                LDA_XIN, ORA_XIN, EOR_XIN, AND_XIN, ADC_XIN, CMP_XIN, SBC_XIN,
-                    STA_XIN:
-                    next_state = XIN_1;
                 JMP_IND:
                     next_state = {4'h0, IR_in};
                 default:
                     next_state = ERROR;
             endcase
         end
-        XIN_1, XIN_2:
+        XIN_1:
+            next_state = XIN_2;
+        XIN_2, XIN_3:
             next_state = state + 1'b1;
-        XIN_3:
+        XIN_4:
             next_state = {4'h0, IR_in};
         BRK_IMP_1, RTI_IMP_1, RTS_IMP_1, JSR_ABS_1:
             next_state = {4'h3, state[7:0]};

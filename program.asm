@@ -13,18 +13,17 @@ zero:
 
 text:
 ;;;;Program start;;;;
-jsr testfunc
+lda #$77
+sta (indir,x)
+lda #$bb
+lda (indir,x)
 jmp halt
 
-testfunc:
-    inx
-    iny
-    rts
 ;;;;;;;;;;;;;;;;;;;;;
 
 abs_data:
 indir:
-.word   halt
+.word   number
 
 halt:
 jmp halt

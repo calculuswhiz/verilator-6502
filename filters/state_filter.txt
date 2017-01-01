@@ -176,6 +176,7 @@
 118 XIN_1
 119 XIN_2
 11a XIN_3
+11b XIN_4
 # ABX/Y read instructions require extra unique states:
 2BD LDA_ABX_PG
 2B9 LDA_ABY_PG

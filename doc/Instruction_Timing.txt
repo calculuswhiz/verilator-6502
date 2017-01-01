@@ -482,13 +482,13 @@ different kinds of instructions.
         1      PC       R  fetch opcode, increment PC
                             IR=M[PC], PC+=1
         2      PC       R  fetch pointer address, increment PC
-                            D=00,M[PC], PC+=1                       (INDIRECT_1)
+                            D=00,M[PC], PC+=1                       (XIN_1)
         3    pointer    R  read from the address, add X to it
-                            DL+=X                                   (XIN_1)
+                            DL+=X                                   (XIN_2)
         4   pointer+X   R  fetch effective address low
-                            TL=M[D]  D+=1                           (XIN_2)
+                            TL=M[D]  D+=1                           (XIN_3)
         5  pointer+X+1  R  fetch effective address high
-                            TH=M[D]                                 (XIN_3)
+                            TH=M[D]                                 (XIN_4)
         6    address    R  read from effective address
                             A=M[T]                                  (depends)
 
@@ -529,13 +529,13 @@ different kinds of instructions.
         1      PC       R  fetch opcode, increment PC
                             IR=M[PC], PC+=1
         2      PC       R  fetch pointer address, increment PC
-                            D=00,M[PC], PC+=1                       (INDIRECT_1)
+                            D=00,M[PC], PC+=1                       (XIN_1)
         3    pointer    R  read from the address, add X to it
-                            DL+=X                                   (XIN_1)
+                            DL+=X                                   (XIN_2)
         4   pointer+X   R  fetch effective address low
-                            TL=M[D]  D+=1                           (XIN_2)
+                            TL=M[D]  D+=1                           (XIN_3)
         5  pointer+X+1  R  fetch effective address high
-                            TH=M[D]                                 (XIN_3)
+                            TH=M[D]                                 (XIN_4)
         6    address    W  write to effective address
                             M[T]=A/AX                               (depends)
 

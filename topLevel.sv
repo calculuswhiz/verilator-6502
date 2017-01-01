@@ -111,6 +111,9 @@ wire [7:0]  mem_data;
 wire        mem_rw;
 wire [7:0]  membuf_out;
 
+// Reset (neg. edge)
+wire DH_rst_n;
+
 testmemory MEM(
     .clk(clkdiv[divfactor]),
     .tm_address({memory_bus_h, memory_bus_l}),
@@ -307,6 +310,7 @@ PC PC_reg(
     .H_dec(PCH_dec),
     .PCL_in(PCLmux_out),
     .PCH_in(PCHmux_out),
+    .H_rst_n(1'b1),
     .PCL_out(PCL_out),
     .PCH_out(PCH_out)
 );
@@ -362,6 +366,7 @@ PC D_reg(
     .H_dec(DH_dec),
     .PCL_in(DLmux_out),
     .PCH_in(DHmux_out),
+    .H_rst_n(DH_rst_n),
     .PCL_out(DL_out),
     .PCH_out(DH_out)
 );
@@ -424,6 +429,7 @@ PC T_reg(
     .H_dec(1'b0),
     .PCL_in(TLmux_out),
     // .PCH_in(THmux_out),
+    .H_rst_n(1'b1),
     .PCH_in(zeroout),
     .PCL_out(TL_out),
     .PCH_out(TH_out)
@@ -521,6 +527,7 @@ control CTL(
     .mem_data(mem_data),
 
     .ctl_pvect(ctl_pvect), .ctl_irvect(ctl_irvect),
+    .DH_rst_n(DH_rst_n),
     .X_en(X_en), .Y_en(Y_en), .Sd_en(Sd_en), .Sm_en(Sm_en), .Spagem_en(Spagem_en), .A_en(A_en),
     .PCLd_en(PCLd_en), .PCLm_en(PCLm_en), .PCHd_en(PCHd_en), .PCHm_en(PCHm_en),
     .DLd_en(DLd_en), .DLm_en(DLm_en), .DHd_en(DHd_en), .DHm_en(DHm_en),
