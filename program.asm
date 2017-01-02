@@ -13,10 +13,8 @@ zero:
 
 text:
 ;;;;Program start;;;;
-ldy #$00
-lda (indir), y
-iny
-lda (indir), y
+lda #$77
+cmp #$77
 jmp halt
 
 ;;;;;;;;;;;;;;;;;;;;;

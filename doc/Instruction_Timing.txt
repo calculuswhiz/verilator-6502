@@ -79,13 +79,13 @@ different kinds of instructions.
                         IR = M[PC], PC=PC+1
         2    PC     R  read next instruction byte (and throw it away),
                        increment PC
-                        IR = M[PC] @                                   (IMPLIED_ACCUMULATOR)
+                        IR = M[PC]                                      (IMPLIED_ACCUMULATOR)
         3  $0100,S  W  push PCH on stack (with B flag set), decrement S
-                        M[S] = PCH, S = S-1                             (BRK_IMP_1)
+                        M[S] = PCH, S-=1                                (BRK_IMP_1)
         4  $0100,S  W  push PCL on stack, decrement S
-                        M[S] = PCL, S = S-1                             (BRK_IMP_2)
+                        M[S] = PCL, S-=1                                (BRK_IMP_2)
         5  $0100,S  W  push P on stack, decrement S
-                        M[S] = P, S                                     (BRK_IMP_3)
+                        M[S] = P, S-=1                                  (BRK_IMP_3)
         6   $FFFE   R  fetch PCL
                         PCL=M[$FFFE]                                    (BRK_IMP_4)
         7   $FFFF   R  fetch PCH
@@ -106,7 +106,7 @@ different kinds of instructions.
         5  $0100,S  R  pull PCL from stack, increment S
                         PCL=M[S], S+=1                                  (RTI_IMP_3)
         6  $0100,S  R  pull PCH from stack
-                        PCL=M[S], S+=1                                  (RTI_IMP)
+                        PCH=M[S]                                        (RTI_IMP)
 
      RTS
 

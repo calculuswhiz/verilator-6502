@@ -49,7 +49,8 @@ begin
             // f = a-{carryIn,b};
             f = a-b-{7'b0,~carryIn};
             // $display("%d", carryIn);
-            carry = f[8];      // if a-b < 0 set P.C flag
+            // carry = f[8];      // if a-b < 0 set P.C flag. I don't think so?
+            carry = ~f[8];      // if f>=0 set P.C flag
             overflow = ~((a[7]^f[7])&&(b[7]^f[7]));
             // overflow = a[7]^f[7];
             // $display("%d",f);

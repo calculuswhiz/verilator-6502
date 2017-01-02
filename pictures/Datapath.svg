@@ -66,8 +66,8 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="2"
-     inkscape:cx="621.86656"
-     inkscape:cy="150.1218"
+     inkscape:cx="321.08096"
+     inkscape:cy="160.99507"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -419,15 +419,15 @@
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:7.5px;line-height:125%;font-family:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;-inkscape-font-specification:monospace;font-stretch:normal;font-variant:normal;"
-       x="258.24551"
-       y="269.24142"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="274.74551"
+       y="268.74142"
        id="text4455"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4457"
-         x="258.24551"
-         y="269.24142">ALU_Amux_sel</tspan></text>
+         x="274.74551"
+         y="268.74142">ALU_A_sel</tspan></text>
     <path
        style="fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:1.20000005;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 361.27049,255.14106 15.15229,13.63706 0,13.13199 -15.15229,12.12183 z"
@@ -483,7 +483,7 @@
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:7.5px;line-height:125%;font-family:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;-inkscape-font-specification:monospace;font-stretch:normal;font-variant:normal;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="364.604"
        y="301.60809"
        id="text4455-1"
@@ -491,7 +491,7 @@
          sodipodi:role="line"
          id="tspan4457-4"
          x="364.604"
-         y="301.60809">ALU_Bmux_sel</tspan></text>
+         y="301.60809">ALU_B_sel</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1.01025939px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 318.45821,241.20971 c 24.74366,0 49.48732,0 74.23098,0"
@@ -1326,15 +1326,15 @@
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:7.5px;line-height:125%;font-family:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;-inkscape-font-specification:monospace;font-stretch:normal;font-variant:normal;"
-       x="147.48589"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="149.98589"
        y="295.21936"
        id="text5260"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5262"
-         x="147.48589"
-         y="295.21936">Smux_sel</tspan></text>
+         x="149.98589"
+         y="295.21936">S_sel</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 488.34735,255.04923 0,7.85715"
@@ -1342,15 +1342,15 @@
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:7.5px;line-height:125%;font-family:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;-inkscape-font-specification:monospace;font-stretch:normal;font-variant:normal;"
-       x="468.49023"
-       y="269.33496"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="475.99023"
+       y="269.83496"
        id="text5260-6"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5262-1"
-         x="468.49023"
-         y="269.33496">Amux_sel</tspan></text>
+         x="475.99023"
+         y="269.83496">A_sel</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 107.48589,308.07649 0,54.28571"
@@ -1435,8 +1435,8 @@
          x="656.85168"
          y="183.12599">CTL</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1.22474492px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 696.50019,179.59041 31.8198,0"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.64300853px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 696.32341,168.63025 8.77081,0"
        id="path5360"
        inkscape:connector-curvature="0" />
     <rect
@@ -1559,7 +1559,7 @@
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:5px;line-height:125%;font-family:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;-inkscape-font-specification:monospace;font-stretch:normal;font-variant:normal;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="695.16882"
        y="113.27951"
        id="text4772-86"
@@ -1567,7 +1567,7 @@
          sodipodi:role="line"
          id="tspan4774-26"
          x="695.16882"
-         y="113.27951">IRmux_sel</tspan></text>
+         y="113.27951">IR_sel</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 712.48589,93.790775 10,0"
@@ -2120,39 +2120,39 @@
        inkscape:connector-curvature="0" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.01198125;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 244.94179,90.200009 -7.96568,0"
+       d="m 90.941772,82.200008 -7.96568,0"
        id="path4593-9"
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="248.15302"
-       y="92.737129"
+       x="94.153"
+       y="84.737129"
        id="text4613"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4615"
-         x="248.15302"
-         y="92.737129">= has load/inc/dec</tspan></text>
+         x="94.153"
+         y="84.737129">= has load/inc/dec</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#ff8500;stroke-width:1.05621004;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 244.86249,101.34318 -7.8423,0"
+       d="m 90.862472,93.343179 -7.8423,0"
        id="path4218-8-7"
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="248.28175"
-       y="103.93024"
+       x="94.281738"
+       y="95.930237"
        id="text4613-5"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4615-9"
-         x="248.28175"
-         y="103.93024">= one of many drivers</tspan><tspan
+         x="94.281738"
+         y="95.930237">= one of many drivers</tspan><tspan
          sodipodi:role="line"
-         x="248.28175"
-         y="113.30524"
+         x="94.281738"
+         y="105.30524"
          id="tspan4650">    (has en signal)</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#0000ff;stroke-width:0.83937216px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -2186,23 +2186,23 @@
        inkscape:connector-curvature="0" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#800000;stroke-width:1.05621004;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 244.8,120.40568 -7.8423,0"
+       d="m 90.799982,112.40568 -7.8423,0"
        id="path4218-8-7-4"
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="248.20792"
-       y="123.03974"
+       x="94.207901"
+       y="115.03974"
        id="text4613-5-3"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         x="248.20792"
-         y="123.03974"
+         x="94.207901"
+         y="115.03974"
          id="tspan4650-7">= data buses (has many</tspan><tspan
          sodipodi:role="line"
-         x="248.20792"
-         y="132.41473"
+         x="94.207901"
+         y="124.41473"
          id="tspan4755">    drivers)</tspan></text>
     <text
        xml:space="preserve"
@@ -2257,19 +2257,19 @@
        id="rect4783-2-4"
        width="8.5000019"
        height="17.75"
-       x="135.86215"
-       y="-245.59055"
+       x="127.86215"
+       y="-91.59053"
        transform="matrix(0,1,-1,0,0,0)" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="247.73131"
-       y="143.27939"
+       x="93.731293"
+       y="135.27939"
        id="text4613-5-3-0"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         x="247.73131"
-         y="143.27939"
+         x="93.731293"
+         y="135.27939"
          id="tspan4755-6">= memory connection</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.78249127px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -2340,5 +2340,101 @@
          id="tspan4813-9-7"
          x="776.47021"
          y="204.21939">Pd_en</tspan></text>
+    <path
+       style="fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:1.20000005;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 705.52257,159.4516 12.14286,7.85714 0,13.57143 -11.78572,7.14286 z"
+       id="rect4277-4-6-3"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="706.95117"
+       y="171.23729"
+       id="text4280-83-3-6"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4282-6-17-7"
+         x="706.95117"
+         y="171.23729">0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="707.06714"
+       y="182.53885"
+       id="text4280-8-5-6-5"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4282-1-4-7-35"
+         x="707.06714"
+         y="182.53885">1</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 718.02258,174.59159 10,0"
+       id="path4760-62"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 712.57582,184.31439 0,4.54569"
+       id="path4770-9"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="706.16309"
+       y="194.45541"
+       id="text4772-8-1"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4774-0-2"
+         x="706.16309"
+         y="194.45541">P_sel</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 705.18321,180.45891 -5.3033,0 0,34.52825"
+       id="path4552"
+       inkscape:connector-curvature="0" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot4556"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="translate(-130.5345,55.103352)"><flowRegion
+         id="flowRegion4558"><rect
+           id="rect4560"
+           width="135"
+           height="24"
+           x="191"
+           y="10.758783" /></flowRegion><flowPara
+         id="flowPara4562">NOTES:</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot4564"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:120.00000477%;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="translate(-13.534485,44.60335)"><flowRegion
+         id="flowRegion4566"><rect
+           id="rect4568"
+           width="218.5"
+           height="43.500004"
+           x="239.5"
+           y="32.258785"
+           style="line-height:120.00000477%" /></flowRegion><flowPara
+         id="flowPara4574" /></flowRoot>    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:125%;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="254.46552"
+       y="81.362129"
+       id="text4581"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4583"
+         x="254.46552"
+         y="81.362129">- All mux selection signals have an understood</tspan><tspan
+         sodipodi:role="line"
+         x="254.46552"
+         y="90.737129"
+         id="tspan4591">  &quot;mux&quot; in their names just before the final </tspan><tspan
+         sodipodi:role="line"
+         x="254.46552"
+         y="100.11213"
+         id="tspan4599">  underscore char.</tspan></text>
   </g>
 </svg>

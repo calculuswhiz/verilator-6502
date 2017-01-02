@@ -24,7 +24,8 @@ module control
     output reg Pd_en, IR_en,
     output reg ALUd_en, ALUm_en,
     output reg xferu_en, xferd_en,
-    output reg Zl_en, Zh_en,
+    output reg Zl_en, Zh_en,        // @@ Needed?
+    output reg IRQH_en, IRQL_en,
 
     // Load:
     output reg X_ld, Y_ld, S_ld, S_inc, S_dec, A_ld,
@@ -48,6 +49,7 @@ module control
     output reg THmux_sel,
     output reg Pmux_sel,
     output reg IRmux_sel,
+    output reg IRQLmux_sel,
 
     // Other ALU signals:
     /* verilator lint_off UNOPTFLAT */
@@ -172,16 +174,16 @@ begin : state_actions
     Spagem_en   = 0;
     A_en        = 0;
     PCLd_en     = 0;
-    PCLm_en     = 1;    // Keep this as default addressor.
     PCHd_en     = 0;
+    PCLm_en     = 1;    // Keep this as default addressor.
     PCHm_en     = 1;
     DLd_en      = 0;
-    DLm_en      = 0;
     DHd_en      = 0;
+    DLm_en      = 0;
     DHm_en      = 0;
     TLd_en      = 0;
-    TLm_en      = 0;
     THd_en      = 0;
+    TLm_en      = 0;
     THm_en      = 0;
     Pd_en       = 0;
     IR_en       = 0;
@@ -191,6 +193,8 @@ begin : state_actions
     xferd_en    = 0;
     Zl_en       = 0;
     Zh_en       = 0;
+    IRQH_en     = 0;
+    IRQL_en     = 0;
     
     // Load:
     X_ld    = 0;
@@ -227,6 +231,7 @@ begin : state_actions
     THmux_sel       = 0;
     Pmux_sel        = 0;
     IRmux_sel       = 0;
+    IRQLmux_sel     = 0;
     
     // Some stack instructions need to use IR_in.
     next_state_path = mem_data;
@@ -353,8 +358,41 @@ begin : state_actions
         end
         BRANCH_PAGE:
         begin 
-            IR_ld  = 1;
+            IR_ld   = 1;
             PCL_inc = 1;
+        end
+        BRK_IMP_1:  // M[S] = PCH, S-=1
+        begin 
+            S_dec    = 1;
+            address_S();
+            xferu_en = 1;
+            PCHd_en  = 1;
+            mem_rw   = 0;
+        end
+        BRK_IMP_2:  // M[S] = PCL, S-=1
+        begin 
+            S_dec    = 1;
+            address_S();
+            xferu_en = 1;
+            PCLd_en  = 1;
+            mem_rw   = 0;
+        end
+        BRK_IMP_3:  // M[S] = P, S-=1
+        begin 
+            S_dec    = 1;
+            address_S();
+            xferu_en = 1;
+            PCLd_en  = 1;
+            mem_rw   = 0; 
+        end
+        BRK_IMP_4:  // PCL=M[$FFFE]   @@ add any special value buffers to datapath, S_page, etc.
+        begin 
+            PCLm_en  = 0;
+            PCHm_en  = 0;
+            IRQL_en  = 1;
+            IRQH_en  = 1;
+            xferd_en = 1;
+            PCL_ld   = 1;
         end
         IDY_2:          // TL=M[D]  D+=1
         begin 
@@ -419,6 +457,25 @@ begin : state_actions
         end
         PLA_IMP_1, PLP_IMP_1:
         begin 
+            S_inc = 1;
+        end
+        RTI_IMP_1:
+        begin 
+            S_inc = 1;
+        end
+        RTI_IMP_2:
+        begin 
+            address_S();
+            xferd_en = 1;
+            Pmux_sel = 1;       // @@ Missing from picture
+            P_ld = 1;
+            S_inc = 1;
+        end
+        RTI_IMP_3:
+        begin 
+            address_S();
+            xferd_en = 1;
+            PCL_ld = 1;
             S_inc = 1;
         end
         RTS_IMP_1:
@@ -514,6 +571,22 @@ begin : state_actions
             DL_ld = 1;
         end
         /* stack */
+        BRK_IMP:            // PCH=M[$FFFF]
+        begin 
+            PCLm_en     = 0;
+            PCHm_en     = 0;
+            IRQL_en     = 1;
+            IRQLmux_sel = 1;
+            IRQH_en     = 1;
+            xferd_en    = 1;
+            PCH_ld      = 1;
+        end
+        RTI_IMP:
+        begin 
+            address_S();
+            xferd_en = 1;
+            PCH_ld = 1;
+        end
         RTS_IMP:
         begin 
             PCL_inc = 1;

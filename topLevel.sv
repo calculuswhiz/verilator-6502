@@ -40,6 +40,8 @@ wire Pd_en, IR_en;
 wire ALUd_en, ALUm_en;
 wire xferu_en, xferd_en;
 wire Zl_en, Zh_en;
+wire IRQH_en;
+wire IRQL_en;
 
 // Load:
 wire X_ld, Y_ld, S_ld, S_inc, S_dec, A_ld;
@@ -62,6 +64,7 @@ wire DHmux_sel;
 wire [1:0] TLmux_sel;
 wire Pmux_sel;
 wire IRmux_sel;
+wire IRQLmux_sel;
 
 // Other ALU signals:
 aluop_t aluop;
@@ -91,6 +94,7 @@ wire [7:0] ctl_irvect;
 wire [7:0] IR_out;
 wire [7:0] IRbuf_out;
 wire [7:0] xferubuf_out, xferdbuf_out;
+wire [7:0] IRQLbuf_out, IRQHbuf_out;
 
 // Mulitplexed data:
 wire [7:0] Smux_out, ALU_Amux_out, ALU_Bmux_out, Amux_out;
@@ -100,6 +104,7 @@ wire [7:0] DLmux_out, DHmux_out;
 wire [7:0] TLmux_out;
 wire [7:0] Pmux_out;
 wire [7:0] IRmux_out;
+wire [7:0] IRQLmux_out;
 
 // dev_zero
 wire [7:0] zeroin, zeroout;
@@ -528,7 +533,7 @@ control CTL(
 
     .ctl_pvect(ctl_pvect), .ctl_irvect(ctl_irvect),
     .DH_rst_n(DH_rst_n),
-    .X_en(X_en), .Y_en(Y_en), .Sd_en(Sd_en), .Sm_en(Sm_en), .Spagem_en(Spagem_en), .A_en(A_en),
+    .X_en(X_en), .Y_en(Y_en), .Sd_en(Sd_en), .Sm_en(Sm_en), .Spagem_en(Spagem_en), .A_en(A_en), .IRQH_en(IRQH_en), .IRQL_en(IRQL_en),
     .PCLd_en(PCLd_en), .PCLm_en(PCLm_en), .PCHd_en(PCHd_en), .PCHm_en(PCHm_en),
     .DLd_en(DLd_en), .DLm_en(DLm_en), .DHd_en(DHd_en), .DHm_en(DHm_en),
     .TLd_en(TLd_en), .TLm_en(TLm_en), .THd_en(THd_en), .THm_en(THm_en),
@@ -550,10 +555,31 @@ control CTL(
     .TLmux_sel(TLmux_sel), .THmux_sel(zeroout[0]),
     .Pmux_sel(Pmux_sel),
     .IRmux_sel(IRmux_sel),
+    .IRQLmux_sel(IRQLmux_sel),
     .aluop(aluop),
     .V_ctl(V_in), .C_ctl(C_in),
     .mem_rw (mem_rw),
     .state_out(state_out)
+);
+
+// For interrupts:
+tristate IRQHbuf(
+    .in(8'hff),
+    .enable(IRQH_en),
+    .out(IRQHbuf_out)
+);
+
+mux2 IRQLmux(
+    .a(8'hfe),
+    .b(8'hff),
+    .sel(IRQLmux_sel),
+    .f(IRQLmux_out)
+);
+
+tristate IRQLbuf(
+    .in(IRQLmux_out),
+    .enable(IRQL_en),
+    .out(IRQLbuf_out)
 );
 
 wire [11:0] lo_ctl_out;
@@ -591,7 +617,7 @@ assign DEBUGLED = state_out[8];
 // A little hack to get verilator to cooperate (no tristate construct issue):
 assign data_bus = Xbuf_out|Ybuf_out|Sdbuf_out|ALUdbuf_out|Abuf_out|PCLdbuf_out|PCHdbuf_out|DLdbuf_out|DHdbuf_out|TLdbuf_out|THdbuf_out|Pbuf_out|xferdbuf_out;
 assign xfer_bus = membuf_out|IRbuf_out|xferubuf_out;
-assign memory_bus_h = ZHbuf_out|DHmbuf_out|PCHmbuf_out|THmbuf_out|Spagebuf_out;
-assign memory_bus_l = ALUmbuf_out|Smbuf_out|ZLbuf_out|DLmbuf_out|PCLmbuf_out|TLmbuf_out;
+assign memory_bus_h = ZHbuf_out|DHmbuf_out|PCHmbuf_out|THmbuf_out|Spagebuf_out|IRQHbuf_out;
+assign memory_bus_l = ALUmbuf_out|Smbuf_out|ZLbuf_out|DLmbuf_out|PCLmbuf_out|TLmbuf_out|IRQLbuf_out;
 
 endmodule
