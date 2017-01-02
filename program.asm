@@ -1,27 +1,34 @@
 *=$0000
-;;; begin ;;;
-init:
-jmp text
+; 00-ff
+zeropage:
+.dsb    $100
 
-zpg_data:
-noninstruction:     ; Trigger error on purpose by jumping here.
-.byt $03
-number:
-.byt $fa
-zero:
-.byt $00
+; 100-1ff
+stack:
+.dsb    $100
 
-text:
-;;;;Program start;;;;
-lda #$77
-cmp #$77
-jmp halt
-
-;;;;;;;;;;;;;;;;;;;;;
-
-abs_data:
-indir:
-.word   noninstruction
+; 0200-3fff
+startprogRAM:
+inx
 
 halt:
 jmp halt
+endprogRAM:
+.dsb    $4000-endprogRAM
+
+; 4000-7fff
+startmmio:
+endmmio:
+.dsb    $8000-endmmio
+
+; 8000-fff9
+startprogROM:
+endprogROM:
+.dsb    $fffa-endprogROM
+
+NMIvector:
+.word $0000
+RESETvector:
+.word $0000
+IRQvector:
+.word $0000

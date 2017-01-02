@@ -2,7 +2,7 @@
 // and T registers. Sorry for the misnomer.
 // It is useful because it is 16 bits and can correct invalidation 
 // (i.e. page crossings), if necessary.
-module PC
+module PC #(parameter rstval = 16'h0)
 (
 	input clk,
     
@@ -28,7 +28,7 @@ reg [15:0] data;
 
 initial
 begin
-	data = 16'h0;
+	data = rstval;
 end
 
 always @ (posedge clk)

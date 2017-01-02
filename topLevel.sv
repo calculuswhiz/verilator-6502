@@ -306,7 +306,7 @@ mux2 PCHmux(
     .f(PCHmux_out)
 );
 
-PC PC_reg(
+PC #(.rstval(16'h200)) PC_reg(
     .clk(clkdiv[divfactor]),
     .load_pc_h(PCH_ld),
     .load_pc_l(PCL_ld),
