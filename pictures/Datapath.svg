@@ -16,10 +16,10 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="Datapath_05MAY15.svg"
-   inkscape:export-filename="/home/zach/Documents/6502-verilator/pictures/Datapath_05MAY15.png"
-   inkscape:export-xdpi="147.74353"
-   inkscape:export-ydpi="147.74353">
+   sodipodi:docname="Datapath.svg"
+   inkscape:export-filename="/home/zach/Documents/6502-verilator/pictures/Datapath.png"
+   inkscape:export-xdpi="147.87886"
+   inkscape:export-ydpi="147.87886">
   <defs
      id="defs4">
     <linearGradient
@@ -66,13 +66,13 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="2"
-     inkscape:cx="663.18824"
-     inkscape:cy="143.74371"
+     inkscape:cx="621.86656"
+     inkscape:cy="150.1218"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1945"
-     inkscape:window-height="1002"
+     inkscape:window-width="1990"
+     inkscape:window-height="1006"
      inkscape:window-x="29"
      inkscape:window-y="32"
      inkscape:window-maximized="0"
@@ -382,7 +382,7 @@
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;-inkscape-font-specification:monospace;font-stretch:normal;font-variant:normal;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="275.36758"
        y="225.09778"
        id="text4435"
@@ -391,27 +391,27 @@
          id="tspan4437"
          x="275.36758"
          y="225.09778"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle;">A,X,Y,DL,</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle">A,X,Y,DL,</tspan><tspan
          sodipodi:role="line"
          x="275.36758"
          y="232.91028"
          id="tspan4439"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle;">data_bus</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle">data_bus</tspan><tspan
          sodipodi:role="line"
          x="275.36758"
          y="240.72278"
          id="tspan4441"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle;">PCL_out</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle">PCL_out</tspan><tspan
          sodipodi:role="line"
          x="275.36758"
          y="248.53528"
          id="tspan4443"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle;">memory_bus_l</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle">memory_bus_l</tspan><tspan
          sodipodi:role="line"
          x="275.36758"
          y="256.34778"
          id="tspan4447"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle;">memory_bus_h</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle">TL</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 312.64222,253.83661 0,7.57615"
@@ -446,7 +446,7 @@
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:5px;line-height:125%;font-family:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;-inkscape-font-specification:monospace;font-stretch:normal;font-variant:normal;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="333.28928"
        y="260.64639"
        id="text4435-9"
@@ -455,27 +455,27 @@
          id="tspan4437-5"
          x="333.28928"
          y="260.64639"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle;">A,X,Y,DL,</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle">A,X,Y,DL,</tspan><tspan
          sodipodi:role="line"
          x="333.28928"
          y="268.45889"
          id="tspan4439-8"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle;">data_bus</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle">data_bus</tspan><tspan
          sodipodi:role="line"
          x="333.28928"
          y="276.27139"
          id="tspan4441-3"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle;">PCL_out</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle">PCL_out</tspan><tspan
          sodipodi:role="line"
          x="333.28928"
          y="284.08389"
          id="tspan4443-1"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle;">memory_bus_l</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle">memory_bus_l</tspan><tspan
          sodipodi:role="line"
          x="333.28928"
          y="291.89639"
          id="tspan4447-8"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle;">memory_bus_h</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.25000095px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;writing-mode:lr-tb;text-anchor:middle">TL</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 369.85678,287.97101 0,7.57615"
@@ -1164,33 +1164,12 @@
        id="rect4277-4-6-4-5-1"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccc" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:7.5px;line-height:125%;font-family:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;-inkscape-font-specification:monospace;font-stretch:normal;font-variant:normal;"
-       x="812.16394"
-       y="235.78241"
-       id="text4280-83-3-1-6-3"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan4282-6-17-3-5-4"
-         x="812.16394"
-         y="235.78241">0</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:7.5px;line-height:125%;font-family:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;-inkscape-font-specification:monospace;font-stretch:normal;font-variant:normal;"
-       x="812.27991"
-       y="247.08395"
-       id="text4280-8-5-6-9-8-0"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan4282-1-4-7-6-5-3"
-         x="812.27991"
-         y="247.08395">1</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 810.01407,231.82649 -5,0 0,-16.07143"
+       d="m 805.01407,231.82649 0,-16.07143"
        id="path4754-8-5"
-       inkscape:connector-curvature="0" />
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 810.37121,243.61221 -10.35714,-0.35715 0,61.42858"
@@ -1213,8 +1192,8 @@
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 804.97074,240.75506 0,-8.57142"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.89209479px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 804.97074,242.13006 0,-6.82142"
        id="path4764-8-0"
        inkscape:connector-curvature="0" />
     <path
@@ -1755,8 +1734,8 @@
        style="fill:#ff6600;fill-opacity:0;stroke:#ff8800;stroke-width:1.02400005;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path5599-0"
        sodipodi:sides="3"
-       sodipodi:cx="865.19568"
-       sodipodi:cy="301.43661"
+       sodipodi:cx="864.48857"
+       sodipodi:cy="300.72951"
        sodipodi:r1="2.5253813"
        sodipodi:r2="1.2626907"
        sodipodi:arg1="1.5707963"
@@ -1764,7 +1743,7 @@
        inkscape:flatsided="true"
        inkscape:rounded="0"
        inkscape:randomized="0"
-       d="m 865.19568,303.962 -2.18705,-3.78808 4.37409,0 z"
+       d="m 864.48859,303.2549 -2.18705,-3.78807 4.37409,0 z"
        inkscape:transform-center-y="0.63134534" />
     <path
        sodipodi:type="star"
@@ -1787,8 +1766,8 @@
        style="fill:#ff6600;fill-opacity:0;stroke:#ff8800;stroke-width:1.02400005;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path5599-07"
        sodipodi:sides="3"
-       sodipodi:cx="827.82007"
-       sodipodi:cy="212.03812"
+       sodipodi:cx="828.07007"
+       sodipodi:cy="212.16312"
        sodipodi:r1="2.5253813"
        sodipodi:r2="1.2626907"
        sodipodi:arg1="1.5707963"
@@ -1796,7 +1775,7 @@
        inkscape:flatsided="true"
        inkscape:rounded="0"
        inkscape:randomized="0"
-       d="m 827.82007,214.5635 -2.18705,-3.78807 4.37409,0 z"
+       d="m 828.07007,214.6885 -2.18705,-3.78807 4.37409,0 z"
        inkscape:transform-center-y="0.63134534" />
     <path
        sodipodi:type="star"
@@ -2292,5 +2271,74 @@
          x="247.73131"
          y="143.27939"
          id="tspan4755-6">= memory connection</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.78249127px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 810.17437,233.44979 -19.6317,0.0887"
+       id="path4510-3"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.50000006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 794.50725,231.53672 3,4.125"
+       id="path4512-6"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.00000095px;line-height:100%;font-family:Clean;-inkscape-font-specification:'Clean, Normal';text-align:end;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="797.39893"
+       y="239.04944"
+       id="text4490-9-7"
+       sodipodi:linespacing="100%"><tspan
+         sodipodi:role="line"
+         id="tspan4492-3-5"
+         x="797.39893"
+         y="239.04944"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.00000095px;line-height:100%;font-family:Clean;-inkscape-font-specification:'Clean, Normal';text-align:end;writing-mode:lr-tb;text-anchor:end">data_bus,</tspan><tspan
+         sodipodi:role="line"
+         x="797.39893"
+         y="244.04944"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.00000095px;line-height:100%;font-family:Clean;-inkscape-font-specification:'Clean, Normal';text-align:end;writing-mode:lr-tb;text-anchor:end"
+         id="tspan4496-9-3">mem...l,</tspan><tspan
+         sodipodi:role="line"
+         x="797.39893"
+         y="249.04944"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.00000095px;line-height:100%;font-family:Clean;-inkscape-font-specification:'Clean, Normal';text-align:end;writing-mode:lr-tb;text-anchor:end"
+         id="tspan4498-2-5">ALU</tspan><tspan
+         sodipodi:role="line"
+         x="797.39893"
+         y="254.04944"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.00000095px;line-height:100%;font-family:Clean;-inkscape-font-specification:'Clean, Normal';text-align:end;writing-mode:lr-tb;text-anchor:end"
+         id="tspan4494-8-6" /></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#ff8800;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 764.96552,178.86213 9.25,0 0,35.25003"
+       id="path3726"
+       inkscape:connector-curvature="0" />
+    <path
+       sodipodi:type="star"
+       style="fill:#ff6600;fill-opacity:0;stroke:#ff8800;stroke-width:1.02400005;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path5599-07-2"
+       sodipodi:sides="3"
+       sodipodi:cx="774.21564"
+       sodipodi:cy="211.34981"
+       sodipodi:r1="2.5253816"
+       sodipodi:r2="1.2626908"
+       sodipodi:arg1="1.5707963"
+       sodipodi:arg2="2.6179939"
+       inkscape:flatsided="true"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m 774.21564,213.87519 -2.18705,-3.78807 4.37409,0 z"
+       inkscape:transform-center-y="0.63134534" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5px;line-height:125%;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="776.47021"
+       y="204.21939"
+       id="text4811-0-2"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4813-9-7"
+         x="776.47021"
+         y="204.21939">Pd_en</tspan></text>
   </g>
 </svg>

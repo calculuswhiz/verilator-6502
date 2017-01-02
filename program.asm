@@ -7,23 +7,23 @@ zpg_data:
 noninstruction:     ; Trigger error on purpose by jumping here.
 .byt $03
 number:
-.byt $0a
+.byt $fa
 zero:
 .byt $00
 
 text:
 ;;;;Program start;;;;
-lda #$77
-sta (indir,x)
-lda #$bb
-lda (indir,x)
+ldy #$00
+lda (indir), y
+iny
+lda (indir), y
 jmp halt
 
 ;;;;;;;;;;;;;;;;;;;;;
 
 abs_data:
 indir:
-.word   number
+.word   noninstruction
 
 halt:
 jmp halt

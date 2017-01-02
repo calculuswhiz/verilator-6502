@@ -44,7 +44,8 @@ module control
     output reg PCHmux_sel,
     output reg [1:0] DLmux_sel,
     output reg DHmux_sel,
-    output reg TLmux_sel, THmux_sel,
+    output reg [1:0] TLmux_sel,
+    output reg THmux_sel,
     output reg Pmux_sel,
     output reg IRmux_sel,
 
@@ -222,7 +223,7 @@ begin : state_actions
     PCHmux_sel      = 0;
     DLmux_sel       = 0;
     DHmux_sel       = 0;
-    TLmux_sel       = 0;
+    TLmux_sel       = 2'b00;
     THmux_sel       = 0;
     Pmux_sel        = 0;
     IRmux_sel       = 0;
@@ -254,59 +255,59 @@ begin : state_actions
         end
         ABSOLUTE_2:
         begin
-            PCL_inc = 1;        // PC+=1
+            PCL_inc  = 1;        // PC+=1
             xferd_en = 1;       // DH = M
-            DH_ld   = 1;
+            DH_ld    = 1;
         end
         ABSOLUTE_R:
         begin
             address_D();
             xferd_en = 1;
-            TL_ld   = 1;    // TL=M[D]
+            TL_ld    = 1;    // TL=M[D]
         end
         ABSOLUTE_X:     // DH=M[PC] DL+=X PC+=1
         begin 
-            xferd_en = 1;
-            DH_ld = 1;
+            xferd_en     = 1;
+            DH_ld        = 1;
             ALU_Amux_sel = 3'b001;  // X
             ALU_Bmux_sel = 3'b011;
-            aluop = alu_adc;
-            DLmux_sel = 2'b10;
-            DL_ld = 1;
-            PCL_inc = 1;
+            aluop        = alu_adc;
+            DLmux_sel    = 2'b10;
+            DL_ld        = 1;
+            PCL_inc      = 1;
             set_invd();
         end
         ABSOLUTE_Y:
         begin 
-            xferd_en = 1;
-            DH_ld = 1;
+            xferd_en     = 1;
+            DH_ld        = 1;
             ALU_Amux_sel = 3'b010;  // Y
             ALU_Bmux_sel = 3'b011;
-            aluop = alu_adc;
-            DLmux_sel = 2'b10;
-            DL_ld = 1;
-            PCL_inc = 1;
+            aluop        = alu_adc;
+            DLmux_sel    = 2'b10;
+            DL_ld        = 1;
+            PCL_inc      = 1;
             set_invd();
         end
         ABSOLUTE_XYR:
         begin 
             address_D();
             xferd_en = 1;
-            TL_ld = 1;
+            TL_ld    = 1;
             Dpage_invd();
         end
         ABSOLUTE_XYR_PAGE:
         begin 
             address_D();
             xferd_en = 1;
-            TL_ld = 1;
+            TL_ld    = 1;
         end
         ABSOLUTE_W:
         begin
             address_D();
-            mem_rw  = 0;    // write mode
+            mem_rw   = 0;    // write mode
             xferu_en = 1;
-            TLd_en  = 1;
+            TLd_en   = 1;
         end
         BRANCH_CHECK:
         begin 
@@ -316,15 +317,15 @@ begin : state_actions
                 (~IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[7])))  // N
             begin 
                 // Branch taken:
-                IR_ld = 1;
-                PCLm_en = 0;
-                DLd_en = 1;             // PCL += DL
+                IR_ld        = 1;
+                PCLm_en      = 0;
+                DLd_en       = 1;             // PCL += DL
                 ALU_Amux_sel = 3'b100;
                 ALU_Bmux_sel = 3'b101;
-                aluop = alu_adc;
-                ALUm_en = 1;
-                PCLmux_sel = 1;
-                PCL_ld = 1;
+                aluop        = alu_adc;
+                ALUm_en      = 1;
+                PCLmux_sel   = 1;
+                PCL_ld       = 1;
                 // Fix PCH: if a: carry on positive addition, or b: no carry on negative addition.
                 set_invd();
             end
@@ -352,8 +353,31 @@ begin : state_actions
         end
         BRANCH_PAGE:
         begin 
-            IR_ld = 1;
+            IR_ld  = 1;
             PCL_inc = 1;
+        end
+        IDY_2:          // TL=M[D]  D+=1
+        begin 
+            address_D();
+            xferd_en = 1;
+            DL_inc   = 1;
+            TL_ld    = 1;
+        end
+        IDY_3:          // TH=M[D], TL+=Y
+        begin
+            address_D();
+            xferd_en     = 1;
+            TH_ld        = 1;
+            ALU_Amux_sel = 3'b010;  // Y
+            ALU_Bmux_sel = 3'b111;  // TL
+            aluop        = alu_adc;
+            // Do NOT use set_invd. That's for signed address addition. This is UNsigned.
+            if(alu_C)   // Simple: if carry is set, that means need to add 1 to TH
+                page_invalid = 2'b01;
+            else
+                page_invalid = 2'b00;
+            TLmux_sel    = 2'b10;
+            TL_ld        = 1;
         end
         IMPLIED_ACCUMULATOR:
         begin
@@ -362,15 +386,15 @@ begin : state_actions
         INDIRECT_1:
         begin 
             address_D();
-            DL_inc = 1;
+            DL_inc   = 1;
             xferd_en = 1;
-            TL_ld = 1;
+            TL_ld    = 1;
         end
         JSR_ABS_1:
         begin
-            PCL_inc = 1;
+            PCL_inc  = 1;
             xferd_en = 1;
-            DL_ld = 1;
+            DL_ld    = 1;
         end
         JSR_ABS_2:
         begin 
@@ -380,10 +404,10 @@ begin : state_actions
         JSR_ABS_3:
         begin
             address_S();
-            PCHd_en = 1;
+            PCHd_en  = 1;
             xferu_en = 1;
-            mem_rw = 0;
-            S_dec = 1;
+            mem_rw   = 0;
+            S_dec    = 1;
         end
         JSR_ABS_4:
         begin
@@ -415,14 +439,14 @@ begin : state_actions
             xferd_en = 1;
             PCH_ld = 1;
         end
-        XIN_1:
+        XID_1, IDY_1:
         begin
             PCL_inc  = 1;       // PC+=1
             xferd_en = 1;       // DL=M[PC]
             DL_ld    = 1;
             DH_rst_n = 0;
         end
-        XIN_2:      // DL+=X
+        XID_2:      // DL+=X
         begin 
             ALU_Amux_sel = 3'b011;
             ALU_Bmux_sel = 3'b001;
@@ -430,14 +454,14 @@ begin : state_actions
             ALUd_en = 1;
             DL_ld = 1;
         end
-        XIN_3:      // TL=M[D]  D+=1
+        XID_3:      // TL=M[D]  D+=1
         begin 
             DL_inc = 1;
             address_D();
             xferd_en = 1;
             TL_ld = 1;
         end
-        XIN_4:      // TH = M[D]
+        XID_4:      // TH = M[D]
         begin 
             address_D();
             xferd_en = 1;
@@ -505,7 +529,7 @@ begin : state_actions
             next_state_path = IR_in;
         end
         PHP_IMP:                // M[S|$0100] = P, S-=1
-        begin 
+        begin
             PCL_inc = 1;
             address_S();
             Pd_en = 1;
@@ -604,7 +628,7 @@ begin : state_actions
             fetchinst();
             DLd_en  = 1;        // DL == M
             A_ld    = 1;        // Store at A
-            ALU_Amux_sel = 3'b100;  // D status
+            ALU_Amux_sel = 3'b100;  // Set flags
             setNZ();
         end
         LDX_IMM:
@@ -620,7 +644,7 @@ begin : state_actions
             fetchinst();
             DLd_en  = 1;        // DL == M
             Y_ld    = 1;        // Store at Y
-            ALU_Amux_sel = 3'b010;  // check x's data
+            ALU_Amux_sel = 3'b010;  // check y's data
             setNZ();
         end
         ORA_IMM:
@@ -910,6 +934,7 @@ begin : state_actions
         LDA_ABX, LDA_ABY:
         begin 
             address_D();
+            ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
             A_ld = 1;
             Dpage_invd();
@@ -919,6 +944,7 @@ begin : state_actions
         LDA_ABS, LDA_ABX_PG, LDA_ABY_PG:
         begin 
             address_D();
+            ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
             A_ld = 1;
             setNZ();
@@ -926,6 +952,7 @@ begin : state_actions
         LDX_ABY:
         begin 
             address_D();
+            ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
             X_ld = 1;
             Dpage_invd();
@@ -935,6 +962,7 @@ begin : state_actions
         LDX_ABS, LDX_ABY_PG:
         begin 
             address_D();
+            ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
             X_ld = 1;
             setNZ();
@@ -942,6 +970,7 @@ begin : state_actions
         LDY_ABX:
         begin 
             address_D();
+            ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
             X_ld = 1;
             Dpage_invd();
@@ -951,6 +980,7 @@ begin : state_actions
         LDY_ABS, LDY_ABX_PG:
         begin 
             address_D();
+            ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
             Y_ld = 1;
             setNZ();
@@ -1101,15 +1131,16 @@ begin : state_actions
             Y_en = 1;
             xferu_en = 1;
         end
-        /* xin */
-        LDA_XIN:  // A=M[T]
+        /* xid */
+        LDA_XID:  // A=M[T]
         begin 
             address_T();
+            ALU_Amux_sel = 3'b100;      // Put it through alu to set flags
             xferd_en = 1;
             A_ld = 1;
             setNZ();
         end
-        ORA_XIN:
+        ORA_XID:
         begin 
             address_T();
             xferd_en = 1;
@@ -1119,7 +1150,7 @@ begin : state_actions
             A_ld = 1;
             setNZ(); 
         end
-        EOR_XIN:
+        EOR_XID:
         begin 
            address_T();
             xferd_en = 1;
@@ -1129,7 +1160,7 @@ begin : state_actions
             A_ld = 1;
             setNZ();  
         end
-        AND_XIN:
+        AND_XID:
         begin 
             address_T();
             xferd_en = 1;
@@ -1139,7 +1170,7 @@ begin : state_actions
             A_ld = 1;
             setNZ(); 
         end
-        ADC_XIN:
+        ADC_XID:
         begin 
             address_T();
             xferd_en = 1;
@@ -1150,7 +1181,7 @@ begin : state_actions
             A_ld = 1;
             setNVZC();
         end
-        CMP_XIN:
+        CMP_XID:
         begin 
             address_T();
             xferd_en = 1;
@@ -1159,7 +1190,7 @@ begin : state_actions
             aluop   = alu_sbc;
             setNZC();
         end
-        SBC_XIN:
+        SBC_XID:
         begin 
             address_T();
             xferd_en = 1;
@@ -1170,12 +1201,122 @@ begin : state_actions
             A_ld = 1;
             setNVZC();
         end
-        STA_XIN:
+        STA_XID:
         begin 
             address_T();
             xferu_en = 1;
             mem_rw = 0;
             A_en = 1;
+        end
+        /* idy */
+        LDA_IDY:  // A=M[T]
+        begin 
+            if(page_invalid != 0)
+                TH_inc = 1;
+            else
+            begin
+                address_T();
+                xferd_en = 1;
+                ALU_Amux_sel = 3'b100;  // put it through alu to set flags
+                A_ld = 1;
+                setNZ();
+            end
+        end
+        ORA_IDY:
+        begin 
+            if(page_invalid != 0)
+                TH_inc = 1;
+            else
+            begin
+                address_T();
+                xferd_en = 1;
+                ALU_Bmux_sel = 3'b100;
+                Amux_sel = 1;
+                aluop = alu_ora;
+                A_ld = 1;
+                setNZ(); 
+            end
+        end
+        EOR_IDY:
+        begin 
+            if(page_invalid != 0)
+                TH_inc = 1;
+            else
+            begin
+                address_T();
+                xferd_en = 1;
+                ALU_Bmux_sel = 3'b100;
+                Amux_sel = 1;
+                aluop = alu_eor;
+                A_ld = 1;
+                setNZ();
+            end
+        end
+        AND_IDY:
+        begin 
+            if(page_invalid != 0)
+                TH_inc = 1;
+            else
+            begin
+                address_T();
+                xferd_en = 1;
+                ALU_Bmux_sel = 3'b100;
+                Amux_sel = 1;
+                aluop = alu_and;
+                A_ld = 1;
+                setNZ(); 
+            end
+        end
+        ADC_IDY:
+        begin 
+            if(page_invalid != 0)
+                TH_inc = 1;
+            else
+            begin
+                address_T();
+                xferd_en = 1;
+                ALU_Bmux_sel = 3'b100;  // A+M+C
+                C_ctl = P_in[0];
+                aluop = alu_adc;   
+                Amux_sel = 1;       // Store at A
+                A_ld = 1;
+                setNVZC();
+            end
+        end
+        CMP_IDY:
+        begin 
+            if(page_invalid != 0)
+                TH_inc = 1;
+            else
+            begin
+                address_T();
+                xferd_en = 1;
+                ALU_Bmux_sel = 3'b100;   // A-M (Don't set flags, don't use carry, don't store A)
+                C_ctl   = 1;        // Since we're subtracting.
+                aluop   = alu_sbc;
+                setNZC();
+            end
+        end
+        SBC_IDY:
+        begin 
+            if(page_invalid != 0)
+                TH_inc = 1;
+            else
+            begin
+                address_T();
+                xferd_en = 1;
+                ALU_Bmux_sel = 3'b100;
+                Amux_sel = 1;
+                aluop = alu_sbc;
+                C_ctl = P_in[0];
+                A_ld = 1;
+                setNVZC();
+            end
+        end
+        STA_IDY:
+        begin 
+            if(page_invalid != 0)
+                TH_inc = 1;
         end
         /* JMP */
         JMP_ABS:
@@ -1214,7 +1355,7 @@ begin : next_state_logic
         STA_ZPG, STX_ZPG, STY_ZPG, 
         LDA_ZPX, LDX_ZPY, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
         STA_ZPX, STX_ZPY, STY_ZPX,
-        LDA_XIN, ORA_XIN, EOR_XIN, AND_XIN, ADC_XIN, CMP_XIN, SBC_XIN, STA_XIN:
+        LDA_XID, ORA_XID, EOR_XID, AND_XID, ADC_XID, CMP_XID, SBC_XID, STA_XID:
             next_state = fetch2;
         ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
         LDA_ABX, LDY_ABX, EOR_ABX, AND_ABX, ORA_ABX, ADC_ABX, SBC_ABX, CMP_ABX:
@@ -1285,8 +1426,10 @@ begin : next_state_logic
                             STA_ZPX, STY_ZPX,
                             LDX_ZPY, STX_ZPY:
                             next_state = ZEROPAGE;
-                        LDA_XIN, ORA_XIN, EOR_XIN, AND_XIN, ADC_XIN, CMP_XIN, SBC_XIN, STA_XIN:
-                            next_state = XIN_1;
+                        LDA_XID, ORA_XID, EOR_XID, AND_XID, ADC_XID, CMP_XID, SBC_XID, STA_XID:
+                            next_state = XID_1;
+                        LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY, STA_IDY:
+                            next_state = IDY_1;
                         BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVC_REL, BVS_REL:
                             next_state = BRANCH;
                         default:
@@ -1391,12 +1534,38 @@ begin : next_state_logic
                     next_state = ERROR;
             endcase
         end
-        XIN_1:
-            next_state = XIN_2;
-        XIN_2, XIN_3:
+        XID_1:
+            next_state = XID_2;
+        XID_2, XID_3:
             next_state = state + 1'b1;
-        XIN_4:
+        XID_4:
             next_state = {4'h0, IR_in};
+        IDY_1, IDY_2:
+            next_state = state + 1'b1;
+        IDY_3:
+        begin 
+            case ({4'h0, IR_in})
+                LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY, STA_IDY:
+                    next_state = {4'h0, IR_in};
+                default:
+                    next_state = ERROR;
+            endcase
+        end
+        LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY:
+        begin
+            if( page_invalid != 2'b00 )
+            begin 
+                next_state = {4'h0, state[7:4]-4'h1, state[3:0]};
+            end
+            else
+            begin
+                next_state = fetch2;
+            end
+        end
+        STA_IDY:
+        begin 
+            next_state = STA_XID;
+        end
         BRK_IMP_1, RTI_IMP_1, RTS_IMP_1, JSR_ABS_1:
             next_state = {4'h3, state[7:0]};
         BRK_IMP_2, RTI_IMP_2, RTS_IMP_2, JSR_ABS_2:

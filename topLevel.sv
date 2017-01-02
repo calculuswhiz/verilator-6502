@@ -59,7 +59,7 @@ wire [1:0] PCLmux_sel;
 wire PCHmux_sel;
 wire [1:0] DLmux_sel;
 wire DHmux_sel;
-wire TLmux_sel;
+wire [1:0] TLmux_sel;
 wire Pmux_sel;
 wire IRmux_sel;
 
@@ -200,7 +200,7 @@ mux8 ALU_Amux(
     .in4(data_bus),
     .in5(PCL_out),
     .in6(memory_bus_l),
-    .in7(memory_bus_h),
+    .in7(TL_out),
     .sel(ALU_Amux_sel),
     .f(ALU_Amux_out)
 );
@@ -213,7 +213,7 @@ mux8 ALU_Bmux(
     .in4(data_bus),
     .in5(PCL_out),
     .in6(memory_bus_l),
-    .in7(memory_bus_h),
+    .in7(TL_out),
     .sel(ALU_Bmux_sel),
     .f(ALU_Bmux_out)
 );
@@ -396,21 +396,21 @@ tristate DHmbuf(
 );
 
 // T section:
-mux2 TLmux(
-    .a(data_bus),
-    .b(memory_bus_l),
-    .sel(TLmux_sel),
-    .f(TLmux_out)
-);
-
-// mux4 TLmux(
-//     .in0(data_bus),
-//     .in1(memory_bus_l),
-//     .in2(DL_out),
-//     .in3(zeroin),
+// mux2 TLmux(
+//     .a(data_bus),
+//     .b(memory_bus_l),
 //     .sel(TLmux_sel),
 //     .f(TLmux_out)
 // );
+
+mux4 TLmux(
+    .in0(data_bus),
+    .in1(memory_bus_l),
+    .in2(ALU_out),
+    .in3(zeroin),
+    .sel(TLmux_sel),
+    .f(TLmux_out)
+);
 
 // Removed:
 /*mux2 THmux( 

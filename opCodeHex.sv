@@ -20,9 +20,9 @@ typedef enum reg [11:0] {
     ADC_ABY = 12'h79, AND_ABY = 12'h39, CMP_ABY = 12'hD9, EOR_ABY = 12'h59, LDA_ABY = 12'hB9, LDX_ABY = 12'hBE, ORA_ABY = 12'h19, SBC_ABY = 12'hF9,
     STA_ABY = 12'h99,
 
-    ADC_XIN = 12'h61, AND_XIN = 12'h21, CMP_XIN = 12'hC1, EOR_XIN = 12'h41, LDA_XIN = 12'hA1, ORA_XIN = 12'h01, SBC_XIN = 12'hE1, STA_XIN = 12'h81,
+    ADC_XID = 12'h61, AND_XID = 12'h21, CMP_XID = 12'hC1, EOR_XID = 12'h41, LDA_XID = 12'hA1, ORA_XID = 12'h01, SBC_XID = 12'hE1, STA_XID = 12'h81,
     
-    ADC_INY = 12'h71, AND_INY = 12'h31, CMP_INY = 12'hD1, EOR_INY = 12'h51, LDA_INY = 12'hB1, ORA_INY = 12'h11, SBC_INY = 12'hF1, STA_INY = 12'h91,
+    ADC_IDY = 12'h71, AND_IDY = 12'h31, CMP_IDY = 12'hD1, EOR_IDY = 12'h51, LDA_IDY = 12'hB1, ORA_IDY = 12'h11, SBC_IDY = 12'hF1, STA_IDY = 12'h91,
     
     ADC_ZPG = 12'h65, AND_ZPG = 12'h25, ASL_ZPG = 12'h06, BIT_ZPG = 12'h24, CMP_ZPG = 12'hC5, CPX_ZPG = 12'hE4, CPY_ZPG = 12'hC4, DEC_ZPG = 12'hC6,
     EOR_ZPG = 12'h45, INC_ZPG = 12'hE6, LDA_ZPG = 12'hA5, LDX_ZPG = 12'hA6, LDY_ZPG = 12'hA4, LSR_ZPG = 12'h46, ORA_ZPG = 12'h05, ROL_ZPG = 12'h26,
@@ -46,10 +46,14 @@ typedef enum reg [11:0] {
     // 110 is free now. Probably refactor later.
     ZEROPAGE_X = 12'h111, ZEROPAGE_Y = 12'h112,
     ABSOLUTE_X = 12'h113, ABSOLUTE_Y = 12'h114, ABSOLUTE_XYR = 12'h115, ABSOLUTE_XYR_PAGE = 12'h116,
-    INDIRECT_1 = 12'h117, XIN_1 = 12'h118, XIN_2 = 12'h119, XIN_3 = 12'h11a, XIN_4 = 12'h11b,
+    INDIRECT_1 = 12'h117, XID_1 = 12'h118, XID_2 = 12'h119, XID_3 = 12'h11a, XID_4 = 12'h11b, XID_R = 12'h11c, XID_W = 12'h11d,
+    IDY_1 = 12'h11e, IDY_2 = 12'h11f, IDY_3 = 12'h120, IDY_R = 12'h121, IDY_W = 12'h122,
     
     // ABX/Y second stages:
     LDA_ABX_PG = 12'h2BD, LDA_ABY_PG = 12'h2B9, LDY_ABX_PG = 12'h2BC, LDX_ABY_PG = 12'h2BE, EOR_ABX_PG = 12'h25D, EOR_ABY_PG = 12'h259, AND_ABX_PG = 12'h23D, AND_ABY_PG = 12'h239, ORA_ABX_PG = 12'h21D, ORA_ABY_PG = 12'h219, ADC_ABX_PG = 12'h27D, ADC_ABY_PG = 12'h279, SBC_ABX_PG = 12'h2FD, SBC_ABY_PG = 12'h2F9, CMP_ABX_PG = 12'h2DD, CMP_ABY_PG = 12'h2D9,
+    
+    // IDY second stages: (equivalent to idx analogous base states)
+    // ADC_IDY_PG = 12'h271, AND_IDY_PG = 12'h231, CMP_IDY_PG = 12'h2D1, EOR_IDY_PG = 12'h251, LDA_IDY_PG = 12'h2B1, ORA_IDY_PG = 12'h211, SBC_IDY_PG = 12'h2F1, STA_IDY_PG = 12'h291,
     
     // Stack extra stages:
     BRK_IMP_1 = 12'h200, BRK_IMP_2 = 12'h300, BRK_IMP_3 = 12'h400, BRK_IMP_4 = 12'h500,
