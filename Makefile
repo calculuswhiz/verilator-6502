@@ -2,6 +2,7 @@ all:
 	make build
 	make comp
 	make assemble
+	ls -l 6502-sim.vcd
 
 build:
 	verilator -Wall --trace --cc topLevel.sv --exe tb_toplevel.cpp

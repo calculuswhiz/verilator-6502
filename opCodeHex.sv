@@ -56,7 +56,7 @@ typedef enum reg [11:0] {
     // ADC_IDY_PG = 12'h271, AND_IDY_PG = 12'h231, CMP_IDY_PG = 12'h2D1, EOR_IDY_PG = 12'h251, LDA_IDY_PG = 12'h2B1, ORA_IDY_PG = 12'h211, SBC_IDY_PG = 12'h2F1, STA_IDY_PG = 12'h291,
     
     // Stack extra stages:
-    BRK_IMP_1 = 12'h200, BRK_IMP_2 = 12'h300, BRK_IMP_3 = 12'h400, BRK_IMP_4 = 12'h500,
+    BRK_IMP_1 = 12'h200, BRK_IMP_2 = 12'h300, BRK_IMP_3 = 12'h400, BRK_IMP_4 = 12'h500, BRK_IMP_5 = 12'h600,
     RTI_IMP_1 = 12'h240, RTI_IMP_2 = 12'h340, RTI_IMP_3 = 12'h440,
     RTS_IMP_1 = 12'h260, RTS_IMP_2 = 12'h360, RTS_IMP_3 = 12'h460, RTS_IMP_4 = 12'h560,
     PLA_IMP_1 = 12'h268,

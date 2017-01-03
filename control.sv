@@ -356,12 +356,13 @@ begin : state_actions
                 end
             endcase
         end
-        BRANCH_PAGE:
+        BRANCH_PAGE,
+        BRK_IMP_1:
         begin 
             IR_ld   = 1;
             PCL_inc = 1;
         end
-        BRK_IMP_1:  // M[S] = PCH, S-=1
+        BRK_IMP_2:  // M[S] = PCH, S-=1
         begin 
             S_dec    = 1;
             address_S();
@@ -369,7 +370,7 @@ begin : state_actions
             PCHd_en  = 1;
             mem_rw   = 0;
         end
-        BRK_IMP_2:  // M[S] = PCL, S-=1
+        BRK_IMP_3:  // M[S] = PCL, S-=1
         begin 
             S_dec    = 1;
             address_S();
@@ -377,7 +378,7 @@ begin : state_actions
             PCLd_en  = 1;
             mem_rw   = 0;
         end
-        BRK_IMP_3:  // M[S] = P, S-=1
+        BRK_IMP_4:  // M[S] = P, S-=1
         begin 
             S_dec    = 1;
             address_S();
@@ -385,7 +386,7 @@ begin : state_actions
             PCLd_en  = 1;
             mem_rw   = 0; 
         end
-        BRK_IMP_4:  // PCL=M[$FFFE]   @@ add any special value buffers to datapath, S_page, etc.
+        BRK_IMP_5:  // PCL=M[$FFFE]   @@ add any special value buffers to datapath, S_page, etc.
         begin 
             PCLm_en  = 0;
             PCHm_en  = 0;
@@ -1417,7 +1418,7 @@ begin : next_state_logic
     next_state = state;
     case(state)
         fetch1, ABSOLUTE_W, ZEROPAGE_W,
-        JSR_ABS, RTS_IMP,
+        JSR_ABS, RTS_IMP, BRK_IMP, RTI_IMP,
         JMP_ABS, JMP_IND,
         ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS,SBC_ABS,
         STA_ABS, STX_ABS, STY_ABS,
@@ -1447,7 +1448,7 @@ begin : next_state_logic
         ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
         LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC, SEC_IMP,
         SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP,
-        BRK_IMP, PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP, RTI_IMP:
+        PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP:
         begin // See opCodeHex.sv for all encodings.
             // Use commas to separate same next-states.
             if( page_invalid != 2'b00 )
@@ -1475,11 +1476,13 @@ begin : next_state_logic
                             next_state = IMMEDIATE;
                         JSR_ABS:
                             next_state = JSR_ABS_1;
+                        BRK_IMP:
+                            next_state = BRK_IMP_1;
                         ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, 
                             INY_IMP, LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC,
                             SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP,
                             TXS_IMP, TYA_IMP,
-                            BRK_IMP, RTI_IMP, RTS_IMP, PHA_IMP, PHP_IMP, PLA_IMP, PLP_IMP:
+                            RTI_IMP, RTS_IMP, PHA_IMP, PHP_IMP, PLA_IMP, PLP_IMP:
                             next_state = IMPLIED_ACCUMULATOR;
                         ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS,
                             LDY_ABS, ORA_ABS, SBC_ABS,
@@ -1517,7 +1520,7 @@ begin : next_state_logic
         IMPLIED_ACCUMULATOR:      
         begin 
             case({4'h0, IR_in})
-                PLA_IMP, PLP_IMP, RTI_IMP, RTS_IMP, BRK_IMP:
+                PLA_IMP, PLP_IMP, RTI_IMP, RTS_IMP:
                     next_state = {4'h2, IR_in};
                 default: // For non-stack instructions:
                     next_state = {4'h0, IR_in};
@@ -1645,7 +1648,9 @@ begin : next_state_logic
             next_state = {4'h4, state[7:0]};
         BRK_IMP_3, JSR_ABS_3:
             next_state = {4'h5, state[7:0]};
-        BRK_IMP_4, RTI_IMP_3, RTS_IMP_3, JSR_ABS_4,
+        BRK_IMP_4:
+            next_state = {4'h6, state[7:0]};
+        BRK_IMP_5, RTI_IMP_3, RTS_IMP_3, JSR_ABS_4,
         PLA_IMP_1, PLP_IMP_1:
             next_state = {4'h0, state[7:0]};
         ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
