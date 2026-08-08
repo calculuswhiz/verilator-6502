@@ -1,5 +1,5 @@
 // This is what issues the control signals necessary for the processor to run.
-parameter SIZE = 12;
+// parameter SIZE = 12;
 module control
 (
     /* Input and output port declarations */
@@ -73,7 +73,7 @@ cpu_state state, next_state;
 reg [1:0] page_invalid;
 /* verilator lint_on UNOPTFLAT */
 
-wire [7:0] next_state_path;
+reg [7:0] next_state_path;
 
 initial
 begin 
@@ -157,7 +157,7 @@ function void fetchinst();
 endfunction : fetchinst
 
 // Signal control:
-always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C)
+always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in)
 begin : state_actions
     /* Default output assignments */
     ctl_pvect = P_in;
@@ -1413,7 +1413,7 @@ begin : state_actions
 end
 
 // Temporarily removed SAX_ZPG
-always @ (state, IR_in)
+always @ (state, IR_in, P_in)
 begin : next_state_logic
     next_state = state;
     case(state)
@@ -1436,7 +1436,7 @@ begin : next_state_logic
         begin
             if( page_invalid != 2'b00 )
             begin 
-                next_state = {4'h2, state[7:0]};
+                next_state = (cpu_state)'({4'h2, state[7:0]});
             end
             else
             begin
@@ -1521,13 +1521,13 @@ begin : next_state_logic
         begin 
             case({4'h0, IR_in})
                 PLA_IMP, PLP_IMP, RTI_IMP, RTS_IMP:
-                    next_state = {4'h2, IR_in};
+                    next_state = (cpu_state)'({4'h2, IR_in});
                 default: // For non-stack instructions:
-                    next_state = {4'h0, IR_in};
+                    next_state = (cpu_state)'({4'h0, IR_in});
             endcase
         end
         IMMEDIATE, ABSOLUTE_R, ZEROPAGE_R, BRANCH_PAGE:
-            next_state = {4'h0, IR_in};
+            next_state = (cpu_state)'({4'h0, IR_in});
         ABSOLUTE_1:
         begin
             case({4'h0, IR_in})
@@ -1548,7 +1548,7 @@ begin : next_state_logic
             case({4'h0, IR_in})   // LAX and NOP not supported (yet?).
                 ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS,
                 SBC_ABS, STA_ABS, STX_ABS, STY_ABS: // No SAX before a fight.
-                    next_state = {4'h0, IR_in};
+                    next_state = (cpu_state)'({4'h0, IR_in});
                 ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS: // No SLO, SRE, RLA, RRA, ISB, DCP
                     next_state = ABSOLUTE_R;
                 JMP_IND:
@@ -1563,7 +1563,7 @@ begin : next_state_logic
         begin 
             case({4'h0, IR_in})
                 ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX:
-                    next_state = {4'h0, IR_in};
+                    next_state = (cpu_state)'({4'h0, IR_in});
                 ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX, STA_ABX:
                     next_state = ABSOLUTE_XYR;
                 default:
@@ -1574,7 +1574,7 @@ begin : next_state_logic
         begin 
            case({4'h0, IR_in})
                 ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY:
-                    next_state = {4'h0, IR_in};
+                    next_state = (cpu_state)'({4'h0, IR_in});
                 STA_ABY:
                     next_state = ABSOLUTE_XYR;
                 default:
@@ -1587,7 +1587,7 @@ begin : next_state_logic
                 ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:
                     next_state = ABSOLUTE_XYR_PAGE;
                 STA_ABX, STA_ABY:
-                    next_state = {4'h0, IR_in};
+                    next_state = (cpu_state)'({4'h0, IR_in});
                 default:
                     next_state = ERROR;
             endcase
@@ -1596,7 +1596,7 @@ begin : next_state_logic
         begin 
            case({4'h0, IR_in})
                 ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:
-                    next_state = {4'h0, IR_in};
+                    next_state = (cpu_state)'({4'h0, IR_in});
                 default:
                     next_state = ERROR;
             endcase 
@@ -1605,7 +1605,7 @@ begin : next_state_logic
         begin 
             case({4'h0, IR_in})
                 JMP_IND:
-                    next_state = {4'h0, IR_in};
+                    next_state = (cpu_state)'({4'h0, IR_in});
                 default:
                     next_state = ERROR;
             endcase
@@ -1613,16 +1613,16 @@ begin : next_state_logic
         XID_1:
             next_state = XID_2;
         XID_2, XID_3:
-            next_state = state + 1'b1;
+            next_state = (cpu_state)'(state + 1'b1);
         XID_4:
-            next_state = {4'h0, IR_in};
+            next_state = (cpu_state)'({4'h0, IR_in});
         IDY_1, IDY_2:
-            next_state = state + 1'b1;
+            next_state = (cpu_state)'(state + 1'b1);
         IDY_3:
         begin 
             case ({4'h0, IR_in})
                 LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY, STA_IDY:
-                    next_state = {4'h0, IR_in};
+                    next_state = (cpu_state)'({4'h0, IR_in});
                 default:
                     next_state = ERROR;
             endcase
@@ -1631,7 +1631,7 @@ begin : next_state_logic
         begin
             if( page_invalid != 2'b00 )
             begin 
-                next_state = {4'h0, state[7:4]-4'h1, state[3:0]};
+                next_state = (cpu_state)'({4'h0, state[7:4]-4'h1, state[3:0]});
             end
             else
             begin
@@ -1643,16 +1643,16 @@ begin : next_state_logic
             next_state = STA_XID;
         end
         BRK_IMP_1, RTI_IMP_1, RTS_IMP_1, JSR_ABS_1:
-            next_state = {4'h3, state[7:0]};
+            next_state = (cpu_state)'({4'h3, state[7:0]});
         BRK_IMP_2, RTI_IMP_2, RTS_IMP_2, JSR_ABS_2:
-            next_state = {4'h4, state[7:0]};
+            next_state = (cpu_state)'({4'h4, state[7:0]});
         BRK_IMP_3, JSR_ABS_3:
-            next_state = {4'h5, state[7:0]};
+            next_state = (cpu_state)'({4'h5, state[7:0]});
         BRK_IMP_4:
-            next_state = {4'h6, state[7:0]};
+            next_state = (cpu_state)'({4'h6, state[7:0]});
         BRK_IMP_5, RTI_IMP_3, RTS_IMP_3, JSR_ABS_4,
         PLA_IMP_1, PLP_IMP_1:
-            next_state = {4'h0, state[7:0]};
+            next_state = (cpu_state)'({4'h0, state[7:0]});
         ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
         ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:
             next_state = ABSOLUTE_W;
@@ -1664,7 +1664,7 @@ begin : next_state_logic
             case({4'h0, IR_in})
                 LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG,
                     STA_ZPG, STX_ZPG, STY_ZPG:
-                    next_state = {4'h0, IR_in};
+                    next_state = (cpu_state)'({4'h0, IR_in});
                 ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG:
                     next_state = ZEROPAGE_R;
                 LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
@@ -1684,7 +1684,7 @@ begin : next_state_logic
             case({4'h0, IR_in})
                 LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
                     STA_ZPX, STY_ZPX, STX_ZPY:
-                    next_state = {4'h0, IR_in};
+                    next_state = (cpu_state)'({4'h0, IR_in});
                 ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX, LDX_ZPY:
                     next_state = ZEROPAGE_R;
                 default:
@@ -1720,7 +1720,7 @@ begin: next_state_assignment
     /* Assignment of next state on clock edge */
     if (next_state == ERROR)
     begin 
-        $display("Error Encountered. %x:%s", state, state.name());
+        $display("Error Encountered. %x:%s", next_state, next_state.name());
     end
     state <= next_state;
 end

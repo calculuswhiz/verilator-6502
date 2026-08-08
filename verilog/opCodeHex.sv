@@ -64,5 +64,5 @@ typedef enum reg [11:0] {
     PLP_IMP_1 = 12'h228,
     
     ERROR = 12'hfff
-    } cpu_state /* verilator public */; 
+} cpu_state /* verilator public */; 
 /* verilator lint_on UNDRIVEN */

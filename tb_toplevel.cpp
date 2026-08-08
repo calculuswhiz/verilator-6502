@@ -38,7 +38,7 @@ int main(int argc, char **argv, char **env) {
             // cout << "\033[37;54;1m" << Verilated::gotFinish() << endl;
             if (Verilated::gotFinish())  // Might not be working...
             {
-                cout << "I'm finished!\n";
+                std::cout << "I'm finished!\n";
                 return -1;
             }
         }
@@ -46,6 +46,6 @@ int main(int argc, char **argv, char **env) {
     // Close vcd file:
     tfp->close();
     
-    cout << "\033[32mProgram has run to completion\033[0m\n";
+    std::cout << "\033[32mProgram has run to completion\033[0m\n";
     return 0;
 }

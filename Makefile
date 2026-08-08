@@ -5,7 +5,7 @@ all:
 	ls -l 6502-sim.vcd
 
 build:
-	verilator -Wall --trace --cc topLevel.sv --exe tb_toplevel.cpp
+	verilator -Wall --trace -I./verilog --cc ./verilog/topLevel.sv --exe tb_toplevel.cpp
 
 comp:
 	make -C obj_dir -j -f VtopLevel.mk VtopLevel

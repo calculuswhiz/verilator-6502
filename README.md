@@ -1,4 +1,4 @@
-#6502 on verilator
+# 6502 on verilator
 
 This project is a continuation on the work I did [here](https://github.com/calculuswhiz/xilinx-6502).
 
@@ -11,8 +11,7 @@ Make sure you have these first:
 
 Then write the cpp file. This file should simulate the waveform inputs and write to a .vcd file. Example here:
 
-
-```
+```cpp
 // When compiled, v/sv files compile to have header file "V"+<lowercase toplevel verilog file name>+".h"
 // Docs: http://verilator.sourcearchive.com/documentation/3.821-1/files.html
 #include "Vtoplevel.h"
