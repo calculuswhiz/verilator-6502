@@ -5,6 +5,6 @@ module mux2 (
     output [7:0] f
 );
 
-assign f = sel?b:a;
+assign f = sel ? b : a;
 
 endmodule

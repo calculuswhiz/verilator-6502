@@ -19,15 +19,6 @@ module topLevel (
 parameter divfactor = 0;
 reg [divfactor:0] clkdiv;
 assign clkdiv = clk;
-// initial
-// begin 
-//     clkdiv = 0;
-// end
-
-// always @ (posedge clk)
-// begin
-//     clkdiv <= clkdiv+1'b1;
-// end
 
 /* verilator lint_off UNOPTFLAT */
 // Internal signals:
@@ -401,12 +392,6 @@ tristate DHmbuf(
 );
 
 // T section:
-// mux2 TLmux(
-//     .a(data_bus),
-//     .b(memory_bus_l),
-//     .sel(TLmux_sel),
-//     .f(TLmux_out)
-// );
 
 mux4 TLmux(
     .in0(data_bus),
@@ -416,14 +401,6 @@ mux4 TLmux(
     .sel(TLmux_sel),
     .f(TLmux_out)
 );
-
-// Removed:
-/*mux2 THmux( 
-    .a(data_bus),
-    .b(memory_bus_h),
-    .sel(THmux_sel),
-    .f(THmux_out)
-);*/
 
 PC T_reg(
     .clk(clkdiv[divfactor]),
@@ -588,19 +565,11 @@ wire [11:0] hi_ctl_out;
 // Seven-segment control stuff:
 sevenseg LO_CTL(
     .in(A_out[3:0]),
-    // .in(IR_out[3:0]),
-    // .in(xfer_bus[3:0]),
-    // .in(PCL_out),
-    // .in(state_out[3:0]),
     .out(lo_ctl_out)
 );
 
 sevenseg HI_CTL(
     .in(A_out[7:4]),
-    // .in(IR_out[7:4]),
-    // .in(xfer_bus[7:4]),
-    // .in(PCH_out),
-    // .in(state_out[7:4]),
     .out(hi_ctl_out)
 );
 
@@ -615,9 +584,9 @@ pulser PULSER(
 assign DEBUGLED = state_out[8];
 
 // A little hack to get verilator to cooperate (no tristate construct issue):
-assign data_bus = Xbuf_out|Ybuf_out|Sdbuf_out|ALUdbuf_out|Abuf_out|PCLdbuf_out|PCHdbuf_out|DLdbuf_out|DHdbuf_out|TLdbuf_out|THdbuf_out|Pbuf_out|xferdbuf_out;
-assign xfer_bus = membuf_out|IRbuf_out|xferubuf_out;
-assign memory_bus_h = ZHbuf_out|DHmbuf_out|PCHmbuf_out|THmbuf_out|Spagebuf_out|IRQHbuf_out;
-assign memory_bus_l = ALUmbuf_out|Smbuf_out|ZLbuf_out|DLmbuf_out|PCLmbuf_out|TLmbuf_out|IRQLbuf_out;
+assign data_bus = Xbuf_out | Ybuf_out | Sdbuf_out | ALUdbuf_out | Abuf_out | PCLdbuf_out | PCHdbuf_out | DLdbuf_out | DHdbuf_out | TLdbuf_out | THdbuf_out | Pbuf_out | xferdbuf_out;
+assign xfer_bus = membuf_out | IRbuf_out | xferubuf_out;
+assign memory_bus_h = ZHbuf_out | DHmbuf_out | PCHmbuf_out | THmbuf_out | Spagebuf_out | IRQHbuf_out;
+assign memory_bus_l = ALUmbuf_out | Smbuf_out | ZLbuf_out | DLmbuf_out | PCLmbuf_out | TLmbuf_out | IRQLbuf_out;
 
 endmodule

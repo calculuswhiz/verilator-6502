@@ -19,7 +19,7 @@ module ALU (
     /* verilator lint_on UNOPTFLAT */
 );
 
-// Determine operation (aluops.sv_:
+// Determine operation (aluops.sv):
 /*
     Only needs to support basic operations:
     (The control unit will handle when to use each one.)
@@ -39,67 +39,67 @@ begin
         /* verilator lint_off WIDTH */
         alu_adc: // add carry
         begin
-            f = a+b+{7'b0,carryIn};
+            f = a + b + {7'b0, carryIn};
             carry = f[8];
-            overflow = a[7]^f[7];
+            overflow = a[7] ^ f[7];
         end
         alu_sbc: // subtract borrow
         begin
             // f = a-b-carryIn;
             // f = a-{carryIn,b};
-            f = a-b-{7'b0,~carryIn};
+            f = a - b - {7'b0, ~carryIn};
             // $display("%d", carryIn);
             // carry = f[8];      // if a-b < 0 set P.C flag. I don't think so?
             carry = ~f[8];      // if f>=0 set P.C flag
-            overflow = ~((a[7]^f[7])&&(b[7]^f[7]));
+            overflow = ~((a[7] ^ f[7]) && (b[7] ^ f[7]));
             // overflow = a[7]^f[7];
             // $display("%d",f);
         end
         alu_eor: // exclusive or
         begin
-            f = a^b;
+            f = a ^ b;
             carry = carryIn;
             overflow = overflowIn;
         end
         alu_ora: // bitwise or
         begin
-            f = a|b;
+            f = a | b;
             carry = carryIn;
             overflow = overflowIn;
         end
         alu_and: // bitwise and
         begin
-            f = a&b;
+            f = a & b;
             carry = carryIn;
             overflow = f[6];
         end
         alu_inc: // increment
         begin
-            f = a+1'b1;
+            f = a + 1'b1;
             carry = carryIn;
             overflow = overflowIn;
         end
         alu_dec: // decrement
         begin
-            f = a-1'b1;
+            f = a - 1'b1;
             carry = carryIn;
             overflow = overflowIn;
         end
         alu_ror: // rotate right
         begin
-            f = {carryIn,b[7:1]};
+            f = {carryIn, b[7:1]};
             carry = b[0];
             overflow = overflowIn;
         end
         alu_rol: // rotate left
         begin
-            f = {b[6:0],carryIn};
+            f = {b[6:0], carryIn};
             carry = b[7];
             overflow = overflowIn;
         end
         alu_asl: // Shift left
         begin
-            f = {b[7:0],1'b0};
+            f = {b[7:0], 1'b0};
             carry = b[7];
             overflow = overflowIn;
         end
@@ -118,7 +118,7 @@ begin
         /* verilator lint_on WIDTH */
     endcase
     negative = f[7];
-    zero = (f==0)?1'b1:1'b0;
+    zero = f == 0 ? 1'b1 : 1'b0;
 end
 
 endmodule

@@ -5,6 +5,6 @@ module tristate (
     output wire [7:0] out
 );
 
-assign out = enable?in:8'bz;
+assign out = enable ? in : 8'bz;
 
 endmodule

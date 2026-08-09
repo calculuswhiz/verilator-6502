@@ -11,19 +11,17 @@ module testmemory (
     output [7:0] tm_data
 );
 
-reg [7:0] TM_DATA [(1<<16)-1:0];
+reg [7:0] TM_DATA [(1 << 16) - 1:0];
 
-initial
-begin 
+initial begin 
     $readmemh("program.list", TM_DATA);
 end
 
-always @ (posedge clk)
-begin 
-    if(~rW) // write is desired
-    begin 
+always @(posedge clk) begin 
+    if (~rW) 
+        // write is desired 
         TM_DATA[tm_address[15:0]] <= tm_indata;
-    end
+    
 end
 
 assign tm_data = TM_DATA[tm_address[15:0]];

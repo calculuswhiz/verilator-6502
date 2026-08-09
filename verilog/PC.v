@@ -2,8 +2,7 @@
 // and T registers. Sorry for the misnomer.
 // It is useful because it is 16 bits and can correct invalidation 
 // (i.e. page crossings), if necessary.
-module PC #(parameter rstval = 16'h0)
-(
+module PC #(parameter rstval = 16'h0) (
 	input clk,
     
 	input load_pc_h,
@@ -26,38 +25,37 @@ module PC #(parameter rstval = 16'h0)
 
 reg [15:0] data;
 
-initial
-begin
+initial begin
 	data = rstval;
 end
 
-always @ (posedge clk)
-begin 
-    if (~H_rst_n)  // @TODO: be sure to make a reset for low as well.
-    begin 
+always @ (posedge clk) begin 
+    // @TODO: be sure to make a reset for low as well.
+    if (~H_rst_n) begin 
         data[15:8] <= 8'h00;
-        data [7:0] <= load_pc_l?PCL_in:data[7:0];       // Allow loading L if desired.
+        // Allow loading L if desired.
+        data [7:0] <= load_pc_l ? PCL_in : data[7:0];
     end
     else if (L_inc)
-        data<=data+1'b1;
+        data <= data + 1'b1;
     else if (H_inc)
     begin
-        data[15:8]<=data[15:8]+1'b1;
-        data[7:0] <=data[7:0];
+        data[15:8] <= data[15:8] + 1'b1;
+        data[7:0] <= data[7:0];
     end
     else if (H_dec)
     begin 
-        data[15:8]<=data[15:8]-1'b1;
-        data[7:0] <=data[7:0];
+        data[15:8] <= data[15:8] - 1'b1;
+        data[7:0] <= data[7:0];
     end
-    else if (load_pc_h|load_pc_l)
+    else if (load_pc_h | load_pc_l)
     begin
-    	data [15:8] <= load_pc_h?PCH_in:data[15:8];
-    	data [7:0]  <= load_pc_l?PCL_in:data[7:0];
+    	data [15:8] <= load_pc_h ? PCH_in : data[15:8];
+    	data [7:0]  <= load_pc_l ? PCL_in : data[7:0];
     end
 end
 
-assign PCL_out = data [7:0];
-assign PCH_out = data [15:8];
+assign PCL_out = data[7:0];
+assign PCH_out = data[15:8];
 
 endmodule : PC

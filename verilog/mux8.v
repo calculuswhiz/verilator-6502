@@ -6,7 +6,7 @@ module mux8 (
 );
 
 always
-case(sel)
+case (sel)
     0: f = in0;
     1: f = in1;
     2: f = in2;
