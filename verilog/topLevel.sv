@@ -4,10 +4,6 @@ module topLevel (
     input clk,    // Clock
     
     // Memory:
-    // inout [7:0] mem_data,
-    // output mem_rw,
-    // output [7:0] mem_addr_l,
-    // output [7:0] mem_addr_h,
     output DEBUGLED,
     output [11:0] sevenOut
 );
@@ -72,7 +68,6 @@ wire [7:0] X_out, Y_out, S_out, A_out, ALU_out;
 wire [7:0] Xbuf_out, Ybuf_out, Smbuf_out, Spagebuf_out, Sdbuf_out, Abuf_out;
 wire [7:0] ALUdbuf_out, ALUmbuf_out;
 wire [7:0] PCL_out, PCH_out;
-// wire       PCL_carry;
 wire [7:0] PCLmbuf_out, PCLdbuf_out, PCHmbuf_out, PCHdbuf_out;
 wire [7:0] DL_out, DH_out;
 wire [7:0] DLmbuf_out, DLdbuf_out, DHmbuf_out, DHdbuf_out;
@@ -91,7 +86,6 @@ wire [7:0] IRQLbuf_out, IRQHbuf_out;
 wire [7:0] Smux_out, ALU_Amux_out, ALU_Bmux_out, Amux_out;
 wire [7:0] PCLmux_out, PCHmux_out;
 wire [7:0] DLmux_out, DHmux_out;
-// wire [7:0] TLmux_out, THmux_out;
 wire [7:0] TLmux_out;
 wire [7:0] Pmux_out;
 wire [7:0] IRmux_out;
@@ -102,7 +96,6 @@ wire [7:0] zeroin, zeroout;
 wire [7:0] ZLbuf_out, ZHbuf_out;
 
 // Test-memory signals:
-// wire [15:0] address_bus;
 wire [7:0]  mem_data;
 wire        mem_rw;
 wire [7:0]  membuf_out;

@@ -160,8 +160,8 @@ begin : state_actions
     ctl_pvect = P_in;
     ctl_irvect = 8'h00;
     
-    // Reset:
-    DH_rst_n    = 1;    // Neg. edge triggered
+    // Reset: (Neg. edge triggered)
+    DH_rst_n    = 1;    
     
     // Enable:
     X_en        = 0;
@@ -172,7 +172,8 @@ begin : state_actions
     A_en        = 0;
     PCLd_en     = 0;
     PCHd_en     = 0;
-    PCLm_en     = 1;    // Keep this as default addressor.
+    // Keep this as default addressor.
+    PCLm_en     = 1;    
     PCHm_en     = 1;
     DLd_en      = 0;
     DHd_en      = 0;
@@ -202,7 +203,8 @@ begin : state_actions
     A_ld    = 0;
     PCL_ld  = 0;
     PCH_ld  = 0;
-    PCL_inc = 0;    // Yes, these are load signals too.
+    // Yes, these are load signals too.
+    PCL_inc = 0;    
     PCH_inc = 0;
     PCH_dec = 0;
     DL_ld   = 0;
@@ -249,26 +251,23 @@ begin : state_actions
         fetch2:
             // Give IR the first instruction, increment PC.
             fetchinst();
-        ABSOLUTE_1, BRANCH, IMMEDIATE:
-        begin
+        ABSOLUTE_1, BRANCH, IMMEDIATE: begin
             PCL_inc  = 1;       // PC+=1
             xferd_en = 1;       // DL=M
             DL_ld    = 1;
         end
-        ABSOLUTE_2:
-        begin
+        ABSOLUTE_2: begin
             PCL_inc  = 1;        // PC+=1
             xferd_en = 1;       // DH = M
             DH_ld    = 1;
         end
-        ABSOLUTE_R:
-        begin
+        ABSOLUTE_R: begin
             address_D();
             xferd_en = 1;
             TL_ld    = 1;    // TL=M[D]
         end
-        ABSOLUTE_X:     // DH=M[PC] DL+=X PC+=1
-        begin 
+        // DH=M[PC] DL+=X PC+=1
+        ABSOLUTE_X: begin 
             xferd_en     = 1;
             DH_ld        = 1;
             ALU_Amux_sel = 3'b001;  // X
@@ -279,8 +278,7 @@ begin : state_actions
             PCL_inc      = 1;
             set_invd();
         end
-        ABSOLUTE_Y:
-        begin 
+        ABSOLUTE_Y: begin 
             xferd_en     = 1;
             DH_ld        = 1;
             ALU_Amux_sel = 3'b010;  // Y
@@ -291,28 +289,24 @@ begin : state_actions
             PCL_inc      = 1;
             set_invd();
         end
-        ABSOLUTE_XYR:
-        begin 
+        ABSOLUTE_XYR: begin 
             address_D();
             xferd_en = 1;
             TL_ld    = 1;
             Dpage_invd();
         end
-        ABSOLUTE_XYR_PAGE:
-        begin 
+        ABSOLUTE_XYR_PAGE: begin
             address_D();
             xferd_en = 1;
             TL_ld    = 1;
         end
-        ABSOLUTE_W:
-        begin
+        ABSOLUTE_W: begin
             address_D();
             mem_rw   = 0;    // write mode
             xferu_en = 1;
             TLd_en   = 1;
         end
-        BRANCH_CHECK:
-        begin 
+        BRANCH_CHECK: begin 
             if (
                 ( IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) | // C
                 ( IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[1])) | // Z
@@ -337,8 +331,8 @@ begin : state_actions
                 // Branch not taken:
                 fetchinst();
         end
-        BRANCH_TAKEN:   // Fix PC if page crossed.
-        begin 
+        // Fix PC if page crossed.
+        BRANCH_TAKEN: begin   
             IR_ld = 1;
             case (page_invalid)
                 2'b00:
@@ -347,44 +341,38 @@ begin : state_actions
                     PCH_inc = 1;
                 2'b10:
                     PCH_dec = 1;
-                2'b11: // Error:
-                begin 
+                // Error:
+                2'b11: 
                     $display("Error in branch taken.");
-                end
             endcase
         end
         BRANCH_PAGE,
-        BRK_IMP_1:
-        begin 
+        BRK_IMP_1: begin 
             IR_ld   = 1;
             PCL_inc = 1;
         end
-        BRK_IMP_2:  // M[S] = PCH, S-=1
-        begin 
+        BRK_IMP_2: begin  // M[S] = PCH, S-=1
             S_dec    = 1;
             address_S();
             xferu_en = 1;
             PCHd_en  = 1;
             mem_rw   = 0;
         end
-        BRK_IMP_3:  // M[S] = PCL, S-=1
-        begin 
+        BRK_IMP_3: begin  // M[S] = PCL, S-=1
             S_dec    = 1;
             address_S();
             xferu_en = 1;
             PCLd_en  = 1;
             mem_rw   = 0;
         end
-        BRK_IMP_4:  // M[S] = P, S-=1
-        begin 
+        BRK_IMP_4: begin  // M[S] = P, S-=1
             S_dec    = 1;
             address_S();
             xferu_en = 1;
             PCLd_en  = 1;
             mem_rw   = 0; 
         end
-        BRK_IMP_5:  // PCL=M[$FFFE]   @@ add any special value buffers to datapath, S_page, etc.
-        begin 
+        BRK_IMP_5: begin  // PCL=M[$FFFE]   @@ add any special value buffers to datapath, S_page, etc.
             PCLm_en  = 0;
             PCHm_en  = 0;
             IRQL_en  = 1;
@@ -392,15 +380,15 @@ begin : state_actions
             xferd_en = 1;
             PCL_ld   = 1;
         end
-        IDY_2:          // TL=M[D]  D+=1
-        begin 
+        // TL=M[D]  D+=1
+        IDY_2: begin 
             address_D();
             xferd_en = 1;
             DL_inc   = 1;
             TL_ld    = 1;
         end
-        IDY_3:          // TH=M[D], TL+=Y
-        begin
+        // TH=M[D], TL+=Y
+        IDY_3: begin
             address_D();
             xferd_en     = 1;
             TH_ld        = 1;
@@ -417,34 +405,29 @@ begin : state_actions
         end
         IMPLIED_ACCUMULATOR:
             IR_ld = 1;
-        INDIRECT_1:
-        begin 
+        INDIRECT_1: begin 
             address_D();
             DL_inc   = 1;
             xferd_en = 1;
             TL_ld    = 1;
         end
-        JSR_ABS_1:
-        begin
+        JSR_ABS_1: begin
             PCL_inc  = 1;
             xferd_en = 1;
             DL_ld    = 1;
         end
-        JSR_ABS_2:
-        begin 
+        JSR_ABS_2: begin 
             /* Might not need this. IDK what this is. See Instruction Timings. */
             // S_dec = 1;
         end
-        JSR_ABS_3:
-        begin
+        JSR_ABS_3: begin
             address_S();
             PCHd_en  = 1;
             xferu_en = 1;
             mem_rw   = 0;
             S_dec    = 1;
         end
-        JSR_ABS_4:
-        begin
+        JSR_ABS_4: begin
             address_S();
             PCLd_en = 1;
             xferu_en = 1;
@@ -455,16 +438,14 @@ begin : state_actions
             S_inc = 1;
         RTI_IMP_1:
             S_inc = 1;
-        RTI_IMP_2:
-        begin 
+        RTI_IMP_2: begin 
             address_S();
             xferd_en = 1;
             Pmux_sel = 1;       // @@ Missing from picture
             P_ld = 1;
             S_inc = 1;
         end
-        RTI_IMP_3:
-        begin 
+        RTI_IMP_3: begin 
             address_S();
             xferd_en = 1;
             PCL_ld = 1;
@@ -472,72 +453,61 @@ begin : state_actions
         end
         RTS_IMP_1:
             S_inc = 1;
-        RTS_IMP_2:
-        begin 
+        RTS_IMP_2: begin 
             S_inc = 1;
             address_S();
             xferd_en = 1;
             PCL_ld = 1;
         end
-        RTS_IMP_3:
-        begin 
+        RTS_IMP_3: begin 
             // S_inc = 1;
             address_S();
             xferd_en = 1;
             PCH_ld = 1;
         end
-        XID_1, IDY_1:
-        begin
+        XID_1, IDY_1: begin
             PCL_inc  = 1;       // PC+=1
             xferd_en = 1;       // DL=M[PC]
             DL_ld    = 1;
             DH_rst_n = 0;
         end
-        XID_2:      // DL+=X
-        begin 
+        XID_2: begin  // DL+=X
             ALU_Amux_sel = 3'b011;
             ALU_Bmux_sel = 3'b001;
             aluop = alu_adc;
             ALUd_en = 1;
             DL_ld = 1;
         end
-        XID_3:      // TL=M[D]  D+=1
-        begin 
+        XID_3: begin  // TL=M[D]  D+=1
             DL_inc = 1;
             address_D();
             xferd_en = 1;
             TL_ld = 1;
         end
-        XID_4:      // TH = M[D]
-        begin 
+        XID_4: begin  // TH = M[D]
             address_D();
             xferd_en = 1;
             TH_ld = 1;
         end
-        ZEROPAGE:
-        begin 
-            PCL_inc = 1;
+        ZEROPAGE: begin 
             DHmux_sel = 1;      // D=00,M[PC]
             DH_ld = 1;
             xferd_en = 1;
             DL_ld = 1;
             DH_rst_n = 0;
         end
-        ZEROPAGE_R:
-        begin 
+        ZEROPAGE_R: begin 
             address_D();
             xferd_en = 1;
             TL_ld = 1;
         end
-        ZEROPAGE_W:
-        begin   
+        ZEROPAGE_W: begin   
             address_D();
             TLd_en = 1;
             xferu_en = 1;
             mem_rw = 0;
         end
-        ZEROPAGE_X:
-        begin 
+        ZEROPAGE_X: begin 
             PCLm_en = 0;
             PCHm_en = 0;
             DLd_en = 1;         // D += X
@@ -548,8 +518,7 @@ begin : state_actions
             DLmux_sel = 1;
             DL_ld = 1;
         end
-        ZEROPAGE_Y:
-        begin 
+        ZEROPAGE_Y: begin 
             PCLm_en = 0;
             PCHm_en = 0;
             DLd_en = 1;         // D += X
@@ -561,8 +530,7 @@ begin : state_actions
             DL_ld = 1;
         end
         /* stack */
-        BRK_IMP:            // PCH=M[$FFFF]
-        begin 
+        BRK_IMP: begin  // PCH=M[$FFFF]
             PCLm_en     = 0;
             PCHm_en     = 0;
             IRQL_en     = 1;
@@ -571,18 +539,15 @@ begin : state_actions
             xferd_en    = 1;
             PCH_ld      = 1;
         end
-        RTI_IMP:
-        begin 
+        RTI_IMP: begin 
             address_S();
             xferd_en = 1;
             PCH_ld = 1;
         end
-        RTS_IMP:
-        begin 
+        RTS_IMP:  
             PCL_inc = 1;
-        end
-        PHA_IMP:                // M[S|$0100] = A, S-=1
-        begin 
+         // M[S|$0100] = A, S-=1
+        PHA_IMP: begin 
             PCL_inc = 1;
             address_S();
             A_en = 1;
@@ -591,8 +556,8 @@ begin : state_actions
             S_dec = 1;
             next_state_path = IR_in;
         end
-        PHP_IMP:                // M[S|$0100] = P, S-=1
-        begin
+        // M[S|$0100] = P, S-=1
+        PHP_IMP: begin
             PCL_inc = 1;
             address_S();
             Pd_en = 1;
@@ -601,16 +566,14 @@ begin : state_actions
             S_dec = 1;
             next_state_path = IR_in;
         end
-        PLA_IMP:
-        begin 
+        PLA_IMP: begin 
             PCL_inc = 1;
             address_S();
             xferd_en = 1;
             A_ld = 1;
             next_state_path = IR_in;
         end
-        PLP_IMP:
-        begin 
+        PLP_IMP: begin 
             PCL_inc = 1;
             address_S();
             xferd_en = 1;
@@ -618,16 +581,14 @@ begin : state_actions
             P_ld = 1;
             next_state_path = IR_in;
         end
-        JSR_ABS:
-        begin
+        JSR_ABS: begin
             PCLmux_sel = 2'b10;
             PCL_ld = 1;
             xferd_en = 1;
             PCH_ld = 1;
         end
         /* imm */
-        ADC_IMM:
-        begin
+        ADC_IMM: begin
             fetchinst();
             DLd_en = 1;         // DL holds operand, move to data_bus
             ALU_Bmux_sel = 3'b100;  // A+M+C
@@ -637,8 +598,7 @@ begin : state_actions
             A_ld = 1;
             setNVZC();
         end
-        AND_IMM:
-        begin 
+        AND_IMM: begin 
             fetchinst();
             DLd_en = 1;         // DL holds operand
             ALU_Bmux_sel = 3'b100;  // A&M
@@ -647,8 +607,7 @@ begin : state_actions
             A_ld = 1;
             setNZ();
         end
-        CMP_IMM:
-        begin 
+        CMP_IMM: begin 
             fetchinst();
             DLd_en  = 1;        // DL holds M
             ALU_Bmux_sel = 3'b100;   // A-M (Don't set flags, don't use carry, don't store A)
@@ -656,8 +615,7 @@ begin : state_actions
             aluop   = alu_sbc;
             setNZC();
         end
-        CPX_IMM:
-        begin
+        CPX_IMM: begin
             fetchinst();
             DLd_en  = 1;        // DL holds M
             ALU_Amux_sel = 3'b001;  // X-M (Don't set flags, don't use carry, don't store A)
@@ -666,8 +624,7 @@ begin : state_actions
             aluop   = alu_sbc;
             setNZC();
         end
-        CPY_IMM:
-        begin
+        CPY_IMM: begin
             fetchinst();
             DLd_en  = 1;        // DL holds M
             ALU_Amux_sel = 3'b010;  // Y-M (Don't set flags, don't use carry, don't store A)
@@ -676,8 +633,7 @@ begin : state_actions
             aluop   = alu_sbc;
             setNZC();
         end
-        EOR_IMM:
-        begin 
+        EOR_IMM: begin 
             fetchinst();
             DLd_en = 1;         // DL holds operand
             ALU_Bmux_sel = 3'b100;  // A^M
@@ -686,32 +642,28 @@ begin : state_actions
             A_ld = 1;
             setNZ();
         end
-        LDA_IMM:
-        begin 
+        LDA_IMM: begin 
             fetchinst();
             DLd_en  = 1;        // DL == M
             A_ld    = 1;        // Store at A
             ALU_Amux_sel = 3'b100;  // Set flags
             setNZ();
         end
-        LDX_IMM:
-        begin
+        LDX_IMM: begin
             fetchinst();
             DLd_en  = 1;        // DL == M
             X_ld    = 1;        // Store at X
             ALU_Amux_sel = 3'b001;  // check x's data
             setNZ();
         end
-        LDY_IMM:
-        begin
+        LDY_IMM: begin
             fetchinst();
             DLd_en  = 1;        // DL == M
             Y_ld    = 1;        // Store at Y
             ALU_Amux_sel = 3'b010;  // check y's data
             setNZ();
         end
-        ORA_IMM:
-        begin 
+        ORA_IMM: begin 
             fetchinst();
             DLd_en = 1;         // DL holds operand
             ALU_Bmux_sel = 3'b100;  // A&M
@@ -720,8 +672,7 @@ begin : state_actions
             A_ld = 1;
             setNZ();
         end
-        SBC_IMM:
-        begin
+        SBC_IMM: begin
             fetchinst();
             DLd_en = 1;         // DL holds operand, move to data_bus
             ALU_Bmux_sel = 3'b100;  // A+M+C
@@ -732,40 +683,34 @@ begin : state_actions
             setNVZC();
         end
         /* imp/acc */
-        ASL_ACC:
-        begin
+        ASL_ACC: begin
             fetchinst();
             aluop   = alu_asl;  // A<<1
             Amux_sel = 1;
             A_ld    = 1;
             setNZC();
         end
-        CLC_IMP:
-        begin 
+        CLC_IMP: begin
             fetchinst();
             ctl_pvect[0] = 0;
             P_ld = 1;
         end
-        CLD_IMP:
-        begin 
+        CLD_IMP: begin
             fetchinst();
             ctl_pvect[3] = 0;
             P_ld = 1;
         end
-        CLI_IMP:
-        begin 
+        CLI_IMP: begin 
             fetchinst();
             ctl_pvect[2] = 0;
             P_ld = 1;
         end
-        CLV_IMP:
-        begin 
+        CLV_IMP: begin 
             fetchinst();
             ctl_pvect[6] = 0;
             P_ld = 1;
         end
-        DEX_IMP:
-        begin 
+        DEX_IMP: begin 
             fetchinst();
             ALU_Amux_sel = 3'b001;
             aluop   = alu_dec;
@@ -773,8 +718,7 @@ begin : state_actions
             X_ld    = 1;
             setNZ();
         end
-        DEY_IMP:
-        begin 
+        DEY_IMP: begin 
             fetchinst();
             ALU_Amux_sel = 3'b010;
             aluop   = alu_dec;
@@ -782,8 +726,7 @@ begin : state_actions
             Y_ld    = 1;
             setNZ();
         end
-        INX_IMP:
-        begin 
+        INX_IMP: begin 
             fetchinst();
             ALU_Amux_sel = 3'b001;
             aluop   = alu_inc;
@@ -791,8 +734,7 @@ begin : state_actions
             X_ld    = 1;
             setNZ();
         end
-        INY_IMP:
-        begin 
+        INY_IMP: begin 
             fetchinst();
             ALU_Amux_sel = 3'b010;
             aluop   = alu_inc;
@@ -800,20 +742,16 @@ begin : state_actions
             Y_ld    = 1;
             setNZ();
         end
-        LSR_ACC:
-        begin
+        LSR_ACC: begin
             fetchinst();
             aluop   = alu_lsr;  // A>>1
             Amux_sel = 1;
             A_ld    = 1;
             setNZC();
         end
-        NOP_IMP:                // No-op
-        begin 
+        NOP_IMP:                // No-op 
             fetchinst();
-        end
-        ROL_ACC:
-        begin
+        ROL_ACC: begin
             fetchinst();
             aluop   = alu_rol;  // ror(A)
             Amux_sel = 1;
@@ -821,8 +759,7 @@ begin : state_actions
             C_ctl   = P_in[0];        // Rotate P.C in.
             setNZC();
         end
-        ROR_ACC:
-        begin
+        ROR_ACC: begin
             fetchinst();
             aluop   = alu_ror;  // ror(A)
             Amux_sel = 1;
@@ -830,69 +767,59 @@ begin : state_actions
             C_ctl   = P_in[0];        // Rotate P.C in.
             setNZC();
         end
-        SEC_IMP:
-        begin 
+        SEC_IMP: begin 
             fetchinst();
             ctl_pvect[0] = 1;
             P_ld = 1;
         end
-        SED_IMP:
-        begin 
+        SED_IMP: begin 
             fetchinst();
             ctl_pvect[3] = 1;
             P_ld = 1;
         end
-        SEI_IMP:
-        begin 
+        SEI_IMP: begin 
             fetchinst();
             ctl_pvect[2] = 1;
             P_ld = 1;
         end
-        TAX_IMP:
-        begin 
+        TAX_IMP: begin 
             fetchinst();
             A_en    = 1;
             X_ld    = 1;
             setNZ();
         end
-        TAY_IMP:
-        begin 
+        TAY_IMP: begin 
             fetchinst();
             A_en    = 1;
             Y_ld    = 1;
             setNZ();
         end
-        TSX_IMP:
-        begin 
+        TSX_IMP: begin 
             fetchinst();
             Sd_en   = 1;
             X_ld    = 1;
             setNZ();
         end
-        TXA_IMP:
-        begin 
+        TXA_IMP: begin 
             fetchinst();
             X_en    = 1;
             A_ld    = 1;
             setNZ();
         end
-        TYA_IMP:
-        begin 
+        TYA_IMP: begin 
             fetchinst();
             Y_en    = 1;
             A_ld    = 1;
             setNZ();
         end
-        TXS_IMP:
-        begin 
+        TXS_IMP: begin 
             fetchinst();
             X_en    = 1;
             S_ld    = 1;
             setNZ();
         end
         /* zpg/abs-r/abx[xy] */
-        ADC_ABX, ADC_ABY:
-        begin 
+        ADC_ABX, ADC_ABY: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -904,8 +831,7 @@ begin : state_actions
             setNVZC();
         end
         ADC_ZPG, ADC_ZPX,
-        ADC_ABS, ADC_ABX_PG, ADC_ABY_PG:
-        begin 
+        ADC_ABS, ADC_ABX_PG, ADC_ABY_PG: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -915,8 +841,7 @@ begin : state_actions
             A_ld = 1;
             setNVZC();
         end
-        AND_ABX, AND_ABY:
-        begin 
+        AND_ABX, AND_ABY: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -927,8 +852,7 @@ begin : state_actions
             setNZ();
         end
         AND_ZPG, AND_ZPX,
-        AND_ABS, AND_ABX_PG, AND_ABY_PG:
-        begin 
+        AND_ABS, AND_ABX_PG, AND_ABY_PG: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -938,8 +862,7 @@ begin : state_actions
             setNZ();
         end
         BIT_ZPG,
-        BIT_ABS:
-        begin 
+        BIT_ABS: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -950,8 +873,7 @@ begin : state_actions
             ctl_pvect[1] = alu_Z; // zero
             P_ld = 1;
         end
-        CMP_ABX, CMP_ABY:
-        begin 
+        CMP_ABX, CMP_ABY: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -962,8 +884,7 @@ begin : state_actions
             setNZC();
         end
         CMP_ZPG, CMP_ZPX,
-        CMP_ABS, CMP_ABX_PG, CMP_ABY_PG:
-        begin 
+        CMP_ABS, CMP_ABX_PG, CMP_ABY_PG: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -972,8 +893,7 @@ begin : state_actions
             C_ctl = 1;
             setNZC();
         end
-        EOR_ABX, EOR_ABY:
-        begin 
+        EOR_ABX, EOR_ABY: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -984,8 +904,7 @@ begin : state_actions
             setNZ();
         end
         EOR_ZPG, EOR_ZPX,
-        EOR_ABS, EOR_ABX_PG, EOR_ABY_PG:
-        begin 
+        EOR_ABS, EOR_ABX_PG, EOR_ABY_PG: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -994,8 +913,7 @@ begin : state_actions
             A_ld = 1;
             setNZ();
         end
-        LDA_ABX, LDA_ABY:
-        begin 
+        LDA_ABX, LDA_ABY: begin 
             address_D();
             ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
@@ -1004,16 +922,14 @@ begin : state_actions
             setNZ();
         end
         LDA_ZPG, LDA_ZPX,
-        LDA_ABS, LDA_ABX_PG, LDA_ABY_PG:
-        begin 
+        LDA_ABS, LDA_ABX_PG, LDA_ABY_PG: begin 
             address_D();
             ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
             A_ld = 1;
             setNZ();
         end
-        LDX_ABY:
-        begin 
+        LDX_ABY: begin 
             address_D();
             ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
@@ -1022,16 +938,14 @@ begin : state_actions
             setNZ();
         end
         LDX_ZPG, LDX_ZPY,
-        LDX_ABS, LDX_ABY_PG:
-        begin 
+        LDX_ABS, LDX_ABY_PG: begin 
             address_D();
             ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
             X_ld = 1;
             setNZ();
         end
-        LDY_ABX:
-        begin 
+        LDY_ABX: begin 
             address_D();
             ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
@@ -1040,16 +954,14 @@ begin : state_actions
             setNZ();
         end
         LDY_ZPG, LDY_ZPX,
-        LDY_ABS, LDY_ABX_PG:
-        begin 
+        LDY_ABS, LDY_ABX_PG: begin 
             address_D();
             ALU_Amux_sel = 3'b100;          // ALU sets flags.
             xferd_en = 1;
             Y_ld = 1;
             setNZ();
         end
-        ORA_ABX, ORA_ABY:
-        begin 
+        ORA_ABX, ORA_ABY: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -1060,8 +972,7 @@ begin : state_actions
             setNZ();
         end
         ORA_ZPG, ORA_ZPX,
-        ORA_ABS, ORA_ABX_PG, ORA_ABY_PG:
-        begin 
+        ORA_ABS, ORA_ABX_PG, ORA_ABY_PG: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -1070,8 +981,7 @@ begin : state_actions
             A_ld = 1;
             setNZ();
         end
-        SBC_ABX, SBC_ABY:
-        begin 
+        SBC_ABX, SBC_ABY: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -1083,8 +993,7 @@ begin : state_actions
             setNVZC();
         end
         SBC_ZPG, SBC_ZPX,
-        SBC_ABS, SBC_ABX_PG, SBC_ABY_PG:
-        begin 
+        SBC_ABS, SBC_ABX_PG, SBC_ABY_PG: begin 
             address_D();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -1096,8 +1005,7 @@ begin : state_actions
         end
         /* rmw/zpg-abs */
         ASL_ZPG, ASL_ZPX,
-        ASL_ABS, ASL_ABX:
-        begin 
+        ASL_ABS, ASL_ABX: begin 
             PCLm_en = 0;    // TL <<= (TL) (via memory bus)
             PCHm_en = 0;
             TLm_en = 1;
@@ -1108,8 +1016,7 @@ begin : state_actions
             setNZC();
         end
         DEC_ZPG, DEC_ZPX,
-        DEC_ABS, DEC_ABX:
-        begin 
+        DEC_ABS, DEC_ABX: begin 
             PCLm_en = 0;    // TL += 1 (via memory bus)
             PCHm_en = 0;
             TLm_en = 1;
@@ -1120,8 +1027,7 @@ begin : state_actions
             setNZ();
         end
         INC_ZPG, INC_ZPX,
-        INC_ABS, INC_ABX:
-        begin 
+        INC_ABS, INC_ABX: begin 
             PCLm_en = 0;    // TL += 1 (via memory bus)
             PCHm_en = 0;
             TLm_en = 1;
@@ -1132,8 +1038,7 @@ begin : state_actions
             setNZ();
         end
         LSR_ZPG, LSR_ZPX,
-        LSR_ABS, LSR_ABX:
-        begin 
+        LSR_ABS, LSR_ABX: begin 
             PCLm_en = 0;    // TL >>= op(TL) (via memory bus)
             PCHm_en = 0;
             TLm_en = 1;
@@ -1144,8 +1049,7 @@ begin : state_actions
             setNZC();
         end
         ROL_ZPG, ROL_ZPX,
-        ROL_ABS, ROL_ABX:
-        begin 
+        ROL_ABS, ROL_ABX: begin 
             PCLm_en = 0;    // TL = rol(TL) (via memory bus)
             PCHm_en = 0;
             TLm_en = 1;
@@ -1157,8 +1061,7 @@ begin : state_actions
             setNZC();
         end
         ROR_ZPG, ROR_ZPX,
-        ROR_ABS, ROR_ABX:
-        begin 
+        ROR_ABS, ROR_ABX: begin 
             PCLm_en = 0;    // TL = ror(TL) (via memory bus)
             PCHm_en = 0;
             TLm_en = 1;
@@ -1171,40 +1074,36 @@ begin : state_actions
         end
         /* abs/zpg-w */
         STA_ZPG, STA_ZPX,
-        STA_ABS, STA_ABX:
-        begin 
+        STA_ABS, STA_ABX: begin 
             address_D();
             mem_rw  = 0;    // write mode
             A_en = 1;
             xferu_en = 1;
         end
         STX_ZPG, STX_ZPY,
-        STX_ABS:
-        begin 
+        STX_ABS: begin 
             address_D();
             mem_rw  = 0;    // write mode
             X_en = 1;
             xferu_en = 1;
         end
         STY_ZPG, STY_ZPX,
-        STY_ABS:
-        begin 
+        STY_ABS: begin 
             address_D();
             mem_rw  = 0;    // write mode
             Y_en = 1;
             xferu_en = 1;
         end
         /* xid */
-        LDA_XID:  // A=M[T]
-        begin 
+        LDA_XID: begin
+            // A=M[T]  
             address_T();
             ALU_Amux_sel = 3'b100;      // Put it through alu to set flags
             xferd_en = 1;
             A_ld = 1;
             setNZ();
         end
-        ORA_XID:
-        begin 
+        ORA_XID: begin 
             address_T();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -1213,8 +1112,7 @@ begin : state_actions
             A_ld = 1;
             setNZ(); 
         end
-        EOR_XID:
-        begin 
+        EOR_XID: begin 
            address_T();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -1223,8 +1121,7 @@ begin : state_actions
             A_ld = 1;
             setNZ();  
         end
-        AND_XID:
-        begin 
+        AND_XID: begin 
             address_T();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -1233,8 +1130,7 @@ begin : state_actions
             A_ld = 1;
             setNZ(); 
         end
-        ADC_XID:
-        begin 
+        ADC_XID: begin 
             address_T();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;  // A+M+C
@@ -1244,8 +1140,7 @@ begin : state_actions
             A_ld = 1;
             setNVZC();
         end
-        CMP_XID:
-        begin 
+        CMP_XID: begin 
             address_T();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;   // A-M (Don't set flags, don't use carry, don't store A)
@@ -1253,8 +1148,7 @@ begin : state_actions
             aluop   = alu_sbc;
             setNZC();
         end
-        SBC_XID:
-        begin 
+        SBC_XID: begin 
             address_T();
             xferd_en = 1;
             ALU_Bmux_sel = 3'b100;
@@ -1264,16 +1158,15 @@ begin : state_actions
             A_ld = 1;
             setNVZC();
         end
-        STA_XID:
-        begin 
+        STA_XID: begin 
             address_T();
             xferu_en = 1;
             mem_rw = 0;
             A_en = 1;
         end
         /* idy */
-        LDA_IDY:  // A=M[T]
-        begin 
+        LDA_IDY: begin
+             // A=M[T]  
             if (page_invalid != 0)
                 TH_inc = 1;
             else begin
@@ -1284,8 +1177,7 @@ begin : state_actions
                 setNZ();
             end
         end
-        ORA_IDY:
-        begin 
+        ORA_IDY: begin 
             if (page_invalid != 0)
                 TH_inc = 1;
             else begin
@@ -1298,8 +1190,7 @@ begin : state_actions
                 setNZ(); 
             end
         end
-        EOR_IDY:
-        begin 
+        EOR_IDY: begin 
             if (page_invalid != 0)
                 TH_inc = 1;
             else begin
@@ -1312,8 +1203,7 @@ begin : state_actions
                 setNZ();
             end
         end
-        AND_IDY:
-        begin 
+        AND_IDY: begin 
             if (page_invalid != 0)
                 TH_inc = 1;
             else begin
@@ -1326,8 +1216,7 @@ begin : state_actions
                 setNZ(); 
             end
         end
-        ADC_IDY:
-        begin 
+        ADC_IDY: begin 
             if (page_invalid != 0)
                 TH_inc = 1;
             else begin
@@ -1341,8 +1230,7 @@ begin : state_actions
                 setNVZC();
             end
         end
-        CMP_IDY:
-        begin 
+        CMP_IDY: begin 
             if (page_invalid != 0)
                 TH_inc = 1;
             else begin
@@ -1354,8 +1242,7 @@ begin : state_actions
                 setNZC();
             end
         end
-        SBC_IDY:
-        begin 
+        SBC_IDY: begin 
             if (page_invalid != 0)
                 TH_inc = 1;
             else begin
@@ -1369,21 +1256,18 @@ begin : state_actions
                 setNVZC();
             end
         end
-        STA_IDY:
-        begin 
+        STA_IDY: begin 
             if (page_invalid != 0)
                 TH_inc = 1;
         end
         /* JMP */
-        JMP_ABS:
-        begin
+        JMP_ABS: begin
             xferd_en = 1;          // PCH = M
             PCH_ld = 1;
             PCLmux_sel = 2;         // PCL = DL
             PCL_ld = 1;
         end
-        JMP_IND:
-        begin 
+        JMP_IND: begin 
             address_D();
             xferd_en = 1;           // Get D+1 somehow?
             PCH_ld = 1;
@@ -1414,8 +1298,7 @@ begin : next_state_logic
         LDA_XID, ORA_XID, EOR_XID, AND_XID, ADC_XID, CMP_XID, SBC_XID, STA_XID:
             next_state = fetch2;
         ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
-        LDA_ABX, LDY_ABX, EOR_ABX, AND_ABX, ORA_ABX, ADC_ABX, SBC_ABX, CMP_ABX:
-        begin
+        LDA_ABX, LDY_ABX, EOR_ABX, AND_ABX, ORA_ABX, ADC_ABX, SBC_ABX, CMP_ABX: begin
             if (page_invalid != 2'b00)
                 next_state = (cpu_state)'({4'h2, state[7:0]});
             else 
@@ -1426,8 +1309,8 @@ begin : next_state_logic
         ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
         LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC, SEC_IMP,
         SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP,
-        PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP:
-        begin // See opCodeHex.sv for all encodings.
+        PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP: begin 
+            // See opCodeHex.sv for all encodings.
             // Use commas to separate same next-states.
             if (page_invalid != 2'b00)
                 case (state)
@@ -1440,7 +1323,7 @@ begin : next_state_logic
                 if (
                     state == BRANCH_CHECK 
                     & (
-                        ( IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[0]))| // C
+                        ( IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[0])) | // C
                         ( IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[1])) | // Z
                         (~IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[6])) | // V
                         (~IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[7])) // N
@@ -1493,8 +1376,7 @@ begin : next_state_logic
             end
         end
         /* Hardware implementation allows many instructions to skip this cycle, due to xfer_bus and data_bus being seperate. Unfortunately, I care about cycle accuracy, so this is staying.*/
-        IMPLIED_ACCUMULATOR:      
-        begin 
+        IMPLIED_ACCUMULATOR: begin 
             case ({4'h0, IR_in})
                 PLA_IMP, PLP_IMP, RTI_IMP, RTS_IMP:
                     next_state = (cpu_state)'({4'h2, IR_in});
@@ -1504,8 +1386,7 @@ begin : next_state_logic
         end
         IMMEDIATE, ABSOLUTE_R, ZEROPAGE_R, BRANCH_PAGE:
             next_state = (cpu_state)'({4'h0, IR_in});
-        ABSOLUTE_1:
-        begin
+        ABSOLUTE_1: begin
             case ({4'h0, IR_in})
                 JMP_ABS:
                     next_state = JMP_ABS;
@@ -1519,8 +1400,7 @@ begin : next_state_logic
                 default: next_state = ABSOLUTE_2;
             endcase
         end
-        ABSOLUTE_2:
-        begin 
+        ABSOLUTE_2: begin 
             case ({4'h0, IR_in})   // LAX and NOP not supported (yet?).
                 ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS,
                 SBC_ABS, STA_ABS, STX_ABS, STY_ABS: // No SAX before a fight.
@@ -1533,8 +1413,7 @@ begin : next_state_logic
                     next_state = ERROR;
             endcase
         end
-        ABSOLUTE_X:
-        begin 
+        ABSOLUTE_X: begin 
             case ({4'h0, IR_in})
                 ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX:
                     next_state = (cpu_state)'({4'h0, IR_in});
@@ -1544,8 +1423,7 @@ begin : next_state_logic
                     next_state = ERROR;
             endcase
         end
-        ABSOLUTE_Y:
-        begin 
+        ABSOLUTE_Y: begin 
            case ({4'h0, IR_in})
                 ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY:
                     next_state = (cpu_state)'({4'h0, IR_in});
@@ -1555,8 +1433,7 @@ begin : next_state_logic
                     next_state = ERROR;
             endcase 
         end
-        ABSOLUTE_XYR:
-        begin 
+        ABSOLUTE_XYR: begin 
             case ({4'h0, IR_in})
                 ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:
                     next_state = ABSOLUTE_XYR_PAGE;
@@ -1566,8 +1443,7 @@ begin : next_state_logic
                     next_state = ERROR;
             endcase
         end
-        ABSOLUTE_XYR_PAGE:
-        begin 
+        ABSOLUTE_XYR_PAGE: begin 
            case ({4'h0, IR_in})
                 ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:
                     next_state = (cpu_state)'({4'h0, IR_in});
@@ -1575,8 +1451,7 @@ begin : next_state_logic
                     next_state = ERROR;
             endcase 
         end
-        INDIRECT_1:
-        begin 
+        INDIRECT_1: begin 
             case ({4'h0, IR_in})
                 JMP_IND:
                     next_state = (cpu_state)'({4'h0, IR_in});
@@ -1592,8 +1467,7 @@ begin : next_state_logic
             next_state = (cpu_state)'({4'h0, IR_in});
         IDY_1, IDY_2:
             next_state = (cpu_state)'(state + 1'b1);
-        IDY_3:
-        begin 
+        IDY_3: begin 
             case ({4'h0, IR_in})
                 LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY, STA_IDY:
                     next_state = (cpu_state)'({4'h0, IR_in});
@@ -1601,8 +1475,7 @@ begin : next_state_logic
                     next_state = ERROR;
             endcase
         end
-        LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY:
-        begin
+        LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY: begin
             if ( page_invalid != 2'b00 )
                 next_state = (cpu_state)'({4'h0, state[7:4] - 4'h1, state[3:0]});
             else 
@@ -1627,8 +1500,7 @@ begin : next_state_logic
         ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG,
         ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX:
             next_state = ZEROPAGE_W;
-        ZEROPAGE:
-        begin
+        ZEROPAGE: begin
             case ({4'h0, IR_in})
                 LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG,
                     STA_ZPG, STX_ZPG, STY_ZPG:
@@ -1645,8 +1517,7 @@ begin : next_state_logic
                     next_state = ERROR;
             endcase
         end
-        ZEROPAGE_X, ZEROPAGE_Y:
-        begin 
+        ZEROPAGE_X, ZEROPAGE_Y: begin 
             case ({4'h0, IR_in})
                 LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
                     STA_ZPX, STY_ZPX, STX_ZPY:
@@ -1661,14 +1532,12 @@ begin : next_state_logic
             next_state = BRANCH;
         BRANCH:
             next_state = BRANCH_CHECK;
-        ERROR:
-        begin 
-            $display("\033[31mMachine is in error state. Halting...\033[0m");
+        ERROR: begin 
+            $display("Machine is in error state. Halting...");
             $finish;
             next_state = ERROR;
         end
-        default:
-        begin 
+        default: begin
             $display("State Error Encountered. %d", state);
             next_state = ERROR;
         end

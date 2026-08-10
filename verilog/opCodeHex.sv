@@ -1,7 +1,7 @@
 // Ported for sv enum type support
-// Official opcodes:
 /* verilator lint_off UNDRIVEN */
 typedef enum reg [11:0] {
+    // #region Official opcodes:
     ADC_IMM = 12'h69, AND_IMM = 12'h29, CMP_IMM = 12'hC9, CPX_IMM = 12'hE0, CPY_IMM = 12'hC0, EOR_IMM = 12'h49, LDA_IMM = 12'hA9, 
     LDX_IMM = 12'hA2, LDY_IMM = 12'hA0, ORA_IMM = 12'h09, SBC_IMM = 12'hE9,
     
@@ -33,7 +33,7 @@ typedef enum reg [11:0] {
 
     BCC_REL = 12'h90, BCS_REL = 12'hB0, BEQ_REL = 12'hF0, BMI_REL = 12'h30, BNE_REL = 12'hD0, BPL_REL = 12'h10, BVC_REL = 12'h50, BVS_REL = 12'h70,
     JMP_IND = 12'h6C,
-    // End official opcodes.
+    // #endregion Official opcodes.
     
     // Non-instruction states are reserved at >0xff
     // e.g. fetch1, fetch2, jmp_abs_1.

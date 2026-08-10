@@ -2,3 +2,4 @@ obj_dir
 *~
 *.vcd
 *.o65
+.vscode
