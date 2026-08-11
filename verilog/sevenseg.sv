@@ -2,11 +2,11 @@
 // display encoding. Output into PULSER unit.
 module sevenseg (
     input [3:0] in,
-    output reg [11:0] out //The data sheets are 1 indexed
+    // The data sheets are 1 indexed
+    output logic [11:0] out 
 );
 
-always @(in)
-begin
+always @(in) begin
     case (in)
         4'h0: out = 12'b111111101011;
         4'h1: out = 12'b100111101000;

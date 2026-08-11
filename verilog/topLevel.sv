@@ -13,7 +13,7 @@ module topLevel (
 // Higher divfactor = slower processor.
 // 0 = lowest delay
 parameter divfactor = 0;
-reg [divfactor:0] clkdiv;
+logic [divfactor:0] clkdiv;
 assign clkdiv = clk;
 
 /* verilator lint_off UNOPTFLAT */
@@ -290,7 +290,7 @@ mux2 PCHmux(
     .f(PCHmux_out)
 );
 
-PC #(.rstval(16'h200)) PC_reg(
+CountReg #(.rstval(16'h200)) PC_reg(
     .clk(clkdiv[divfactor]),
     .load_pc_h(PCH_ld),
     .load_pc_l(PCL_ld),
@@ -346,7 +346,7 @@ mux2 DHmux(
     .f(DHmux_out)
 );
 
-PC D_reg(
+CountReg D_reg(
     .clk(clkdiv[divfactor]),
     .load_pc_h(DH_ld),
     .load_pc_l(DL_ld),
@@ -395,7 +395,7 @@ mux4 TLmux(
     .f(TLmux_out)
 );
 
-PC T_reg(
+CountReg T_reg(
     .clk(clkdiv[divfactor]),
     .load_pc_h(TH_ld),  // Changed from data_bus. WHY?
     .load_pc_l(TL_ld),

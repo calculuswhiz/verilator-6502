@@ -8,34 +8,27 @@
 
 #include <cstdio>
 
+#define DumpFileName "topLevel.vcd"
+
 int main(int argc, char **argv, char **env) {
   Verilated::commandArgs(argc, argv);
-  VtopLevel *top = new VtopLevel;
   Verilated::traceEverOn(true);
+  
+  VtopLevel *top = new VtopLevel;
   VerilatedVcdC *vcdOut = new VerilatedVcdC;
   top->trace(vcdOut, 99);
-  vcdOut->open("6502-sim.vcd");
+  vcdOut->open(DumpFileName);
 
-  // Initialize simulation inputs for toplevel.
   top->clk = 1;
-
-  // Each one of these iterations is a time unit.
-  int dilationfactor = 2;
-  for (int i = 0; i < 370; i++) {
-    for (int clk = 0; clk < 2; clk++) {
-      vcdOut->dump(dilationfactor * i + clk);
-      top->clk = !top->clk;
-      top->eval();
-
-      if (Verilated::gotFinish()) {
-        std::printf("I'm finished!\n");
-        return -1;
-      }
-    }
+  
+  for (int time = 0; time < 370; time++) {
+    vcdOut->dump(time);
+    top->clk = time % 2 + 1;
+    top->eval();
   }
-  // Close vcd file:
+  
   vcdOut->close();
 
-  std::printf("Program has run to completion\n");
+  std::printf("Done with %s\n", DumpFileName);
   return 0;
 }

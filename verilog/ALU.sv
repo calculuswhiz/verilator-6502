@@ -8,14 +8,14 @@ module ALU (
     input aluop_t operation,
 
     // Arithmetic flags:
-    output reg negative,
-    output reg overflow,
-    output reg zero,
-    output reg carry,
+    output logic negative,
+    output logic overflow,
+    output logic zero,
+    output logic carry,
 
     // Output: (top bit will be carry bit)
     /* verilator lint_off UNOPTFLAT */
-    output reg [8:0] f 
+    output logic [8:0] f 
     /* verilator lint_on UNOPTFLAT */
 );
 
@@ -33,8 +33,7 @@ module ALU (
         78.   rotate:             ROR, ROL
         910.  Shift:              ASL, LSR
 */
-always @(a, b, carryIn, overflowIn, operation)
-begin 
+always @(a, b, carryIn, overflowIn, operation) begin 
     casez (operation)
         /* verilator lint_off WIDTH */
         // Add carry
@@ -46,7 +45,8 @@ begin
         // Subtract borrow
         alu_sbc: begin
             f = a - b - {7'b0, ~carryIn};
-            carry = ~f[8];      // If f>=0 set P.C flag
+            // If f>=0 set P.C flag
+            carry = ~f[8];
             overflow = ~((a[7] ^ f[7]) && (b[7] ^ f[7]));
         end
         // Exclusive or

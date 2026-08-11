@@ -13,13 +13,12 @@ module SPreg #(parameter width = 8) (
     output [width - 1:0] out
 );
 
-reg [width - 1:0] data;
+logic [width - 1:0] data;
 
 /* Should be 0 anyway, but for simulation purposes...
  */
-initial begin
+initial
     data = 8'hff;
-end
 
 always @(posedge clk or negedge rst_n) begin 
     if(~rst_n)
@@ -34,4 +33,4 @@ end
 
 assign out = data;
 
-endmodule : SPreg
+endmodule

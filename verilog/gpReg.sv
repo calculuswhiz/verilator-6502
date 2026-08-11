@@ -7,17 +7,17 @@
 module gpReg #(parameter width = 8) (
     input clk,
     input load,
-    input rst_n,  // Asynchronous reset active low
+    // Asynchronous reset active low
+    input rst_n,
     input [width - 1:0] in,
-    output reg [width - 1:0] out
+    output logic [width - 1:0] out
 );
 
-always @ (posedge clk or negedge rst_n)
-begin 
-    if(~rst_n)
+always @ (posedge clk or negedge rst_n) begin 
+    if (~rst_n)
         out <= 0;
-    else if(load)
+    else if (load)
         out <= in;
 end
 
-endmodule : gpReg
+endmodule

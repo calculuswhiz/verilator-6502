@@ -2,7 +2,7 @@
 module mux4 (
     input   [7:0] in0, in1, in2, in3,
     input   [1:0] sel,
-    output reg [7:0] f
+    output logic [7:0] f
 );
 
 always

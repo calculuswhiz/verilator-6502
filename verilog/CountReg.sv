@@ -1,8 +1,7 @@
-// This is used for the program counter, but it is also used for the D
-// and T registers. Sorry for the misnomer.
+// This is used for the PC, D, and T registers.
 // It is useful because it is 16 bits and can correct invalidation 
 // (i.e. page crossings), if necessary.
-module PC #(parameter rstval = 16'h0) (
+module CountReg #(parameter rstval = 16'h0) (
 	input clk,
     
 	input load_pc_h,
@@ -23,11 +22,10 @@ module PC #(parameter rstval = 16'h0) (
 	output [7:0]   PCH_out
 );
 
-reg [15:0] data;
+logic [15:0] data;
 
-initial begin
+initial
 	data = rstval;
-end
 
 always @ (posedge clk) begin 
     // @TODO: be sure to make a reset for low as well.
@@ -38,18 +36,15 @@ always @ (posedge clk) begin
     end
     else if (L_inc)
         data <= data + 1'b1;
-    else if (H_inc)
-    begin
+    else if (H_inc) begin
         data[15:8] <= data[15:8] + 1'b1;
         data[7:0] <= data[7:0];
     end
-    else if (H_dec)
-    begin 
+    else if (H_dec) begin 
         data[15:8] <= data[15:8] - 1'b1;
         data[7:0] <= data[7:0];
     end
-    else if (load_pc_h | load_pc_l)
-    begin
+    else if (load_pc_h | load_pc_l) begin
     	data [15:8] <= load_pc_h ? PCH_in : data[15:8];
     	data [7:0]  <= load_pc_l ? PCL_in : data[7:0];
     end
@@ -58,4 +53,4 @@ end
 assign PCL_out = data[7:0];
 assign PCH_out = data[15:8];
 
-endmodule : PC
+endmodule

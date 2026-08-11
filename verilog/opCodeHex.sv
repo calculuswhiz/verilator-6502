@@ -1,6 +1,6 @@
 // Ported for sv enum type support
 /* verilator lint_off UNDRIVEN */
-typedef enum reg [11:0] {
+typedef enum logic [11:0] {
     // #region Official opcodes:
     ADC_IMM = 12'h69, AND_IMM = 12'h29, CMP_IMM = 12'hC9, CPX_IMM = 12'hE0, CPY_IMM = 12'hC0, EOR_IMM = 12'h49, LDA_IMM = 12'hA9, 
     LDX_IMM = 12'hA2, LDY_IMM = 12'hA0, ORA_IMM = 12'h09, SBC_IMM = 12'hE9,
@@ -64,5 +64,5 @@ typedef enum reg [11:0] {
     PLP_IMP_1 = 12'h228,
     
     ERROR = 12'hfff
-} cpu_state /* verilator public */; 
+} cpu_state;
 /* verilator lint_on UNDRIVEN */

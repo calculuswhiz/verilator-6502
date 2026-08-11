@@ -5,23 +5,23 @@ module testmemory (
     /* verilator lint_off UNUSED */
     input [15:0] tm_address,
     /* verilator lint_on UNUSED */
-    input rW, // read/write-complement
-    
+    // Read/Write-complement
+    input rW, 
+
     input [7:0] tm_indata,
     output [7:0] tm_data
 );
 
-reg [7:0] TM_DATA [(1 << 16) - 1:0];
+logic [7:0] TM_DATA [(1 << 16) - 1:0];
 
-initial begin 
+initial
     $readmemh("program.list", TM_DATA);
-end
 
-always @(posedge clk) begin 
-    if (~rW) 
-        // write is desired 
+always @(posedge clk) begin
+    if (~rW)
+        // Write is desired
         TM_DATA[tm_address[15:0]] <= tm_indata;
-    
+
 end
 
 assign tm_data = TM_DATA[tm_address[15:0]];
