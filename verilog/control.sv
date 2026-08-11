@@ -1384,7 +1384,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
     endcase
 end
 
-// Temporarily removed SAX_ZPG
+// TODO Temporarily removed SAX_ZPG
 always @ (state, IR_in, P_in)
 begin : next_state_logic
     next_state = state;
@@ -1437,7 +1437,8 @@ begin : next_state_logic
                   )
                     next_state = BRANCH_TAKEN;
                 else begin
-                    case ({4'h0, next_state_path})   // Source select. IR_out or mem_data. @relic
+                    // Source select. IR_out or mem_data. @relic
+                    case ({4'h0, next_state_path})   
                         ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM,
                         ORA_IMM, SBC_IMM:
                             next_state = IMMEDIATE;
@@ -1482,7 +1483,7 @@ begin : next_state_logic
             end
         end
         /* Hardware implementation allows many instructions to skip this cycle, due to xfer_bus and data_bus being seperate.
-        Unfortunately, I care about cycle accuracy, so this is staying.*/
+        Unfortunately, I care about cycle accuracy, so this is staying. */
         IMPLIED_ACCUMULATOR: begin
             case ({4'h0, IR_in})
                 PLA_IMP, PLP_IMP, RTI_IMP, RTS_IMP:
@@ -1612,13 +1613,13 @@ begin : next_state_logic
         ZEROPAGE: begin
             case ({4'h0, IR_in})
                 LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, BIT_ZPG,
-                    STA_ZPG, STX_ZPG, STY_ZPG:
+                STA_ZPG, STX_ZPG, STY_ZPG:
                     next_state = (cpu_state)'({4'h0, IR_in});
                 ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG:
                     next_state = ZEROPAGE_R;
                 LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
-                     ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX,
-                     STA_ZPX, STY_ZPX:
+                ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX,
+                STA_ZPX, STY_ZPX:
                     next_state = ZEROPAGE_X;
                 LDX_ZPY, STX_ZPY:
                     next_state = ZEROPAGE_Y;
@@ -1629,7 +1630,7 @@ begin : next_state_logic
         ZEROPAGE_X, ZEROPAGE_Y: begin
             case ({4'h0, IR_in})
                 LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
-                    STA_ZPX, STY_ZPX, STX_ZPY:
+                STA_ZPX, STY_ZPX, STX_ZPY:
                     next_state = (cpu_state)'({4'h0, IR_in});
                 ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX, LDX_ZPY:
                     next_state = ZEROPAGE_R;

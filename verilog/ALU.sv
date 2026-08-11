@@ -5,6 +5,7 @@ module ALU (
     input carryIn,
     input overflowIn,
 
+    /** Defined in aluops.sv */
     input aluop_t operation,
 
     // Arithmetic flags:
@@ -36,74 +37,62 @@ module ALU (
 always @(a, b, carryIn, overflowIn, operation) begin 
     casez (operation)
         /* verilator lint_off WIDTH */
-        // Add carry
         alu_adc: begin
             f = a + b + {7'b0, carryIn};
             carry = f[8];
             overflow = a[7] ^ f[7];
         end
-        // Subtract borrow
         alu_sbc: begin
             f = a - b - {7'b0, ~carryIn};
             // If f>=0 set P.C flag
             carry = ~f[8];
             overflow = ~((a[7] ^ f[7]) && (b[7] ^ f[7]));
         end
-        // Exclusive or
         alu_eor: begin
             f = a ^ b;
             carry = carryIn;
             overflow = overflowIn;
         end
-        // Bitwise or
         alu_ora: begin
             f = a | b;
             carry = carryIn;
             overflow = overflowIn;
         end
-        // Bitwise and
         alu_and: begin
             f = a & b;
             carry = carryIn;
             overflow = f[6];
         end
-        // Increment
         alu_inc: begin
             f = a + 1'b1;
             carry = carryIn;
             overflow = overflowIn;
         end
-        // Decrement
         alu_dec: begin
             f = a - 1'b1;
             carry = carryIn;
             overflow = overflowIn;
         end
-        // Rotate right
         alu_ror: begin
             f = {carryIn, b[7:1]};
             carry = b[0];
             overflow = overflowIn;
         end
-        // Rotate left
         alu_rol: begin
             f = {b[6:0], carryIn};
             carry = b[7];
             overflow = overflowIn;
         end
-        // Shift left
         alu_asl: begin
             f = {b[7:0], 1'b0};
             carry = b[7];
             overflow = overflowIn;
         end
-        // Shift right
         alu_lsr: begin
             f = {1'b0, b[7:1]};
             carry = b[0];
             overflow = overflowIn;
         end
-        // NOP (Actually pass input a)
         default: begin
             f = a;
             carry = carryIn;

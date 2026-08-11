@@ -28,7 +28,7 @@ initial
 	data = rstval;
 
 always @ (posedge clk) begin 
-    // @TODO: be sure to make a reset for low as well.
+    // TODO: be sure to make a reset for low as well.
     if (~H_rst_n) begin 
         data[15:8] <= 8'h00;
         // Allow loading L if desired.

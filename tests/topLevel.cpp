@@ -1,6 +1,3 @@
-// When compiled, v/sv files compile to have header file "V"+<lowercase toplevel
-// verilog file name>+".h" Docs:
-// http://verilator.sourcearchive.com/documentation/3.821-1/files.html
 #include "VtopLevel.h"
 // Used by verilator:
 #include "verilated.h"
