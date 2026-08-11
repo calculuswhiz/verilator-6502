@@ -11,20 +11,20 @@ int main(int argc, char **argv, char **env) {
   Verilated::commandArgs(argc, argv);
   Verilated::traceEverOn(true);
   
-  VtopLevel *top = new VtopLevel;
-  VerilatedVcdC *vcdOut = new VerilatedVcdC;
-  top->trace(vcdOut, 99);
-  vcdOut->open(DumpFileName);
+  VtopLevel top;
+  VerilatedVcdC vcdOut;
+  top.trace(vcdOut, 99);
+  vcdOut.open(DumpFileName);
 
-  top->clk = 1;
+  top.clk = 1;
   
   for (int time = 0; time < 370; time++) {
-    vcdOut->dump(time);
-    top->clk = time % 2 + 1;
-    top->eval();
+    vcdOut.dump(time);
+    top.clk = time % 2 + 1;
+    top.eval();
   }
   
-  vcdOut->close();
+  vcdOut.close();
 
   std::printf("Done with %s\n", DumpFileName);
   return 0;
