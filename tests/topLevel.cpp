@@ -13,19 +13,19 @@ int main(int argc, char **argv, char **env) {
   
   VtopLevel top;
   VerilatedVcdC vcdOut;
-  top.trace(vcdOut, 99);
+  top.trace(&vcdOut, 99);
   vcdOut.open(DumpFileName);
 
   top.clk = 1;
   
   for (int time = 0; time < 370; time++) {
     vcdOut.dump(time);
-    top.clk = time % 2 + 1;
+    top.clk = time % 2;
     top.eval();
   }
   
   vcdOut.close();
 
-  std::printf("Done with %s\n", DumpFileName);
+  std::printf("Done with %s\n", __FILE_NAME__);
   return 0;
 }

@@ -1,3 +1,4 @@
+`include "aluops.sv"    // alu operations enum.
 // Simple ALU. Doesn't do a whole lot. Doesn't really have to.
 module ALU (
     input [7:0] a,
@@ -14,6 +15,7 @@ module ALU (
     output logic zero,
     output logic carry,
 
+    // TODO Isn't that redundant then?
     // Output: (top bit will be carry bit)
     /* verilator lint_off UNOPTFLAT */
     output logic [8:0] f 
@@ -40,7 +42,7 @@ always @(a, b, carryIn, overflowIn, operation) begin
         alu_adc: begin
             f = a + b + {7'b0, carryIn};
             carry = f[8];
-            overflow = a[7] ^ f[7];
+            overflow = (a[7] ^ f[7]) && ~(a[7] ^ b[7]);
         end
         alu_sbc: begin
             f = a - b - {7'b0, ~carryIn};
@@ -101,7 +103,7 @@ always @(a, b, carryIn, overflowIn, operation) begin
         /* verilator lint_on WIDTH */
     endcase
     negative = f[7];
-    zero = f == 0 ? 1'b1 : 1'b0;
+    zero = f[7:0] == 0 ? 1'b1 : 1'b0;
 end
 
 endmodule

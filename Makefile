@@ -14,9 +14,9 @@ build: $(PROGS)
 %: ./tests/%.cpp
 # Generates the Verilator Makefile(s) and C++ source files for the specified Verilog module
 # Pass the testbench to verilator with --exe (don't use -I"$<" which is a .cpp file)
-	verilator --cc -Wall --trace -I"./verilog" ./verilog/$@.sv --exe $<
+	verilator --cc -Wall --trace -I"./verilog" ./verilog/$@.sv --exe $< --CFLAGS "-std=c++20"
 # Build the generated makefile in obj_dir (use $(MAKE) for portability)
-	$(MAKE) -C obj_dir -j -f V$@.mk V$@ CXX=clang++ LINK=clang++
+	$(MAKE) -C obj_dir -j -f V$@.mk V$@ CXX=clang++ LINK=clang++ CXXFLAGS="-std=c++20"
 
 assemble:
 	sh bytedump_asm.sh
