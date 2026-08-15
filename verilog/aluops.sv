@@ -1,3 +1,6 @@
+`ifndef ALU_OPS_SV
+`define ALU_OPS_SV
+
 typedef enum logic [3:0] { 
   /* Add carry */
   alu_adc = 4'h0,
@@ -27,3 +30,5 @@ typedef enum logic [3:0] {
   /* NOP (Actually pass input a) */
   alu_pas = 4'hf
 } aluop_t;
+
+`endif // ALU_OPS_SV

@@ -1,5 +1,5 @@
 #include "Vmux4.h"
-// Used by verilator:
+#include "../lib/helpAssert.cpp"
 
 #include <cstdio>
 #include <cassert>
@@ -15,19 +15,19 @@ int main(int argc, char **argv, char **env) {
 
   mux.sel = 0;
   mux.eval();
-  assert(mux.f == mux.in0 && "mux.f should be equal to mux.in0 when sel is 0");
+  assert(testEqual(mux.f, mux.in0));
   
   mux.sel = 1;
   mux.eval();
-  assert(mux.f == mux.in1 && "mux.f should be equal to mux.in1 when sel is 1");
+  assert(testEqual(mux.f, mux.in1));
   
   mux.sel = 2;
   mux.eval();
-  assert(mux.f == mux.in2 && "mux.f should be equal to mux.in2 when sel is 2");
+  assert(testEqual(mux.f, mux.in2));
 
   mux.sel = 3;
   mux.eval();
-  assert(mux.f == mux.in3 && "mux.f should be equal to mux.in3 when sel is 3");
+  assert(testEqual(mux.f, mux.in3));
 
   std::printf("Tests passed for %s\n", __FILE_NAME__);
   return 0;

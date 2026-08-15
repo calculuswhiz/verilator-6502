@@ -1,7 +1,8 @@
+#include "../lib/helpAssert.cpp"
 #include "Vmux2.h"
 
-#include <cstdio>
 #include <cassert>
+#include <cstdio>
 
 int main(int argc, char **argv, char **env) {
   Vmux2 mux;
@@ -11,11 +12,11 @@ int main(int argc, char **argv, char **env) {
 
   mux.sel = 0;
   mux.eval();
-  assert(mux.f == mux.a && "mux.f should be equal to mux.a when sel is 0");
+  assert(testEqual(mux.f, mux.a));
 
   mux.sel = 1;
   mux.eval();
-  assert(mux.f == mux.b && "mux.f should be equal to mux.b when sel is 1");
+  assert(testEqual(mux.f, mux.b));
 
   std::printf("Tests passed for %s\n", __FILE_NAME__);
   return 0;
