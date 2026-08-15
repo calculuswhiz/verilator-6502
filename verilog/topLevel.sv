@@ -1,11 +1,10 @@
 `include "aluops.sv"    // alu operations enum.
 `include "opCodeHex.sv" // Holds all the opcode values as enum.
 module topLevel (
-    input clk,    // Clock
-    
-    // Memory:
-    output DEBUGLED,
-    output [11:0] sevenOut
+    // Clock
+    input clk
+
+    // TODO add debug output signals for registers
 );
 
 // Clock divider:
@@ -154,7 +153,7 @@ mux2 Smux(
 );
 
 SPreg S_reg(
-    .clk(clkdiv[divfactor]),    // Clock
+    .clk(clkdiv[divfactor]),
     .load(S_ld),
     .inc(S_inc),
     .dec(S_dec),
@@ -247,7 +246,7 @@ gpReg A_reg(
     .rst_n(1'b1),
     .in(Amux_out),
     .out(A_out)
-); 
+);
 
 tristate Abuf(
     .in(A_out),
@@ -278,7 +277,8 @@ mux4 PCLmux(
     .in0(data_bus),
     .in1(memory_bus_l),
     .in2(DL_out),
-    .in3(TL_out),               // Jump indirect
+    // Jump indirect
+    .in3(TL_out),
     .sel(PCLmux_sel),
     .f(PCLmux_out)
 );
@@ -329,7 +329,6 @@ tristate PCHmbuf(
 );
 
 // D section:
-// Changed to a mux4.
 mux4 DLmux(
     .in0(data_bus),
     .in1(memory_bus_l),
@@ -403,7 +402,6 @@ CountReg T_reg(
     .H_inc(TH_inc),
     .H_dec(1'b0),
     .PCL_in(TLmux_out),
-    // .PCH_in(THmux_out),
     .H_rst_n(1'b1),
     .PCH_in(zeroout),
     .PCL_out(TL_out),
@@ -465,8 +463,6 @@ mux2 IRmux(
 gpReg IR_reg(
     .clk(clkdiv[divfactor]),
     .load(IR_ld),
-    // .clk(IR_ld),
-    // .load(1'b1),
     .rst_n(1'b1),
     .in(IRmux_out),
     .out(IR_out)
@@ -521,7 +517,6 @@ control CTL(
     .ALU_Amux_sel(ALU_Amux_sel), .ALU_Bmux_sel(ALU_Bmux_sel),
     .PCLmux_sel(PCLmux_sel), .PCHmux_sel(PCHmux_sel),
     .DLmux_sel(DLmux_sel), .DHmux_sel(DHmux_sel),
-    // .TLmux_sel(TLmux_sel), .THmux_sel(THmux_sel),
     .TLmux_sel(TLmux_sel), .THmux_sel(zeroout[0]),
     .Pmux_sel(Pmux_sel),
     .IRmux_sel(IRmux_sel),
@@ -552,34 +547,35 @@ tristate IRQLbuf(
     .out(IRQLbuf_out)
 );
 
-wire [11:0] lo_ctl_out;
-wire [11:0] hi_ctl_out;
-
-// Seven-segment control stuff:
-sevenseg LO_CTL(
-    .in(A_out[3:0]),
-    .out(lo_ctl_out)
-);
-
-sevenseg HI_CTL(
-    .in(A_out[7:4]),
-    .out(hi_ctl_out)
-);
-
-pulser PULSER(
-    .clk(clk),
-    .low(lo_ctl_out),
-    .high(hi_ctl_out),
-    .to_seven_seg(sevenOut)
-);
-
-// ON = decode, OFF = fetch/execute
-assign DEBUGLED = state_out[8];
-
 // A little hack to get verilator to cooperate (no tristate construct issue):
-assign data_bus = Xbuf_out | Ybuf_out | Sdbuf_out | ALUdbuf_out | Abuf_out | PCLdbuf_out | PCHdbuf_out | DLdbuf_out | DHdbuf_out | TLdbuf_out | THdbuf_out | Pbuf_out | xferdbuf_out;
-assign xfer_bus = membuf_out | IRbuf_out | xferubuf_out;
-assign memory_bus_h = ZHbuf_out | DHmbuf_out | PCHmbuf_out | THmbuf_out | Spagebuf_out | IRQHbuf_out;
-assign memory_bus_l = ALUmbuf_out | Smbuf_out | ZLbuf_out | DLmbuf_out | PCLmbuf_out | TLmbuf_out | IRQLbuf_out;
+assign data_bus = Xbuf_out 
+    | Ybuf_out 
+    | Sdbuf_out 
+    | ALUdbuf_out 
+    | Abuf_out 
+    | PCLdbuf_out 
+    | PCHdbuf_out 
+    | DLdbuf_out 
+    | DHdbuf_out 
+    | TLdbuf_out 
+    | THdbuf_out 
+    | Pbuf_out 
+    | xferdbuf_out;
+assign xfer_bus = membuf_out 
+    | IRbuf_out 
+    | xferubuf_out;
+assign memory_bus_h = ZHbuf_out 
+    | DHmbuf_out 
+    | PCHmbuf_out 
+    | THmbuf_out 
+    | Spagebuf_out 
+    | IRQHbuf_out;
+assign memory_bus_l = ALUmbuf_out 
+    | Smbuf_out 
+    | ZLbuf_out 
+    | DLmbuf_out 
+    | PCLmbuf_out 
+    | TLmbuf_out 
+    | IRQLbuf_out;
 
 endmodule

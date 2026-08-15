@@ -1,7 +1,7 @@
 /*
     These are all the byte registers:
-    - X and Y, Index registers ~ %sil, %dil
-    - A, Accumulator ~ %al
+    - X and Y, Index registers
+    - A, Accumulator
 */
 
 module gpReg #(parameter width = 8) (
@@ -10,6 +10,7 @@ module gpReg #(parameter width = 8) (
     // Asynchronous reset active low
     input rst_n,
     input [width - 1:0] in,
+
     output logic [width - 1:0] out
 );
 

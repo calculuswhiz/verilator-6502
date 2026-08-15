@@ -1,3 +1,6 @@
+`ifndef OP_CODE_HEX_SV
+`define OP_CODE_HEX_SV
+
 // Ported for sv enum type support
 /* verilator lint_off UNDRIVEN */
 typedef enum logic [11:0] {
@@ -46,6 +49,7 @@ typedef enum logic [11:0] {
     // 110 is free now. Probably refactor later.
     ZEROPAGE_X = 12'h111, ZEROPAGE_Y = 12'h112,
     ABSOLUTE_X = 12'h113, ABSOLUTE_Y = 12'h114, ABSOLUTE_XYR = 12'h115, ABSOLUTE_XYR_PAGE = 12'h116,
+
     INDIRECT_1 = 12'h117, XID_1 = 12'h118, XID_2 = 12'h119, XID_3 = 12'h11a, XID_4 = 12'h11b, XID_R = 12'h11c, XID_W = 12'h11d,
     IDY_1 = 12'h11e, IDY_2 = 12'h11f, IDY_3 = 12'h120, IDY_R = 12'h121, IDY_W = 12'h122,
     
@@ -66,3 +70,4 @@ typedef enum logic [11:0] {
     ERROR = 12'hfff
 } cpu_state;
 /* verilator lint_on UNDRIVEN */
+`endif // OP_CODE_HEX_SV

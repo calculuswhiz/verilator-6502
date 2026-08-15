@@ -7,7 +7,7 @@ module CountReg #(parameter rstval = 16'h0) (
 	input load_pc_h,
 	input load_pc_l,
     
-    // These both override the load signals, so there's no need to set them.
+    // These both override the load signals
     input L_inc,
     // If invalid: (Note that inc overrides dec)
     input H_inc,
@@ -27,26 +27,27 @@ logic [15:0] data;
 initial
 	data = rstval;
 
-always @ (posedge clk) begin 
-    // TODO: be sure to make a reset for low as well.
+always @ (posedge clk) begin
     if (~H_rst_n) begin 
-        data[15:8] <= 8'h00;
-        // Allow loading L if desired.
-        data [7:0] <= load_pc_l ? PCL_in : data[7:0];
+        data <= {
+            8'h00,
+            // Allow loading L if desired.
+            load_pc_l ? PCL_in : data[7:0]
+        };
     end
     else if (L_inc)
         data <= data + 1'b1;
     else if (H_inc) begin
-        data[15:8] <= data[15:8] + 1'b1;
-        data[7:0] <= data[7:0];
+        data <= {data[15:8] + 1'b1, data[7:0]};
     end
     else if (H_dec) begin 
-        data[15:8] <= data[15:8] - 1'b1;
-        data[7:0] <= data[7:0];
+        data <= {data[15:8] - 1'b1, data[7:0]};
     end
-    else if (load_pc_h | load_pc_l) begin
-    	data [15:8] <= load_pc_h ? PCH_in : data[15:8];
-    	data [7:0]  <= load_pc_l ? PCL_in : data[7:0];
+    else begin
+    	data <= {
+            load_pc_h ? PCH_in : data[15:8],
+            load_pc_l ? PCL_in : data[7:0]
+        };
     end
 end
 
