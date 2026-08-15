@@ -63,7 +63,7 @@ always @(a, b, carryIn, overflowIn, operation) begin
         alu_and: begin
             f = a & b;
             carry = carryIn;
-            overflow = f[6];
+            overflow = overflowIn;
         end
         alu_inc: begin
             f = a + 1'b1;

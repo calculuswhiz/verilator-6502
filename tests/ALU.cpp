@@ -19,57 +19,231 @@ enum AluOp {
   alu_pas = 0xf
 };
 
+void setALUInputs(VALU &alu, int a, int b, int carryIn = 0,
+                  int overflowIn = 0) {
+  alu.a = a;
+  alu.b = b;
+  alu.carryIn = carryIn;
+  alu.overflowIn = overflowIn;
+}
+
 void test_adc() {
+  std::printf("Testing adc... ");
   VALU alu;
   alu.operation = alu_adc;
 
-  alu.a = 0x1f;
-  alu.b = 0x01;
-  alu.carryIn = 0;
-  alu.overflowIn = 0;
+  std::printf("- Adds numbers with no flags\n");
+  setALUInputs(alu, 0x1f, 0x01);
   alu.eval();
-  assert(areEqual(alu.f, 0x20));
-  assert(areEqual(alu.negative, 0));
-  assert(areEqual(alu.zero, 0));
-  assert(areEqual(alu.carry, 0));
-  assert(areEqual(alu.overflow, 0));
+  assert(testEqual(alu.f & 0xff, 0x20));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
 
-  alu.a = 0x7f;
-  alu.b = 0x01;
-  alu.carryIn = 0;
-  alu.overflowIn = 0;
+  setALUInputs(alu, 0x7f, 0x01);
   alu.eval();
-  assert(areEqual(alu.f, 0x80));
-  assert(areEqual(alu.negative, 1));
-  assert(areEqual(alu.zero, 0));
-  assert(areEqual(alu.carry, 0));
-  assert(areEqual(alu.overflow, 1));
+  assert(testEqual(alu.f & 0xff, 0x80));
+  assert(testEqual(alu.negative, 1));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 1));
 
-  alu.a = 0xff;
-  alu.b = 0x01;
-  alu.carryIn = 0;
-  alu.overflowIn = 0;
+  setALUInputs(alu, 0xff, 0x01);
   alu.eval();
-  assert(areEqual(alu.f, 0x100));
-  assert(areEqual(alu.negative, 0));
-  assert(areEqual(alu.zero, 1));
-  assert(areEqual(alu.carry, 1));
-  assert(areEqual(alu.overflow, 0));
+  assert(testEqual(alu.f & 0xff, 0x00));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 1));
+  assert(testEqual(alu.carry, 1));
+  assert(testEqual(alu.overflow, 0));
 
-  alu.a = 0xff;
-  alu.b = 0x80;
-  alu.carryIn = 0;
-  alu.overflowIn = 0;
+  setALUInputs(alu, 0xff, 0x80);
   alu.eval();
-  assert(areEqual(alu.f, 0x17f));
-  assert(areEqual(alu.negative, 0));
-  assert(areEqual(alu.zero, 0));
-  assert(areEqual(alu.carry, 1));
-  assert(areEqual(alu.overflow, 1));
+  assert(testEqual(alu.f & 0xff, 0x7f));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 1));
+  assert(testEqual(alu.overflow, 1));
+
+  setALUInputs(alu, 0x00, 0x00, 1);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x01));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  std::printf("passed\n");
+}
+
+void test_sbc() {
+  std::printf("Testing sbc... ");
+  VALU alu;
+  alu.operation = alu_sbc;
+
+  setALUInputs(alu, 0x00, 0x01, 1);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0xff));
+  assert(testEqual(alu.negative, 1));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x80, 0x01, 1);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x7f));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 1));
+  assert(testEqual(alu.overflow, 1));
+
+  setALUInputs(alu, 0x7f, 0xff, 1);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x80));
+  assert(testEqual(alu.negative, 1));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 1));
+
+  setALUInputs(alu, 0xc0, 0x40, 0);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x7f));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 1));
+  assert(testEqual(alu.overflow, 1));
+
+  std::printf("passed\n");
+}
+
+void test_eor() {
+  std::printf("Testing eor... ");
+  VALU alu;
+  alu.operation = alu_eor;
+
+  setALUInputs(alu, 0xaa, 0xaa);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x00));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 1));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0xff, 0xaa);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x55));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  std::printf("passed\n");
+}
+
+void test_ora() {
+  std::printf("Testing ora... ");
+  VALU alu;
+  alu.operation = alu_ora;
+
+  setALUInputs(alu, 0xaa, 0x55);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0xff));
+  assert(testEqual(alu.negative, 1));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x00, 0x00);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x00));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 1));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  std::printf("passed\n");
+}
+
+void test_and() {
+  std::printf("Testing and... ");
+  VALU alu;
+  alu.operation = alu_and;
+
+  setALUInputs(alu, 0xaa, 0x55);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x00));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 1));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0xff, 0x55);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x55));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  std::printf("passed\n");
+}
+
+void test_inc() {
+  std::printf("Testing inc... ");
+  VALU alu;
+  alu.operation = alu_inc;
+
+  setALUInputs(alu, 0x7f, 0x00);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x80));
+  assert(testEqual(alu.negative, 1));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0xff, 0x00);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x00));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 1));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  std::printf("passed\n");
+}
+
+void test_dec() {
+  std::printf("Testing dec... ");
+  VALU alu;
+  alu.operation = alu_dec;
+
+  setALUInputs(alu, 0x80, 0x00);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x7f));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x00, 0x00);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0xff));
+  assert(testEqual(alu.negative, 1));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  std::printf("passed\n");
 }
 
 int main(int argc, char **argv, char **env) {
   test_adc();
+  test_sbc();
+  test_eor();
+  test_ora();
+  test_and();
+  test_inc();
+  test_dec();
 
   std::printf("Tests passed for %s\n", __FILE_NAME__);
   return 0;
