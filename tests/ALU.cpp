@@ -236,6 +236,134 @@ void test_dec() {
   std::printf("passed\n");
 }
 
+void test_ror() {
+  std::printf("Testing ror... ");
+  VALU alu;
+  alu.operation = alu_ror;
+
+  setALUInputs(alu, 0x00, 0x01);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x00));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 1));
+  assert(testEqual(alu.carry, 1));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x00, 0x02);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x01));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x00, 0x03);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x01));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 1));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x00, 0x00, 1);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x80));
+  assert(testEqual(alu.negative, 1));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  std::printf("passed\n");
+}
+
+void test_rol() {
+  std::printf("Testing rol... ");
+  VALU alu;
+  alu.operation = alu_rol;
+
+  setALUInputs(alu, 0x00, 0x80);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x00));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 1));
+  assert(testEqual(alu.carry, 1));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x00, 0x40);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x80));
+  assert(testEqual(alu.negative, 1));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x00, 0xc0);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x80));
+  assert(testEqual(alu.negative, 1));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 1));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x00, 0x00, 1);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x01));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+  
+  std::printf("passed\n");
+}
+
+void test_asl() {
+  std::printf("Testing asl... ");
+  VALU alu;
+  alu.operation = alu_asl;
+
+  setALUInputs(alu, 0x00, 0x80);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x00));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 1));
+  assert(testEqual(alu.carry, 1));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x00, 0x40);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x80));
+  assert(testEqual(alu.negative, 1));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  std::printf("passed\n");
+}
+
+void test_lsr() {
+  std::printf("Testing lsr... ");
+  VALU alu;
+  alu.operation = alu_lsr;
+
+  setALUInputs(alu, 0x00, 0x01);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x00));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 1));
+  assert(testEqual(alu.carry, 1));
+  assert(testEqual(alu.overflow, 0));
+
+  setALUInputs(alu, 0x00, 0x02);
+  alu.eval();
+  assert(testEqual(alu.f & 0xff, 0x01));
+  assert(testEqual(alu.negative, 0));
+  assert(testEqual(alu.zero, 0));
+  assert(testEqual(alu.carry, 0));
+  assert(testEqual(alu.overflow, 0));
+
+  std::printf("passed\n");
+}
+
 int main(int argc, char **argv, char **env) {
   test_adc();
   test_sbc();
@@ -244,6 +372,10 @@ int main(int argc, char **argv, char **env) {
   test_and();
   test_inc();
   test_dec();
+  test_ror();
+  test_rol();
+  test_asl();
+  test_lsr();
 
   std::printf("Tests passed for %s\n", __FILE_NAME__);
   return 0;

@@ -76,12 +76,12 @@ always @(a, b, carryIn, overflowIn, operation) begin
             overflow = overflowIn;
         end
         alu_ror: begin
-            f = {carryIn, b[7:1]};
+            f = {b[0], carryIn, b[7:1]};
             carry = b[0];
             overflow = overflowIn;
         end
         alu_rol: begin
-            f = {b[6:0], carryIn};
+            f = {b[7:0], carryIn};
             carry = b[7];
             overflow = overflowIn;
         end
