@@ -117,7 +117,7 @@ tristate membuf(
 );
 
 // Put stuff down from left to right (See the datapath diagram for more info.):
-gpReg X_reg(
+GpReg X_reg(
     .clk(clkdiv[divfactor]),
     .load(X_ld),
     .rst_n(1'b1),
@@ -131,7 +131,7 @@ tristate Xbuf(
     .out(Xbuf_out)
 );
 
-gpReg Y_reg(
+GpReg Y_reg(
     .clk(clkdiv[divfactor]),
     .load(Y_ld),
     .rst_n(1'b1),
@@ -152,7 +152,7 @@ mux2 Smux(
     .f(Smux_out)
 );
 
-SPreg S_reg(
+SPReg S_reg(
     .clk(clkdiv[divfactor]),
     .load(S_ld),
     .inc(S_inc),
@@ -216,9 +216,7 @@ ALU ALU_6502(
     .overflow(V_out),
     .zero(Z_out),
     .carry(C_out),
-    /* verilator lint_off WIDTH */
     .f(ALU_out[7:0])
-    /* verilator lint_on WIDTH */
 );
 
 tristate ALUd_buf(
@@ -240,7 +238,7 @@ mux2 Amux(
     .f(Amux_out)
 );
 
-gpReg A_reg(
+GpReg A_reg(
     .clk(clkdiv[divfactor]),
     .load(A_ld),
     .rst_n(1'b1),
@@ -439,7 +437,7 @@ mux2 Pmux(
     .f(Pmux_out)
 );
 
-gpReg P_reg(
+GpReg P_reg(
     .clk(clkdiv[divfactor]),
     .load(P_ld),
     .rst_n(1'b1),
@@ -460,7 +458,7 @@ mux2 IRmux(
     .f(IRmux_out)
 );
 
-gpReg IR_reg(
+GpReg IR_reg(
     .clk(clkdiv[divfactor]),
     .load(IR_ld),
     .rst_n(1'b1),

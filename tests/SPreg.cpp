@@ -1,5 +1,5 @@
 #include "../lib/helpAssert.cpp"
-#include "VSPreg.h"
+#include "VSPReg.h"
 
 #include <cassert>
 #include <cstdio>
@@ -11,7 +11,7 @@
   spReg.eval();
 
 int main(int argc, char **argv, char **env) {
-  VSPreg spReg;
+  VSPReg spReg;
 
   spReg.clk = 0;
   spReg.load = 0;

@@ -1,3 +1,4 @@
+; This somewhat like the NES's memory map layout
 *=$0000
 ; 00-ff  ZERO PAGE
 zeropage:

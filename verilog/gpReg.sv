@@ -4,7 +4,7 @@
     - A, Accumulator
 */
 
-module gpReg #(parameter width = 8) (
+module GpReg #(parameter width = 8) (
     input clk,
     input load,
     // Asynchronous reset active low

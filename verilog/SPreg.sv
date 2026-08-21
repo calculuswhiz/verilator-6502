@@ -2,7 +2,7 @@
     S, Stack pointer
 */
 
-module SPreg #(parameter width = 8) (
+module SPReg #(parameter width = 8) (
     input clk,
 
     input load,

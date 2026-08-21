@@ -1,4 +1,4 @@
-#include "VgpReg.h"
+#include "VGpReg.h"
 
 #include "../lib/helpAssert.cpp"
 #include <cassert>
@@ -12,7 +12,7 @@
 
 int main(int argc, char **argv, char **env) {
   std::printf("Testing gpReg...\n");
-  VgpReg gpReg;
+  VGpReg gpReg;
 
   gpReg.clk = 0;
   gpReg.rst_n = 1;
