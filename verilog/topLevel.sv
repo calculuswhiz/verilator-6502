@@ -1,22 +1,30 @@
 `include "aluops.sv"    // alu operations enum.
 `include "opCodeHex.sv" // Holds all the opcode values as enum.
 module topLevel (
-    // Clock
-    input clk
+    input clk,
 
-    // TODO add debug output signals for registers
+    input [7:0] mem_rData,
+    output mem_rW,
+    output [7:0] mem_wData,
+    output [15:0] mem_address,
+
+    output [7:0] dbg_A_out,
+    output [7:0] dbg_X_out,
+    output [7:0] dbg_Y_out,
+    output [7:0] dbg_S_out,
+    output [7:0] dbg_P_out
 );
 
 // Clock divider:
 // 12MHz/2^17 = 96Hz
-// Higher divfactor = slower processor.
+// Higher divFactor = slower processor.
 // 0 = lowest delay
-parameter divfactor = 0;
-logic [divfactor:0] clkdiv;
-assign clkdiv = clk;
+parameter divFactor = 0;
+logic [divFactor:0] clkDiv;
+assign clkDiv = clk;
 
 /* verilator lint_off UNOPTFLAT */
-// Internal signals:
+// #region Internal Signals
 // Enable:
 wire X_en, Y_en, Sd_en, Sm_en, Spagem_en, A_en;
 wire PCLd_en, PCLm_en, PCHd_en, PCHm_en;
@@ -81,6 +89,12 @@ wire [7:0] IRbuf_out;
 wire [7:0] xferubuf_out, xferdbuf_out;
 wire [7:0] IRQLbuf_out, IRQHbuf_out;
 
+assign dbg_A_out = A_out;
+assign dbg_X_out = X_out;
+assign dbg_Y_out = Y_out;
+assign dbg_S_out = S_out;
+assign dbg_P_out = P_out;
+
 // Mulitplexed data:
 wire [7:0] Smux_out, ALU_Amux_out, ALU_Bmux_out, Amux_out;
 wire [7:0] PCLmux_out, PCHmux_out;
@@ -95,30 +109,26 @@ wire [7:0] zeroin, zeroout;
 wire [7:0] ZLbuf_out, ZHbuf_out;
 
 // Test-memory signals:
-wire [7:0]  mem_data;
-wire        mem_rw;
 wire [7:0]  membuf_out;
 
 // Reset (neg. edge)
 wire DH_rst_n;
 
-testmemory MEM(
-    .clk(clkdiv[divfactor]),
-    .tm_address({memory_bus_h, memory_bus_l}),
-    .tm_indata(xfer_bus),
-    .rW(mem_rw),
-    .tm_data(mem_data)
-);
+// #endregion Internal Signals
+
+assign mem_wData = xfer_bus;
+assign mem_address = {memory_bus_h, memory_bus_l};
+
+// See the datapath diagram for more info
 
 tristate membuf(
-    .in(mem_data),
-    .enable(mem_rw),
+    .in(mem_rData),
+    .enable(mem_rW),
     .out(membuf_out)
 );
 
-// Put stuff down from left to right (See the datapath diagram for more info.):
 GpReg X_reg(
-    .clk(clkdiv[divfactor]),
+    .clk(clkDiv[divFactor]),
     .load(X_ld),
     .rst_n(1'b1),
     .in(data_bus),
@@ -132,7 +142,7 @@ tristate Xbuf(
 );
 
 GpReg Y_reg(
-    .clk(clkdiv[divfactor]),
+    .clk(clkDiv[divFactor]),
     .load(Y_ld),
     .rst_n(1'b1),
     .in(data_bus),
@@ -153,7 +163,7 @@ mux2 Smux(
 );
 
 SPReg S_reg(
-    .clk(clkdiv[divfactor]),
+    .clk(clkDiv[divFactor]),
     .load(S_ld),
     .inc(S_inc),
     .dec(S_dec),
@@ -239,7 +249,7 @@ mux2 Amux(
 );
 
 GpReg A_reg(
-    .clk(clkdiv[divfactor]),
+    .clk(clkDiv[divFactor]),
     .load(A_ld),
     .rst_n(1'b1),
     .in(Amux_out),
@@ -289,7 +299,7 @@ mux2 PCHmux(
 );
 
 CountReg #(.rstval(16'h200)) PC_reg(
-    .clk(clkdiv[divfactor]),
+    .clk(clkDiv[divFactor]),
     .load_pc_h(PCH_ld),
     .load_pc_l(PCL_ld),
     .L_inc(PCL_inc),
@@ -344,7 +354,7 @@ mux2 DHmux(
 );
 
 CountReg D_reg(
-    .clk(clkdiv[divfactor]),
+    .clk(clkDiv[divFactor]),
     .load_pc_h(DH_ld),
     .load_pc_l(DL_ld),
     .L_inc(DL_inc),
@@ -393,7 +403,7 @@ mux4 TLmux(
 );
 
 CountReg T_reg(
-    .clk(clkdiv[divfactor]),
+    .clk(clkDiv[divFactor]),
     .load_pc_h(TH_ld),  // Changed from data_bus. WHY?
     .load_pc_l(TL_ld),
     .L_inc(1'b0),
@@ -438,7 +448,7 @@ mux2 Pmux(
 );
 
 GpReg P_reg(
-    .clk(clkdiv[divfactor]),
+    .clk(clkDiv[divFactor]),
     .load(P_ld),
     .rst_n(1'b1),
     .in(Pmux_out),
@@ -459,7 +469,7 @@ mux2 IRmux(
 );
 
 GpReg IR_reg(
-    .clk(clkdiv[divfactor]),
+    .clk(clkDiv[divFactor]),
     .load(IR_ld),
     .rst_n(1'b1),
     .in(IRmux_out),
@@ -488,12 +498,12 @@ tristate xferdbuf(
 wire [11:0] state_out;
 /* verilator lint_on UNUSED */
 control CTL(
-    .clk(clkdiv[divfactor]),
+    .clk(clkDiv[divFactor]),
     .P_in(P_out),
     .IR_in(IR_out),
     .alu_V(V_out), .alu_C(C_out), .alu_N(N_out), .alu_Z(Z_out),
     .ALUA_sign(ALU_Amux_out[7]),
-    .mem_data(mem_data),
+    .mem_data(mem_rData),
 
     .ctl_pvect(ctl_pvect), .ctl_irvect(ctl_irvect),
     .DH_rst_n(DH_rst_n),
@@ -521,7 +531,7 @@ control CTL(
     .IRQLmux_sel(IRQLmux_sel),
     .aluop(aluop),
     .V_ctl(V_in), .C_ctl(C_in),
-    .mem_rw (mem_rw),
+    .mem_rW(mem_rW),
     .state_out(state_out)
 );
 

@@ -37,7 +37,7 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
     std::fclose(file);
     return -1;
   }
-  
+
   size_t bytesRead = std::fread(buffer, 1, size, file);
   if (bytesRead < (size_t)size) {
     // Partial read check (handles EOF vs actual read error)
@@ -58,7 +58,8 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
 // argv[2] - start rom address
 int main(int argc, char **argv, char **env) {
   if (argc < 3) {
-    std::printf("Please specify binary file in arg 1 and rom region (hex) in arg 2");
+    std::printf(
+        "Please specify binary file in arg 1 and rom region (hex) in arg 2");
     return -1;
   }
   std::printf("Reading %s\n", argv[1]);
@@ -87,18 +88,21 @@ int main(int argc, char **argv, char **env) {
   std::printf("ROM region set %d\n", romStart);
 
   TestMap::initMap(memory, (uint16_t)romStart);
-  for (uint16_t idx = 0x200; idx < 0x210; idx++) {
-    uint8_t byte = TestMap::readMem(idx);
-    printf("At %d, got: %d\n", idx, byte);
+
+  // Begin test program
+
+  int clk = 0;
+  while (true) {
+    top.clk = !clk;
+    if (top.mem_rW == 1)
+      top.mem_rData = TestMap::read(top.mem_address);
+    else
+      TestMap::write(top.mem_address, top.mem_wData);
+
+    top.eval();
   }
 
-  // Just don't pass 0 as the ROM address
-  assert(romStart > 0 && "Make sure romStart is greater than 0");
-  TestMap::writeMem(0, 0x7f);
-  assert(testEqual(TestMap::readMem(0), 0x7f));
-
   std::printf("Done with %s\n", __FILE_NAME__);
-
-  delete[] memory;
+  TestMap::cleanup();
   return 0;
 }
