@@ -16,6 +16,13 @@ typedef enum logic [2:0] {
 	aluSel_TL = 7
 } alu_mux_src;
 
+typedef enum logic [1:0] {
+	page_normal = 0,
+	page_inc = 1,
+	page_dec = 2,
+	page_undefined = 3
+} page_invalid_t;
+
 // #endregion
 
 // This is what issues the control signals necessary for the processor to run.
@@ -76,7 +83,7 @@ module control (
 	output aluop_t aluop,
 	/* verilator lint_on UNOPTFLAT */
 	// Selectively decide whether to send these flags to the ALU
-	output logic V_ctl, C_ctl, 
+	output logic V_ctl, C_ctl,
 
 	output RW mem_rW,
 
@@ -86,19 +93,27 @@ module control (
 cpu_state state, next_state;
 
 /* verilator lint_off UNOPTFLAT */
-// If 0 - normal
-// If 1 - inc
-// If 2 - dec
-// If 3 - undefined
-logic [1:0] page_invalid;
+page_invalid_t page_invalid;
 /* verilator lint_on UNOPTFLAT */
 
 logic [7:0] next_state_path;
 
 initial begin
 	state = fetch1;
-	page_invalid = 0;
+	page_invalid = page_normal;
 end
+
+function void setWriteMem();
+	mem_rW = write;
+	xferu_en = 1;
+	xferd_en = 0;
+endfunction
+
+function void setReadMem();
+	mem_rW = read;
+	xferu_en = 0;
+	xferd_en = 1;
+endfunction;
 
 function void addressWith(string registerName);
 	PCLm_en = 0;
@@ -132,11 +147,11 @@ endfunction
 // If page crossed, fix page D
 function void Dpage_invd();
 	case (page_invalid)
-		2'b00:
+		page_normal:
 			/* None */;
-		2'b01:
+		page_inc:
 			DH_inc = 1;
-		2'b10:
+		page_dec:
 			DH_dec = 1;
 		default:
 			$display("Error in ABSOLUTE_XYR");
@@ -146,15 +161,15 @@ endfunction
 // If page cross will happen, set invalid buffer
 function void set_invd();
 	if (~ALUA_sign & alu_C)
-		page_invalid = 2'b01;
+		page_invalid = page_inc;
 	else if (ALUA_sign & ~alu_C)
-		page_invalid = 2'b10;
+		page_invalid = page_dec;
 	else
-		page_invalid = 2'b00;
+		page_invalid = page_normal;
 endfunction
 
 /** Fetch next instruction, increment PC */
-function void fetchinst();
+function void fetchNextInstruction();
 	PCL_inc = 1;
 	IR_ld = 1;
 endfunction
@@ -198,8 +213,6 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 	IR_en = 0;
 	ALUd_en = 0;
 	ALUm_en = 0;
-	xferu_en = 0;
-	xferd_en = 0;
 	Zl_en = 0;
 	Zh_en = 0;
 	IRQH_en = 0;
@@ -252,8 +265,6 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 	V_ctl = 0;
 	C_ctl = 0;
 
-	mem_rW = read;
-
 	/* State actions: */
 	case (state)
 		// #region General states
@@ -261,28 +272,28 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			/* Ready memory */
 			IR_ld = 1;
 		fetch2:
-			fetchinst();
+			fetchNextInstruction();
 		ABSOLUTE_1, BRANCH, IMMEDIATE: begin
 			PCL_inc = 1;
 			// DL=M
-			xferd_en = 1;
+			setReadMem();
 			DL_ld = 1;
 		end
 		ABSOLUTE_2: begin
 			PCL_inc = 1;
 			// DH = M
-			xferd_en = 1;
+			setReadMem();
 			DH_ld = 1;
 		end
 		ABSOLUTE_R: begin
 			addressWith("D");
-			xferd_en = 1;
+			setReadMem();
 			// TL=M[D]
 			TL_ld = 1;
 		end
 		ABSOLUTE_X: begin
 			// DH = M[PC] DL += X PC += 1
-			xferd_en = 1;
+			setReadMem();
 			DH_ld = 1;
 			doAlu(alu_adc, aluSel_X, aluSel_DL);
 			DLmux_sel = 2'b10;
@@ -291,7 +302,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			set_invd();
 		end
 		ABSOLUTE_Y: begin
-			xferd_en = 1;
+			setReadMem();
 			DH_ld = 1;
 			doAlu(alu_adc, aluSel_Y, aluSel_DL);
 			DLmux_sel = 2'b10;
@@ -301,19 +312,18 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		end
 		ABSOLUTE_XYR: begin
 			addressWith("D");
-			xferd_en = 1;
+			setReadMem();
 			TL_ld = 1;
 			Dpage_invd();
 		end
 		ABSOLUTE_XYR_PAGE: begin
 			addressWith("D");
-			xferd_en = 1;
+			setReadMem();
 			TL_ld = 1;
 		end
 		ABSOLUTE_W: begin
 			addressWith("D");
-			mem_rW = write;
-			xferu_en = 1;
+			setWriteMem();
 			TLd_en = 1;
 		end
 		BRANCH_CHECK: begin
@@ -336,80 +346,75 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 				set_invd();
 			end else
 				// Branch not taken:
-				fetchinst();
+				fetchNextInstruction();
 		end
 		// Fix PC if page crossed.
 		BRANCH_TAKEN: begin
 			IR_ld = 1;
 			case (page_invalid)
-				2'b00:
+				page_normal:
 					// @@ Test this out.
 					PCL_inc = 1;
-				2'b01:
+				page_inc:
 					PCH_inc = 1;
-				2'b10:
+				page_dec:
 					PCH_dec = 1;
-				// Error:
-				2'b11:
+				default:
 					$display("Error in branch taken.");
 			endcase
 		end
 		BRANCH_PAGE,
-		BRK_IMP_1: begin
-			IR_ld = 1;
-			PCL_inc = 1;
-		end
+		BRK_IMP_1:
+			fetchNextInstruction();
 		BRK_IMP_2: begin
 			// M[S] = PCH, S-=1
-			S_dec = 1;
+			setWriteMem();
 			addressWith("S");
-			xferu_en = 1;
+			S_dec = 1;
 			PCHd_en = 1;
-			mem_rW = write;
 		end
 		BRK_IMP_3: begin
 			// M[S] = PCL, S-=1
-			S_dec = 1;
+			setWriteMem();
 			addressWith("S");
-			xferu_en = 1;
+			S_dec = 1;
 			PCLd_en = 1;
-			mem_rW = write;
 		end
 		BRK_IMP_4: begin
+			// TODO P or PCL?
 			// M[S] = P, S-=1
-			S_dec = 1;
+			setWriteMem();
 			addressWith("S");
-			xferu_en = 1;
+			S_dec = 1;
 			PCLd_en = 1;
-			mem_rW = write;
 		end
 		BRK_IMP_5: begin
 			// PCL=M[$FFFE]   @@ add any special value buffers to datapath, S_page, etc.
+			setReadMem();
 			PCLm_en = 0;
 			PCHm_en = 0;
 			IRQL_en = 1;
 			IRQH_en = 1;
-			xferd_en = 1;
 			PCL_ld = 1;
 		end
 		IDY_2: begin
 			// TL=M[D]  D+=1
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			DL_inc = 1;
 			TL_ld = 1;
 		end
 		IDY_3: begin
 			// TH=M[D], TL+=Y
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
-			TH_ld = 1;
 			doAlu(alu_adc, aluSel_Y, aluSel_TL);
+			TH_ld = 1;
 			// Do NOT use set_invd. That's for signed address addition. This is UNsigned.
-			if (alu_C)   // Simple: if carry is set, that means need to add 1 to TH
-				page_invalid = 2'b01;
-			else
-				page_invalid = 2'b00;
+			// Simple: if carry is set, that means need to add 1 to TH
+			page_invalid = alu_C
+				? page_inc
+				: page_normal;
 			TLmux_sel = 2'b10;
 			TL_ld = 1;
 		end
@@ -417,13 +422,13 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			IR_ld = 1;
 		INDIRECT_1: begin
 			addressWith("D");
+			setReadMem();
 			DL_inc = 1;
-			xferd_en = 1;
 			TL_ld = 1;
 		end
 		JSR_ABS_1: begin
+			setReadMem();
 			PCL_inc = 1;
-			xferd_en = 1;
 			DL_ld = 1;
 		end
 		JSR_ABS_2: begin
@@ -431,17 +436,15 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			// S_dec = 1;
 		end
 		JSR_ABS_3: begin
+			setWriteMem();
 			addressWith("S");
 			PCHd_en = 1;
-			xferu_en = 1;
-			mem_rW = write;
 			S_dec = 1;
 		end
 		JSR_ABS_4: begin
+			setWriteMem();
 			addressWith("S");
 			PCLd_en = 1;
-			xferu_en = 1;
-			mem_rW = write;
 			S_dec = 1;
 		end
 		PLA_IMP_1, PLP_IMP_1:
@@ -449,16 +452,16 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		RTI_IMP_1:
 			S_inc = 1;
 		RTI_IMP_2: begin
+			setReadMem();
 			addressWith("S");
-			xferd_en = 1;
 			// @@ Missing from picture
 			Pmux_sel = 1;
 			P_ld = 1;
 			S_inc = 1;
 		end
 		RTI_IMP_3: begin
+			setReadMem();
 			addressWith("S");
-			xferd_en = 1;
 			PCL_ld = 1;
 			S_inc = 1;
 		end
@@ -466,19 +469,19 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			S_inc = 1;
 		RTS_IMP_2: begin
 			S_inc = 1;
+			setReadMem();
 			addressWith("S");
-			xferd_en = 1;
 			PCL_ld = 1;
 		end
 		RTS_IMP_3: begin
+			setReadMem();
 			addressWith("S");
-			xferd_en = 1;
 			PCH_ld = 1;
 		end
 		XID_1, IDY_1: begin
-			PCL_inc = 1;
 			// DL = M[PC]
-			xferd_en = 1;
+			setReadMem();
+			PCL_inc = 1;
 			DL_ld = 1;
 			DH_rst_n = 0;
 		end
@@ -490,35 +493,34 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		end
 		XID_3: begin
 			// TL=M[D]  D+=1
-			DL_inc = 1;
 			addressWith("D");
-			xferd_en = 1;
+			setReadMem();
+			DL_inc = 1;
 			TL_ld = 1;
 		end
 		XID_4: begin
 			// TH = M[D]
 			addressWith("D");
-			xferd_en = 1;
+			setReadMem();
 			TH_ld = 1;
 		end
 		ZEROPAGE: begin
 			// D=00,M[PC]
+			setReadMem();
 			DHmux_sel = 1;
 			DH_ld = 1;
-			xferd_en = 1;
 			DL_ld = 1;
 			DH_rst_n = 0;
 		end
 		ZEROPAGE_R: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			TL_ld = 1;
 		end
 		ZEROPAGE_W: begin
+			setWriteMem();
 			addressWith("D");
 			TLd_en = 1;
-			xferu_en = 1;
-			mem_rW = write;
 		end
 		ZEROPAGE_X: begin
 			PCLm_en = 0;
@@ -544,52 +546,50 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		// #region Stack
 		BRK_IMP: begin
 			// PCH=M[$FFFF]
+			setReadMem();
 			PCLm_en = 0;
 			PCHm_en = 0;
 			IRQL_en = 1;
 			IRQLmux_sel = 1;
 			IRQH_en = 1;
-			xferd_en = 1;
 			PCH_ld = 1;
 		end
 		RTI_IMP: begin
+			setReadMem();
 			addressWith("S");
-			xferd_en = 1;
 			PCH_ld = 1;
 		end
 		RTS_IMP:
 			PCL_inc = 1;
 		PHA_IMP: begin
 			// M[S|$0100] = A, S-=1
-			PCL_inc = 1;
+			setWriteMem();
 			addressWith("S");
+			PCL_inc = 1;
 			A_en = 1;
-			xferu_en = 1;
-			mem_rW = write;
 			S_dec = 1;
 			next_state_path = IR_in;
 		end
 		PHP_IMP: begin
 			// M[S|$0100] = P, S-=1
-			PCL_inc = 1;
+			setWriteMem();
 			addressWith("S");
+			PCL_inc = 1;
 			Pd_en = 1;
-			xferu_en = 1;
-			mem_rW = write;
 			S_dec = 1;
 			next_state_path = IR_in;
 		end
 		PLA_IMP: begin
-			PCL_inc = 1;
+			setReadMem();
 			addressWith("S");
-			xferd_en = 1;
+			PCL_inc = 1;
 			A_ld = 1;
 			next_state_path = IR_in;
 		end
 		PLP_IMP: begin
-			PCL_inc = 1;
+			setReadMem();
 			addressWith("S");
-			xferd_en = 1;
+			PCL_inc = 1;
 			Pmux_sel = 1;
 			P_ld = 1;
 			next_state_path = IR_in;
@@ -597,13 +597,13 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		JSR_ABS: begin
 			PCLmux_sel = 2'b10;
 			PCL_ld = 1;
-			xferd_en = 1;
+			setReadMem();
 			PCH_ld = 1;
 		end
 		// #endregion Stack
 		// #region IMM
 		ADC_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL holds operand, move to data_bus
 			DLd_en = 1;
 			// A+M+C
@@ -615,7 +615,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 1, 1, 1);
 		end
 		AND_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL holds operand
 			DLd_en = 1;
 			// A & M
@@ -626,7 +626,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		CMP_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL holds M
 			DLd_en = 1;
 			// A-M (Don't set flags, don't use carry, don't store A)
@@ -636,7 +636,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 1);
 		end
 		CPX_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL holds M
 			DLd_en = 1;
 			// X-M (Don't set flags, don't use carry, don't store A)
@@ -646,7 +646,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 1);
 		end
 		CPY_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL holds M
 			DLd_en = 1;
 			// Y-M (Don't set flags, don't use carry, don't store A)
@@ -656,7 +656,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 1);
 		end
 		EOR_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL holds operand
 			DLd_en = 1;
 			// A^M
@@ -667,7 +667,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		LDA_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL == M
 			DLd_en = 1;
 			// Store at A
@@ -677,7 +677,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		LDX_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL == M
 			DLd_en = 1;
 			// Store at X
@@ -687,7 +687,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		LDY_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL == M
 			DLd_en = 1;
 			// Store at Y
@@ -697,7 +697,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		ORA_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL holds operand
 			DLd_en = 1;
 			// A&M
@@ -708,7 +708,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		SBC_IMM: begin
-			fetchinst();
+			fetchNextInstruction();
 			// DL holds operand, move to data_bus
 			DLd_en = 1;
 			// A+M+C
@@ -722,7 +722,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		// #endregion IMM
 		// #region IMP/ACC
 		ASL_ACC: begin
-			fetchinst();
+			fetchNextInstruction();
 			// A<<1
 			doAlu(alu_asl, aluSel_A, aluSel_A);
 			Amux_sel = 1;
@@ -730,128 +730,125 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 1);
 		end
 		CLC_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			ctl_pvect[0] = 0;
 			P_ld = 1;
 		end
 		CLD_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			ctl_pvect[3] = 0;
 			P_ld = 1;
 		end
 		CLI_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			ctl_pvect[2] = 0;
 			P_ld = 1;
 		end
 		CLV_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			ctl_pvect[6] = 0;
 			P_ld = 1;
 		end
 		DEX_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			doAlu(alu_dec, aluSel_X, aluSel_A);
 			ALUd_en = 1;
 			X_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		DEY_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			doAlu(alu_dec, aluSel_Y, aluSel_A);
 			ALUd_en = 1;
 			Y_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		INX_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			doAlu(alu_inc, aluSel_X, aluSel_A);
 			ALUd_en = 1;
 			X_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		INY_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			doAlu(alu_inc, aluSel_Y, aluSel_A);
 			ALUd_en = 1;
 			Y_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		LSR_ACC: begin
-			fetchinst();
-			// A>>1
+			fetchNextInstruction();
 			doAlu(alu_lsr, aluSel_A, aluSel_A);
 			Amux_sel = 1;
 			A_ld = 1;
 			setNvzcFromALU(1, 0, 1, 1);
 		end
 		NOP_IMP:
-			fetchinst();
+			fetchNextInstruction();
 		ROL_ACC: begin
-			fetchinst();
+			fetchNextInstruction();
 			doAlu(alu_rol, aluSel_A, aluSel_A);
 			Amux_sel = 1;
 			A_ld = 1;
-			// Rotate P.C in.
 			C_ctl = P_in[0];
 			setNvzcFromALU(1, 0, 1, 1);
 		end
 		ROR_ACC: begin
-			fetchinst();
+			fetchNextInstruction();
 			doAlu(alu_ror, aluSel_A, aluSel_A);
 			Amux_sel = 1;
 			A_ld = 1;
-			// Rotate P.C in.
 			C_ctl = P_in[0];
 			setNvzcFromALU(1, 0, 1, 1);
 		end
 		SEC_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			ctl_pvect[0] = 1;
 			P_ld = 1;
 		end
 		SED_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			ctl_pvect[3] = 1;
 			P_ld = 1;
 		end
 		SEI_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			ctl_pvect[2] = 1;
 			P_ld = 1;
 		end
 		TAX_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			A_en = 1;
 			X_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		TAY_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			A_en = 1;
 			Y_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		TSX_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			Sd_en = 1;
 			X_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		TXA_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			X_en = 1;
 			A_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		TYA_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			Y_en = 1;
 			A_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		TXS_IMP: begin
-			fetchinst();
+			fetchNextInstruction();
 			X_en = 1;
 			S_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
@@ -859,8 +856,8 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		// #endregion IMP/ACC
 		// #region ZPG, ABS-R, ABX[XY]
 		ADC_ABX, ADC_ABY: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			C_ctl = P_in[0];
@@ -870,8 +867,8 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		end
 		ADC_ZPG, ADC_ZPX,
 		ADC_ABS, ADC_ABX_PG, ADC_ABY_PG: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			C_ctl = P_in[0];
@@ -879,8 +876,8 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 1, 1, 1);
 		end
 		AND_ABX, AND_ABY: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_and, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
@@ -889,8 +886,8 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		end
 		AND_ZPG, AND_ZPX,
 		AND_ABS, AND_ABX_PG, AND_ABY_PG: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_and, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
@@ -898,8 +895,8 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		end
 		BIT_ZPG,
 		BIT_ABS: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_and, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			ctl_pvect[7] = alu_N;
@@ -908,8 +905,8 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			P_ld = 1;
 		end
 		CMP_ABX, CMP_ABY: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			C_ctl = 1;
@@ -918,16 +915,16 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		end
 		CMP_ZPG, CMP_ZPX,
 		CMP_ABS, CMP_ABX_PG, CMP_ABY_PG: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			C_ctl = 1;
 			setNvzcFromALU(1, 0, 1, 1);
 		end
 		EOR_ABX, EOR_ABY: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_eor, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
@@ -936,18 +933,17 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		end
 		EOR_ZPG, EOR_ZPX,
 		EOR_ABS, EOR_ABX_PG, EOR_ABY_PG: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_eor, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		LDA_ABX, LDA_ABY: begin
+			setReadMem();
 			addressWith("D");
-			// ALU sets flags.
 			ALU_Amux_sel = aluSel_data_bus;
-			xferd_en = 1;
 			A_ld = 1;
 			Dpage_invd();
 			setNvzcFromALU(1, 0, 1, 0);
@@ -955,17 +951,15 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		LDA_ZPG, LDA_ZPX,
 		LDA_ABS, LDA_ABX_PG, LDA_ABY_PG: begin
 			addressWith("D");
-			// ALU sets flags.
+			setReadMem();
 			ALU_Amux_sel = aluSel_data_bus;
-			xferd_en = 1;
 			A_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		LDX_ABY: begin
 			addressWith("D");
-			// ALU sets flags.
+			setReadMem();
 			ALU_Amux_sel = aluSel_data_bus;
-			xferd_en = 1;
 			X_ld = 1;
 			Dpage_invd();
 			setNvzcFromALU(1, 0, 1, 0);
@@ -973,17 +967,15 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		LDX_ZPG, LDX_ZPY,
 		LDX_ABS, LDX_ABY_PG: begin
 			addressWith("D");
-			// ALU sets flags.
+			setReadMem();
 			ALU_Amux_sel = aluSel_data_bus;
-			xferd_en = 1;
 			X_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		LDY_ABX: begin
 			addressWith("D");
-			// ALU sets flags.
+			setReadMem();
 			ALU_Amux_sel = aluSel_data_bus;
-			xferd_en = 1;
 			X_ld = 1;
 			Dpage_invd();
 			setNvzcFromALU(1, 0, 1, 0);
@@ -991,15 +983,14 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		LDY_ZPG, LDY_ZPX,
 		LDY_ABS, LDY_ABX_PG: begin
 			addressWith("D");
-			// ALU sets flags.
+			setReadMem();
 			ALU_Amux_sel = aluSel_data_bus;
-			xferd_en = 1;
 			Y_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		ORA_ABX, ORA_ABY: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
@@ -1008,16 +999,16 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		end
 		ORA_ZPG, ORA_ZPX,
 		ORA_ABS, ORA_ABX_PG, ORA_ABY_PG: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		SBC_ABX, SBC_ABY: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			C_ctl = P_in[0];
@@ -1027,8 +1018,8 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		end
 		SBC_ZPG, SBC_ZPX,
 		SBC_ABS, SBC_ABX_PG, SBC_ABY_PG: begin
+			setReadMem();
 			addressWith("D");
-			xferd_en = 1;
 			doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			C_ctl = P_in[0];
@@ -1114,63 +1105,60 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		// #region ABS/ZPG-W
 		STA_ZPG, STA_ZPX,
 		STA_ABS, STA_ABX: begin
+			setWriteMem();
 			addressWith("D");
-			mem_rW = write;
 			A_en = 1;
-			xferu_en = 1;
 		end
 		STX_ZPG, STX_ZPY,
 		STX_ABS: begin
+			setWriteMem();
 			addressWith("D");
-			mem_rW = write;
 			X_en = 1;
-			xferu_en = 1;
 		end
 		STY_ZPG, STY_ZPX,
 		STY_ABS: begin
+			setWriteMem();
 			addressWith("D");
-			mem_rW = write;
 			Y_en = 1;
-			xferu_en = 1;
 		end
 		// #endregion
 		// #region XID
 		LDA_XID: begin
 			// A = M[T]
+			setReadMem();
 			addressWith("T");
 			// Put it through alu to set flags
 			ALU_Amux_sel = aluSel_data_bus;
-			xferd_en = 1;
 			A_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		ORA_XID: begin
+			setReadMem();
 			addressWith("T");
-			xferd_en = 1;
 			doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		EOR_XID: begin
-		   addressWith("T");
-			xferd_en = 1;
+			setReadMem();
+			addressWith("T");
 			doAlu(alu_eor, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		AND_XID: begin
+			setReadMem();
 			addressWith("T");
-			xferd_en = 1;
 			doAlu(alu_and, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
 			setNvzcFromALU(1, 0, 1, 0);
 		end
 		ADC_XID: begin
+			setReadMem();
 			addressWith("T");
-			xferd_en = 1;
 			// A+M+C
 			doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 			C_ctl = P_in[0];
@@ -1180,8 +1168,8 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 1, 1, 1);
 		end
 		CMP_XID: begin
+			setReadMem();
 			addressWith("T");
-			xferd_en = 1;
 			// A-M (Don't set flags, don't use carry, don't store A)
 			doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 			// Since we're subtracting.
@@ -1189,8 +1177,8 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setNvzcFromALU(1, 0, 1, 1);
 		end
 		SBC_XID: begin
+			setReadMem();
 			addressWith("T");
-			xferd_en = 1;
 			doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			C_ctl = P_in[0];
@@ -1199,19 +1187,18 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 		end
 		STA_XID: begin
 			addressWith("T");
-			xferu_en = 1;
-			mem_rW = write;
+			setWriteMem();
 			A_en = 1;
 		end
 		// #endregion XID
 		// #region IDY
 		LDA_IDY: begin
 			 // A=M[T]
-			if (page_invalid != 0)
+			if (page_invalid != page_normal)
 				TH_inc = 1;
 			else begin
+				setReadMem();
 				addressWith("T");
-				xferd_en = 1;
 				// put it through alu to set flags
 				ALU_Amux_sel = aluSel_data_bus;
 				A_ld = 1;
@@ -1219,11 +1206,11 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			end
 		end
 		ORA_IDY: begin
-			if (page_invalid != 0)
+			if (page_invalid != page_normal)
 				TH_inc = 1;
 			else begin
+				setReadMem();
 				addressWith("T");
-				xferd_en = 1;
 				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 				Amux_sel = 1;
 				A_ld = 1;
@@ -1231,11 +1218,11 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			end
 		end
 		EOR_IDY: begin
-			if (page_invalid != 0)
+			if (page_invalid != page_normal)
 				TH_inc = 1;
 			else begin
+				setReadMem();
 				addressWith("T");
-				xferd_en = 1;
 				doAlu(alu_eor, aluSel_A, aluSel_data_bus);
 				Amux_sel = 1;
 				A_ld = 1;
@@ -1243,11 +1230,11 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			end
 		end
 		AND_IDY: begin
-			if (page_invalid != 0)
+			if (page_invalid != page_normal)
 				TH_inc = 1;
 			else begin
+				setReadMem();
 				addressWith("T");
-				xferd_en = 1;
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
 				Amux_sel = 1;
 				A_ld = 1;
@@ -1255,11 +1242,11 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			end
 		end
 		ADC_IDY: begin
-			if (page_invalid != 0)
+			if (page_invalid != page_normal)
 				TH_inc = 1;
 			else begin
+				setReadMem();
 				addressWith("T");
-				xferd_en = 1;
 				// A+M+C
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				C_ctl = P_in[0];
@@ -1270,11 +1257,11 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			end
 		end
 		CMP_IDY: begin
-			if (page_invalid != 0)
+			if (page_invalid != page_normal)
 				TH_inc = 1;
 			else begin
+				setReadMem();
 				addressWith("T");
-				xferd_en = 1;
 				// A-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 				// Since we're subtracting.
@@ -1283,11 +1270,11 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			end
 		end
 		SBC_IDY: begin
-			if (page_invalid != 0)
+			if (page_invalid != page_normal)
 				TH_inc = 1;
 			else begin
+				setReadMem();
 				addressWith("T");
-				xferd_en = 1;
 				doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 				Amux_sel = 1;
 				C_ctl = P_in[0];
@@ -1296,23 +1283,23 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			end
 		end
 		STA_IDY: begin
-			if (page_invalid != 0)
+			if (page_invalid != page_normal)
 				TH_inc = 1;
 		end
 		// #endregion
 		// #region JMP
 		JMP_ABS: begin
 			// PCH = M
-			xferd_en = 1;
+			setReadMem();
 			PCH_ld = 1;
 			// PCL = DL
 			PCLmux_sel = 2;
 			PCL_ld = 1;
 		end
 		JMP_IND: begin
+			setReadMem();
 			addressWith("D");
 			// Get D+1 somehow?
-			xferd_en = 1;
 			PCH_ld = 1;
 			// PCL = TL
 			PCLmux_sel = 3;
@@ -1326,7 +1313,6 @@ end
 // TODO Temporarily removed SAX_ZPG
 always @ (state, IR_in, P_in)
 begin : next_state_logic
-	next_state = state;
 	case (state)
 		fetch1, ABSOLUTE_W, ZEROPAGE_W,
 		JSR_ABS, RTS_IMP, BRK_IMP, RTI_IMP,
@@ -1356,8 +1342,7 @@ begin : next_state_logic
 		SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP,
 		PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP: begin
 			// See opCodeHex.sv for all encodings.
-			// Use commas to separate same next-states.
-			if (page_invalid != 2'b00)
+			if (page_invalid != page_normal)
 				case (state)
 					BRANCH_TAKEN:
 						next_state = BRANCH_PAGE;
@@ -1373,11 +1358,11 @@ begin : next_state_logic
 						(~IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[6])) | // V
 						(~IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[7])) // N
 					)
-				  )
+				)
 					next_state = BRANCH_TAKEN;
 				else begin
 					// Source select. IR_out or mem_data. @relic
-					case ({4'h0, next_state_path})   
+					case ({4'h0, next_state_path})
 						ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM,
 						ORA_IMM, SBC_IMM:
 							next_state = IMMEDIATE;
@@ -1444,7 +1429,8 @@ begin : next_state_logic
 				ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
 					STA_ABY:
 					next_state = ABSOLUTE_Y;
-				default: next_state = ABSOLUTE_2;
+				default:
+					next_state = ABSOLUTE_2;
 			endcase
 		end
 		ABSOLUTE_2: begin
@@ -1525,7 +1511,7 @@ begin : next_state_logic
 			endcase
 		end
 		LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY: begin
-			if ( page_invalid != 2'b00 )
+			if (page_invalid != page_normal)
 				next_state = (cpu_state)'({4'h0, state[7:4] - 4'h1, state[3:0]});
 			else
 				next_state = fetch2;
