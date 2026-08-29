@@ -132,7 +132,7 @@ function void addressWith(string registerName);
 endfunction
 
 // Flag setting functions:
-function void setNvzcFromALU(bit setN, bit setV, bit setZ, bit setC);
+function void maskNvzcFromALU(bit setN, bit setV, bit setZ, bit setC);
 	if (setN)
 		ctl_pvect[7] = alu_N;
 	if (setV)
@@ -609,10 +609,9 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			// A+M+C
 			doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 			C_ctl = P_in[0];
-			// Store at A
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 1, 1, 1);
+			maskNvzcFromALU(1, 1, 1, 1);
 		end
 		AND_IMM: begin
 			fetchNextInstruction();
@@ -620,10 +619,9 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			DLd_en = 1;
 			// A & M
 			doAlu(alu_and, aluSel_A, aluSel_data_bus);
-			// Store at A
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		CMP_IMM: begin
 			fetchNextInstruction();
@@ -633,7 +631,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 			// Since we're subtracting.
 			C_ctl = 1;
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		CPX_IMM: begin
 			fetchNextInstruction();
@@ -643,7 +641,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_sbc, aluSel_X, aluSel_data_bus);
 			// Since we're subtracting.
 			C_ctl = 1;
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		CPY_IMM: begin
 			fetchNextInstruction();
@@ -653,7 +651,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_sbc, aluSel_Y, aluSel_data_bus);
 			// Since we're subtracting.
 			C_ctl = 1;
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		EOR_IMM: begin
 			fetchNextInstruction();
@@ -661,40 +659,35 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			DLd_en = 1;
 			// A^M
 			doAlu(alu_eor, aluSel_A, aluSel_data_bus);
-			// Store at A
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LDA_IMM: begin
 			fetchNextInstruction();
 			// DL == M
 			DLd_en = 1;
-			// Store at A
 			A_ld = 1;
-			// Set flags
 			ALU_Amux_sel = aluSel_data_bus;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LDX_IMM: begin
 			fetchNextInstruction();
 			// DL == M
 			DLd_en = 1;
-			// Store at X
 			X_ld = 1;
 			// check x's data
 			ALU_Amux_sel = aluSel_X;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LDY_IMM: begin
 			fetchNextInstruction();
 			// DL == M
 			DLd_en = 1;
-			// Store at Y
 			Y_ld = 1;
 			// check y's data
 			ALU_Amux_sel = aluSel_Y;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		ORA_IMM: begin
 			fetchNextInstruction();
@@ -702,10 +695,9 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			DLd_en = 1;
 			// A&M
 			doAlu(alu_ora, aluSel_A, aluSel_data_bus);
-			// Store at A
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		SBC_IMM: begin
 			fetchNextInstruction();
@@ -714,10 +706,9 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			// A+M+C
 			doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 			C_ctl = P_in[0];
-			// Store at A
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 1, 1, 1);
+			maskNvzcFromALU(1, 1, 1, 1);
 		end
 		// #endregion IMM
 		// #region IMP/ACC
@@ -727,7 +718,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_asl, aluSel_A, aluSel_A);
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		CLC_IMP: begin
 			fetchNextInstruction();
@@ -754,35 +745,35 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_dec, aluSel_X, aluSel_A);
 			ALUd_en = 1;
 			X_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		DEY_IMP: begin
 			fetchNextInstruction();
 			doAlu(alu_dec, aluSel_Y, aluSel_A);
 			ALUd_en = 1;
 			Y_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		INX_IMP: begin
 			fetchNextInstruction();
 			doAlu(alu_inc, aluSel_X, aluSel_A);
 			ALUd_en = 1;
 			X_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		INY_IMP: begin
 			fetchNextInstruction();
 			doAlu(alu_inc, aluSel_Y, aluSel_A);
 			ALUd_en = 1;
 			Y_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LSR_ACC: begin
 			fetchNextInstruction();
 			doAlu(alu_lsr, aluSel_A, aluSel_A);
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		NOP_IMP:
 			fetchNextInstruction();
@@ -792,7 +783,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			Amux_sel = 1;
 			A_ld = 1;
 			C_ctl = P_in[0];
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		ROR_ACC: begin
 			fetchNextInstruction();
@@ -800,7 +791,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			Amux_sel = 1;
 			A_ld = 1;
 			C_ctl = P_in[0];
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		SEC_IMP: begin
 			fetchNextInstruction();
@@ -821,37 +812,37 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			fetchNextInstruction();
 			A_en = 1;
 			X_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		TAY_IMP: begin
 			fetchNextInstruction();
 			A_en = 1;
 			Y_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		TSX_IMP: begin
 			fetchNextInstruction();
 			Sd_en = 1;
 			X_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		TXA_IMP: begin
 			fetchNextInstruction();
 			X_en = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		TYA_IMP: begin
 			fetchNextInstruction();
 			Y_en = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		TXS_IMP: begin
 			fetchNextInstruction();
 			X_en = 1;
 			S_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		// #endregion IMP/ACC
 		// #region ZPG, ABS-R, ABX[XY]
@@ -863,7 +854,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			C_ctl = P_in[0];
 			A_ld = 1;
 			Dpage_invd();
-			setNvzcFromALU(1, 1, 1, 1);
+			maskNvzcFromALU(1, 1, 1, 1);
 		end
 		ADC_ZPG, ADC_ZPX,
 		ADC_ABS, ADC_ABX_PG, ADC_ABY_PG: begin
@@ -873,7 +864,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			Amux_sel = 1;
 			C_ctl = P_in[0];
 			A_ld = 1;
-			setNvzcFromALU(1, 1, 1, 1);
+			maskNvzcFromALU(1, 1, 1, 1);
 		end
 		AND_ABX, AND_ABY: begin
 			setReadMem();
@@ -882,7 +873,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			Amux_sel = 1;
 			A_ld = 1;
 			Dpage_invd();
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		AND_ZPG, AND_ZPX,
 		AND_ABS, AND_ABX_PG, AND_ABY_PG: begin
@@ -891,7 +882,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_and, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		BIT_ZPG,
 		BIT_ABS: begin
@@ -899,10 +890,8 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			addressWith("D");
 			doAlu(alu_and, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
-			ctl_pvect[7] = alu_N;
-			ctl_pvect[6] = alu_V;
-			ctl_pvect[1] = alu_Z;
 			P_ld = 1;
+			maskNvzcFromALU(1, 1, 1, 0);
 		end
 		CMP_ABX, CMP_ABY: begin
 			setReadMem();
@@ -911,7 +900,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			Amux_sel = 1;
 			C_ctl = 1;
 			Dpage_invd();
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		CMP_ZPG, CMP_ZPX,
 		CMP_ABS, CMP_ABX_PG, CMP_ABY_PG: begin
@@ -920,7 +909,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			C_ctl = 1;
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		EOR_ABX, EOR_ABY: begin
 			setReadMem();
@@ -929,7 +918,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			Amux_sel = 1;
 			A_ld = 1;
 			Dpage_invd();
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		EOR_ZPG, EOR_ZPX,
 		EOR_ABS, EOR_ABX_PG, EOR_ABY_PG: begin
@@ -938,7 +927,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_eor, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LDA_ABX, LDA_ABY: begin
 			setReadMem();
@@ -946,7 +935,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			ALU_Amux_sel = aluSel_data_bus;
 			A_ld = 1;
 			Dpage_invd();
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LDA_ZPG, LDA_ZPX,
 		LDA_ABS, LDA_ABX_PG, LDA_ABY_PG: begin
@@ -954,7 +943,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setReadMem();
 			ALU_Amux_sel = aluSel_data_bus;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LDX_ABY: begin
 			addressWith("D");
@@ -962,7 +951,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			ALU_Amux_sel = aluSel_data_bus;
 			X_ld = 1;
 			Dpage_invd();
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LDX_ZPG, LDX_ZPY,
 		LDX_ABS, LDX_ABY_PG: begin
@@ -970,7 +959,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setReadMem();
 			ALU_Amux_sel = aluSel_data_bus;
 			X_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LDY_ABX: begin
 			addressWith("D");
@@ -978,7 +967,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			ALU_Amux_sel = aluSel_data_bus;
 			X_ld = 1;
 			Dpage_invd();
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LDY_ZPG, LDY_ZPX,
 		LDY_ABS, LDY_ABX_PG: begin
@@ -986,7 +975,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			setReadMem();
 			ALU_Amux_sel = aluSel_data_bus;
 			Y_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		ORA_ABX, ORA_ABY: begin
 			setReadMem();
@@ -995,7 +984,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			Amux_sel = 1;
 			A_ld = 1;
 			Dpage_invd();
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		ORA_ZPG, ORA_ZPX,
 		ORA_ABS, ORA_ABX_PG, ORA_ABY_PG: begin
@@ -1004,7 +993,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		SBC_ABX, SBC_ABY: begin
 			setReadMem();
@@ -1014,7 +1003,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			C_ctl = P_in[0];
 			A_ld = 1;
 			Dpage_invd();
-			setNvzcFromALU(1, 1, 1, 1);
+			maskNvzcFromALU(1, 1, 1, 1);
 		end
 		SBC_ZPG, SBC_ZPX,
 		SBC_ABS, SBC_ABX_PG, SBC_ABY_PG: begin
@@ -1024,7 +1013,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			Amux_sel = 1;
 			C_ctl = P_in[0];
 			A_ld = 1;
-			setNvzcFromALU(1, 1, 1, 1);
+			maskNvzcFromALU(1, 1, 1, 1);
 		end
 		/* rmw/zpg-abs */
 		ASL_ZPG, ASL_ZPX,
@@ -1033,11 +1022,10 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			PCLm_en = 0;
 			PCHm_en = 0;
 			TLm_en = 1;
-			// mem low
 			doAlu(alu_asl, aluSel_A, aluSel_data_bus);
 			ALUd_en = 1;
 			TL_ld = 1;
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		DEC_ZPG, DEC_ZPX,
 		DEC_ABS, DEC_ABX: begin
@@ -1045,11 +1033,10 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			PCLm_en = 0;
 			PCHm_en = 0;
 			TLm_en = 1;
-			// mem low
 			doAlu(alu_dec, aluSel_memory_bus_l, aluSel_A);
 			ALUd_en = 1;
 			TL_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		INC_ZPG, INC_ZPX,
 		INC_ABS, INC_ABX: begin
@@ -1057,11 +1044,10 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			PCLm_en = 0;
 			PCHm_en = 0;
 			TLm_en = 1;
-			// mem low
 			doAlu(alu_inc, aluSel_memory_bus_l, aluSel_A);
 			ALUd_en = 1;
 			TL_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		LSR_ZPG, LSR_ZPX,
 		LSR_ABS, LSR_ABX: begin
@@ -1069,11 +1055,10 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			PCLm_en = 0;
 			PCHm_en = 0;
 			TLm_en = 1;
-			// mem low
 			doAlu(alu_lsr, aluSel_A, aluSel_memory_bus_l);
 			ALUd_en = 1;
 			TL_ld = 1;
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		ROL_ZPG, ROL_ZPX,
 		ROL_ABS, ROL_ABX: begin
@@ -1081,12 +1066,11 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			PCLm_en = 0;
 			PCHm_en = 0;
 			TLm_en = 1;
-			// mem low
 			doAlu(alu_rol, aluSel_A, aluSel_memory_bus_l);
 			ALUd_en = 1;
 			TL_ld = 1;
 			C_ctl = P_in[0];
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		ROR_ZPG, ROR_ZPX,
 		ROR_ABS, ROR_ABX: begin
@@ -1094,12 +1078,11 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			PCLm_en = 0;
 			PCHm_en = 0;
 			TLm_en = 1;
-			// mem low
 			doAlu(alu_ror, aluSel_A, aluSel_memory_bus_l);
 			ALUd_en = 1;
 			TL_ld = 1;
 			C_ctl = P_in[0];
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		// #endregion
 		// #region ABS/ZPG-W
@@ -1130,7 +1113,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			// Put it through alu to set flags
 			ALU_Amux_sel = aluSel_data_bus;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		ORA_XID: begin
 			setReadMem();
@@ -1138,7 +1121,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		EOR_XID: begin
 			setReadMem();
@@ -1146,7 +1129,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_eor, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		AND_XID: begin
 			setReadMem();
@@ -1154,7 +1137,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_and, aluSel_A, aluSel_data_bus);
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 0, 1, 0);
+			maskNvzcFromALU(1, 0, 1, 0);
 		end
 		ADC_XID: begin
 			setReadMem();
@@ -1162,10 +1145,9 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			// A+M+C
 			doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 			C_ctl = P_in[0];
-			// Store at A
 			Amux_sel = 1;
 			A_ld = 1;
-			setNvzcFromALU(1, 1, 1, 1);
+			maskNvzcFromALU(1, 1, 1, 1);
 		end
 		CMP_XID: begin
 			setReadMem();
@@ -1174,7 +1156,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 			// Since we're subtracting.
 			C_ctl = 1;
-			setNvzcFromALU(1, 0, 1, 1);
+			maskNvzcFromALU(1, 0, 1, 1);
 		end
 		SBC_XID: begin
 			setReadMem();
@@ -1183,7 +1165,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 			Amux_sel = 1;
 			C_ctl = P_in[0];
 			A_ld = 1;
-			setNvzcFromALU(1, 1, 1, 1);
+			maskNvzcFromALU(1, 1, 1, 1);
 		end
 		STA_XID: begin
 			addressWith("T");
@@ -1202,7 +1184,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 				// put it through alu to set flags
 				ALU_Amux_sel = aluSel_data_bus;
 				A_ld = 1;
-				setNvzcFromALU(1, 0, 1, 0);
+				maskNvzcFromALU(1, 0, 1, 0);
 			end
 		end
 		ORA_IDY: begin
@@ -1214,7 +1196,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 				Amux_sel = 1;
 				A_ld = 1;
-				setNvzcFromALU(1, 0, 1, 0);
+				maskNvzcFromALU(1, 0, 1, 0);
 			end
 		end
 		EOR_IDY: begin
@@ -1226,7 +1208,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 				doAlu(alu_eor, aluSel_A, aluSel_data_bus);
 				Amux_sel = 1;
 				A_ld = 1;
-				setNvzcFromALU(1, 0, 1, 0);
+				maskNvzcFromALU(1, 0, 1, 0);
 			end
 		end
 		AND_IDY: begin
@@ -1238,7 +1220,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
 				Amux_sel = 1;
 				A_ld = 1;
-				setNvzcFromALU(1, 0, 1, 0);
+				maskNvzcFromALU(1, 0, 1, 0);
 			end
 		end
 		ADC_IDY: begin
@@ -1250,10 +1232,9 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 				// A+M+C
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				C_ctl = P_in[0];
-				// Store at A
 				Amux_sel = 1;
 				A_ld = 1;
-				setNvzcFromALU(1, 1, 1, 1);
+				maskNvzcFromALU(1, 1, 1, 1);
 			end
 		end
 		CMP_IDY: begin
@@ -1266,7 +1247,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 				doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 				// Since we're subtracting.
 				C_ctl = 1;
-				setNvzcFromALU(1, 0, 1, 1);
+				maskNvzcFromALU(1, 0, 1, 1);
 			end
 		end
 		SBC_IDY: begin
@@ -1279,7 +1260,7 @@ always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in) begin : state_actions
 				Amux_sel = 1;
 				C_ctl = P_in[0];
 				A_ld = 1;
-				setNvzcFromALU(1, 1, 1, 1);
+				maskNvzcFromALU(1, 1, 1, 1);
 			end
 		end
 		STA_IDY: begin

@@ -12,7 +12,9 @@ module topLevel (
     output [7:0] dbg_X_out,
     output [7:0] dbg_Y_out,
     output [7:0] dbg_S_out,
-    output [7:0] dbg_P_out
+    output [7:0] dbg_P_out,
+    output [15:0] dbg_PC_out,
+    output cpu_state dbg_state_out
 );
 
 // Clock divider:
@@ -94,6 +96,7 @@ assign dbg_X_out = X_out;
 assign dbg_Y_out = Y_out;
 assign dbg_S_out = S_out;
 assign dbg_P_out = P_out;
+assign dbg_PC_out = {PCH_out, PCL_out};
 
 // Mulitplexed data:
 wire [7:0] Smux_out, ALU_Amux_out, ALU_Bmux_out, Amux_out;
@@ -494,9 +497,6 @@ tristate xferdbuf(
     .out(xferdbuf_out)
 );
 
-/* verilator lint_off UNUSED */
-wire [11:0] state_out;
-/* verilator lint_on UNUSED */
 control CTL(
     .clk(clkDiv[divFactor]),
     .P_in(P_out),
@@ -507,7 +507,9 @@ control CTL(
 
     .ctl_pvect(ctl_pvect), .ctl_irvect(ctl_irvect),
     .DH_rst_n(DH_rst_n),
-    .X_en(X_en), .Y_en(Y_en), .Sd_en(Sd_en), .Sm_en(Sm_en), .Spagem_en(Spagem_en), .A_en(A_en), .IRQH_en(IRQH_en), .IRQL_en(IRQL_en),
+    .X_en(X_en), .Y_en(Y_en),
+    .Sd_en(Sd_en), .Sm_en(Sm_en), .Spagem_en(Spagem_en),
+    .A_en(A_en), .IRQH_en(IRQH_en), .IRQL_en(IRQL_en),
     .PCLd_en(PCLd_en), .PCLm_en(PCLm_en), .PCHd_en(PCHd_en), .PCHm_en(PCHm_en),
     .DLd_en(DLd_en), .DLm_en(DLm_en), .DHd_en(DHd_en), .DHm_en(DHm_en),
     .TLd_en(TLd_en), .TLm_en(TLm_en), .THd_en(THd_en), .THm_en(THm_en),
@@ -532,7 +534,7 @@ control CTL(
     .aluop(aluop),
     .V_ctl(V_in), .C_ctl(C_in),
     .mem_rW(mem_rW),
-    .state_out(state_out)
+    .state_out(dbg_state_out)
 );
 
 // For interrupts:
@@ -556,34 +558,34 @@ tristate IRQLbuf(
 );
 
 // A little hack to get verilator to cooperate (no tristate construct issue):
-assign data_bus = Xbuf_out 
-    | Ybuf_out 
-    | Sdbuf_out 
-    | ALUdbuf_out 
-    | Abuf_out 
-    | PCLdbuf_out 
-    | PCHdbuf_out 
-    | DLdbuf_out 
-    | DHdbuf_out 
-    | TLdbuf_out 
-    | THdbuf_out 
-    | Pbuf_out 
+assign data_bus = Xbuf_out
+    | Ybuf_out
+    | Sdbuf_out
+    | ALUdbuf_out
+    | Abuf_out
+    | PCLdbuf_out
+    | PCHdbuf_out
+    | DLdbuf_out
+    | DHdbuf_out
+    | TLdbuf_out
+    | THdbuf_out
+    | Pbuf_out
     | xferdbuf_out;
-assign xfer_bus = membuf_out 
-    | IRbuf_out 
+assign xfer_bus = membuf_out
+    | IRbuf_out
     | xferubuf_out;
-assign memory_bus_h = ZHbuf_out 
-    | DHmbuf_out 
-    | PCHmbuf_out 
-    | THmbuf_out 
-    | Spagebuf_out 
+assign memory_bus_h = ZHbuf_out
+    | DHmbuf_out
+    | PCHmbuf_out
+    | THmbuf_out
+    | Spagebuf_out
     | IRQHbuf_out;
-assign memory_bus_l = ALUmbuf_out 
-    | Smbuf_out 
-    | ZLbuf_out 
-    | DLmbuf_out 
-    | PCLmbuf_out 
-    | TLmbuf_out 
+assign memory_bus_l = ALUmbuf_out
+    | Smbuf_out
+    | ZLbuf_out
+    | DLmbuf_out
+    | PCLmbuf_out
+    | TLmbuf_out
     | IRQLbuf_out;
 
 endmodule
