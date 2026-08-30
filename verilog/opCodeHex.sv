@@ -66,7 +66,8 @@ typedef enum logic [11:0] {
     PLA_IMP_1 = 12'h268,
     JSR_ABS_1 = 12'h220, JSR_ABS_2 = 12'h320, JSR_ABS_3 = 12'h420, JSR_ABS_4 = 12'h520, 
     PLP_IMP_1 = 12'h228,
-    
+
+    boot_1 = 12'hf00, boot_2 = 12'hf01,
     ERROR = 12'hfff
 } cpu_state;
 /* verilator lint_on UNDRIVEN */

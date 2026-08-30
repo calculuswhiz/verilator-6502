@@ -1,46 +1,47 @@
 ; This somewhat like the NES's memory map layout
 *=$0000
-; 00-ff  ZERO PAGE
-zeropage:
-.dsb    $100
+; 00-ff
+zero_page:
+  .dsb    $100
 
-; 100-1ff  STACK
+; 100-1ff
 stack:
-.dsb    $100
+  .dsb    $100
 
-; 0200-3fff  PROGRAMMER RAM
-startprogRAM:
-nop
-brk
-nop
-jmp halt
+; 0200-3fff
+start_progRAM:
+  nop
+  brk
+  nop
+  jmp halt
 
 IRQ:
-inx
-nop
-iny
-dex
-rti
+  inx
+  nop
+  iny
+  dex
+  rti
 
 halt:
-jmp halt
-endprogRAM:
-.dsb    $4000-endprogRAM
+  jmp halt
+end_progRAM:
+  .dsb    $4000-end_progRAM
 
-; 4000-7fff  MEMORY MAPPED IO
-startmmio:
-endmmio:
-.dsb    $8000-endmmio
+; 4000-7fff
+start_mmio:
+end_mmio:
+  .dsb    $8000-end_mmio
 
-; 8000-fff9  PROGRAMMER ROM
-startprogROM:
-endprogROM:
-.dsb    $fffa-endprogROM
+; 8000-fff9
+start_progROM:
 
-; fffa-ffff  INTERRUPT VECTORS:
-NMIvector:
-.word $0000
-RESETvector:
-.word $0000
-IRQvector:
-.word IRQ
+end_progROM:
+  .dsb    $fffa-end_progROM
+
+; fffa-ffff
+NMI_vector:
+  .word $0000
+RESET_vector:
+  .word start_progROM
+IRQ_vector:
+  .word IRQ

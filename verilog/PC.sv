@@ -1,22 +1,20 @@
-// This is used for the D and T registers. (Not PC as reset logic differs)
-// It is useful because it is 16 bits and can correct invalidation 
-// (i.e. page crossings), if necessary.
-module CountReg (
+// Program counter, which is a lot like the CountReg, except for its reset
+module PC (
 	input clk,
     
 	input load_pc_h,
 	input load_pc_l,
     
-    // These both override the load signals
-    input L_inc,
-    // If invalid: (Note that inc overrides dec)
-    input H_inc,
-    input H_dec,
+  // These both override the load signals
+  input L_inc,
+  // If invalid: (Note that inc overrides dec)
+  input H_inc,
+  input H_dec,
     
 	input [7:0]    PCL_in,
 	input [7:0]    PCH_in,
     
-    input H_rst_n,
+  input reset_n,
     
 	output [7:0]   PCL_out,
 	output [7:0]   PCH_out
@@ -24,14 +22,13 @@ module CountReg (
 
     logic [15:0] data;
 
+    initial
+        data = 16'hfffe;
+
     always @ (posedge clk) begin
-        if (~H_rst_n) begin 
-            data <= {
-                8'h00,
-                // Allow loading L if desired.
-                load_pc_l ? PCL_in : data[7:0]
-            };
-        end else if (L_inc)
+        if (~reset_n)
+            data <= 16'hfffe;
+        else if (L_inc)
             data <= data + 1'b1;
         else if (H_inc) begin
             data <= {data[15:8] + 1'b1, data[7:0]};
