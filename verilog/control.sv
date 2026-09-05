@@ -28,6 +28,7 @@ typedef enum logic [1:0] {
 // This is what issues the control signals necessary for the processor to run.
 // parameter SIZE = 12;
 module control (
+	input forceReset_n,
 	/* Input and output port declarations */
 	input clk,
 
@@ -254,18 +255,19 @@ module control (
 			fetch2:
 				fetchNextInstruction();
 			boot_1: begin
-				// PC is hardcoded at top level to reset vector address on reset
+				// DL = M[PC]
 				PCL_inc = 1;
+				// PC is hardcoded at top level to reset vector address on reset
 				setReadMem();
 				addressWith("PC");
 				// Store at D for now
 				DL_ld = 1;
 			end
 			boot_2: begin
-				PCL_ld = 1;
-				PCLmux_sel = 2;
 				setReadMem();
 				addressWith("PC");
+				PCL_ld = 1;
+				PCLmux_sel = 2;
 				PCH_ld = 1;
 				PCHmux_sel = 0;
 			end
@@ -1295,7 +1297,7 @@ module control (
 	end
 
 	// TODO Temporarily removed SAX_ZPG
-	always @ (state, IR_in, P_in) begin : next_state_logic
+	always @ (state, IR_in, P_in, forceReset_n) begin : next_state_logic
 		case (state)
 			fetch1, ABSOLUTE_W, ZEROPAGE_W,
 			JSR_ABS, RTS_IMP, BRK_IMP, RTI_IMP,
@@ -1570,7 +1572,7 @@ module control (
 		if (next_state == ERROR)
 			$display("Error Encountered. %x:%s", next_state, next_state.name());
 
-		state <= next_state;
+		state <= ~forceReset_n ? boot_1 : next_state;
 	end
 
 	assign state_out = state;

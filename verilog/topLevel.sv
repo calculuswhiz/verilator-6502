@@ -2,6 +2,7 @@
 `include "opCodeHex.sv" // Holds all the opcode values as enum.
 module topLevel (
     input clk,
+    input forceReset_n,
 
     input [7:0] mem_rData,
     output mem_rW,
@@ -13,6 +14,7 @@ module topLevel (
     output [7:0] dbg_Y_out,
     output [7:0] dbg_S_out,
     output [7:0] dbg_P_out,
+    output [15:0] dbg_D_out,
     output [15:0] dbg_PC_out,
     output cpu_state dbg_state_out
 );
@@ -97,6 +99,7 @@ module topLevel (
     assign dbg_S_out = S_out;
     assign dbg_P_out = P_out;
     assign dbg_PC_out = {PCH_out, PCL_out};
+    assign dbg_D_out = {DH_out, DL_out};
 
     // Mulitplexed data:
     wire [7:0] Smux_out, ALU_Amux_out, ALU_Bmux_out, Amux_out;
@@ -312,7 +315,8 @@ module topLevel (
         .H_dec(PCH_dec),
         .PCL_in(PCLmux_out),
         .PCH_in(PCHmux_out),
-        .reset_n(PC_reset_n),
+        // Reset (0) if either is 0
+        .reset_n(PC_reset_n & forceReset_n),
         .PCL_out(PCL_out),
         .PCH_out(PCH_out)
     );
@@ -500,6 +504,7 @@ module topLevel (
     );
 
     control CTL(
+        .forceReset_n(forceReset_n),
         .clk(clkDiv[divFactor]),
         .P_in(P_out),
         .IR_in(IR_out),

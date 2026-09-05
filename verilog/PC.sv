@@ -20,29 +20,30 @@ module PC (
 	output [7:0]   PCH_out
 );
 
-    logic [15:0] data;
+  logic [15:0] data;
 
-    initial
-        data = 16'hfffe;
+  initial
+    data = 0;
 
-    always @ (posedge clk) begin
-        if (~reset_n)
-            data <= 16'hfffe;
-        else if (L_inc)
-            data <= data + 1'b1;
-        else if (H_inc) begin
-            data <= {data[15:8] + 1'b1, data[7:0]};
-        end else if (H_dec) begin 
-            data <= {data[15:8] - 1'b1, data[7:0]};
-        end else begin
-            data <= {
-                load_pc_h ? PCH_in : data[15:8],
-                load_pc_l ? PCL_in : data[7:0]
-            };
-        end
+  always @ (posedge clk) begin
+    if (~reset_n)
+      // Reset vector
+      data <= 16'hfffc;
+    else if (L_inc)
+      data <= data + 1'b1;
+    else if (H_inc) begin
+      data <= {data[15:8] + 1'b1, data[7:0]};
+    end else if (H_dec) begin 
+      data <= {data[15:8] - 1'b1, data[7:0]};
+    end else begin
+      data <= {
+        load_pc_h ? PCH_in : data[15:8],
+        load_pc_l ? PCL_in : data[7:0]
+      };
     end
+  end
 
-    assign PCL_out = data[7:0];
-    assign PCH_out = data[15:8];
+  assign PCL_out = data[7:0];
+  assign PCH_out = data[15:8];
 
 endmodule

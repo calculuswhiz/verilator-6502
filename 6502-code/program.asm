@@ -38,10 +38,12 @@ start_progROM:
 end_progROM:
   .dsb    $fffa-end_progROM
 
-; fffa-ffff
+; fffa-fffb
 NMI_vector:
   .word $0000
+; fffc-fffd
 RESET_vector:
   .word start_progROM
+; fffe-ffff
 IRQ_vector:
   .word IRQ

@@ -1,4 +1,8 @@
 #include "VtopLevel.h"
+// Used by verilator:
+#include "verilated.h"
+#include "verilated_vcd_c.h"
+#define DumpFileName "topLevel.vcd"
 
 #include <cassert>
 #include <cstddef>
@@ -6,6 +10,7 @@
 #include <cstdio>
 
 #include "../lib/helpAssert.cpp"
+#include "../lib/testbenchMacros.cpp"
 #include "./memoryMaps/testMap.cpp"
 
 #define DumpFileName "topLevel.vcd"
@@ -53,56 +58,83 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
   return size;
 }
 
-// E.g. ./obj_dir/VtopLevel ./obj_dir/program.o65 0x700
-// argv[1] - file name
-// argv[2] - start rom address
-int main(int argc, char **argv, char **env) {
-  if (argc < 3) {
-    std::printf(
-        "Please specify binary file in arg 1 and rom region (hex) in arg 2");
-    return -1;
-  }
-  std::printf("Reading %s\n", argv[1]);
-  std::printf("ROM region %s\n", argv[2]);
+void updateMemory(VtopLevel& top) {
+  if (top.mem_rW == 1)
+    top.mem_rData = TestMap::read(top.mem_address);
+  else
+    TestMap::write(top.mem_address, top.mem_wData);
+}
 
+int testProgram() {
   VtopLevel top;
 
+  VerilatedVcdC vcdOut;
+  top.trace(&vcdOut, 99);
+  vcdOut.open(DumpFileName);
+
   uint8_t *memory = NULL;
-  size_t bytesRead = readBinaryFile(argv[1], memory);
+  size_t bytesRead = readBinaryFile("./obj_dir/program.o65", memory);
   if (memory == NULL) {
-    std::printf("Could not read binary file: %s\n", argv[1]);
+    std::printf("Could not read test memory\n");
     return -1;
   }
 
-  std::printf("Read memory: %s complete. %zuk Bytes\n", argv[1],
+  std::printf("Read memory for test program complete. %zuk Bytes\n",
               bytesRead / 1000);
 
-  int romStart = 0;
-  if (std::sscanf(argv[2], "%x", &romStart) != 1) {
-    if (romStart > UINT16_MAX) {
-      std::printf("Please specify a ROM start address <= %d\n", UINT16_MAX);
-      return -1;
-    }
-  }
-
+  uint16_t romStart = 0x8000;
   std::printf("ROM region set %d\n", romStart);
 
-  TestMap::initMap(memory, (uint16_t)romStart);
+  TestMap::initMap(memory, romStart);
 
-  // Begin test program
+  std::printf("Testing initial conditions\n");
+  top.forceReset_n = 1;
+  top.clk = 0;
+  top.eval();
+  vcdOut.dump(0);
+  assert(testEqual(0x0000, top.dbg_PC_out));
+  assert(testEqual(0, top.dbg_A_out));
+  assert(testEqual(0, top.dbg_X_out));
+  assert(testEqual(0, top.dbg_Y_out));
+  assert(testEqual(0, top.dbg_S_out));
+  assert(testEqual(0, top.dbg_P_out));
+  assert(testEqual(0xf00, top.dbg_state_out));
 
-  int clk = 0;
-  while (true) {
-    top.clk = !clk;
-    if (top.mem_rW == 1)
-      top.mem_rData = TestMap::read(top.mem_address);
-    else
-      TestMap::write(top.mem_address, top.mem_wData);
+  std::printf("Testing reset:\n");
+  std::printf("boot_1\n");
+  top.forceReset_n = 0;
+  CycleClockWDump(top, vcdOut, 1);
+  updateMemory(top);
+  assert(testEqual(0xf00, top.dbg_state_out));
+  assert(testEqual(0xfffc, top.dbg_PC_out));
+  assert(testEqual(0xfffc, top.mem_address));
+  assert(testEqual(0x00, top.mem_rData));
+  std::printf("boot_2\n");
+  top.forceReset_n = 1;
+  updateMemory(top);
+  CycleClockWDump(top, vcdOut, 3);
+  assert(testEqual(0xf01, top.dbg_state_out));
+  assert(testEqual(0xfffd, top.dbg_PC_out));
+  assert(testEqual(0xfffd, top.mem_address));
+  assert(testEqual(0x0000, top.dbg_D_out));
 
-    top.eval();
-  }
+  updateMemory(top);
+  CycleClockWDump(top, vcdOut, 5);
+  assert(testEqual(0x101, top.dbg_state_out));
+  assert(testEqual(0x8000, top.dbg_PC_out));
+
+  TestMap::cleanup();
+  vcdOut.close();
+
+  return 0;
+}
+
+int main(int argc, char **argv, char **env) {
+  Verilated::commandArgs(argc, argv);
+  Verilated::traceEverOn(true);
+
+  testProgram();
 
   std::printf("Done with %s\n", __FILE_NAME__);
-  TestMap::cleanup();
   return 0;
 }
