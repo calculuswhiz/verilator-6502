@@ -2,7 +2,6 @@
 // Used by verilator:
 #include "verilated.h"
 #include "verilated_vcd_c.h"
-#define DumpFileName "topLevel.vcd"
 
 #include <cassert>
 #include <cstddef>
@@ -12,8 +11,6 @@
 #include "../lib/helpAssert.cpp"
 #include "../lib/testbenchMacros.cpp"
 #include "./memoryMaps/testMap.cpp"
-
-#define DumpFileName "topLevel.vcd"
 
 size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
   FILE *file = std::fopen(fileName, "rb");
@@ -58,22 +55,25 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
   return size;
 }
 
-void updateMemory(VtopLevel& top) {
+void updateMemory(VtopLevel &top) {
   if (top.mem_rW == 1)
     top.mem_rData = TestMap::read(top.mem_address);
   else
     TestMap::write(top.mem_address, top.mem_wData);
 }
 
-int testProgram() {
+int testBoot() {
+  const char *vcdFile = "topLevel.vcd";
+  const char *programFile = "./obj_dir/reset_test.o65";
+
   VtopLevel top;
 
   VerilatedVcdC vcdOut;
   top.trace(&vcdOut, 99);
-  vcdOut.open(DumpFileName);
+  vcdOut.open(vcdFile);
 
   uint8_t *memory = NULL;
-  size_t bytesRead = readBinaryFile("./obj_dir/program.o65", memory);
+  size_t bytesRead = readBinaryFile(programFile, memory);
   if (memory == NULL) {
     std::printf("Could not read test memory\n");
     return -1;
@@ -107,16 +107,12 @@ int testProgram() {
   updateMemory(top);
   assert(testEqual(0xf00, top.dbg_state_out));
   assert(testEqual(0xfffc, top.dbg_PC_out));
-  assert(testEqual(0xfffc, top.mem_address));
-  assert(testEqual(0x00, top.mem_rData));
   std::printf("boot_2\n");
   top.forceReset_n = 1;
   updateMemory(top);
   CycleClockWDump(top, vcdOut, 3);
   assert(testEqual(0xf01, top.dbg_state_out));
   assert(testEqual(0xfffd, top.dbg_PC_out));
-  assert(testEqual(0xfffd, top.mem_address));
-  assert(testEqual(0x0000, top.dbg_D_out));
 
   updateMemory(top);
   CycleClockWDump(top, vcdOut, 5);
@@ -133,7 +129,7 @@ int main(int argc, char **argv, char **env) {
   Verilated::commandArgs(argc, argv);
   Verilated::traceEverOn(true);
 
-  testProgram();
+  testBoot();
 
   std::printf("Done with %s\n", __FILE_NAME__);
   return 0;

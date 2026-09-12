@@ -1,14 +1,14 @@
 // Cycle a mmodule's test signal
-#define CycleClock(IHasClockSignal) \
-  IHasClockSignal.clk = !IHasClockSignal.clk; \
-  IHasClockSignal.eval(); \
-  IHasClockSignal.clk = !IHasClockSignal.clk; \
-  IHasClockSignal.eval();
+#define CycleClock(clockProvider) \
+  clockProvider.clk = !clockProvider.clk; \
+  clockProvider.eval(); \
+  clockProvider.clk = !clockProvider.clk; \
+  clockProvider.eval();
 
-#define CycleClockWDump(IHasClockSignal, dumpFile, dumpAt) \
-  IHasClockSignal.clk = !IHasClockSignal.clk; \
-  IHasClockSignal.eval(); \
+#define CycleClockWDump(clockProvider, dumpFile, dumpAt) \
+  clockProvider.clk = !clockProvider.clk; \
+  clockProvider.eval(); \
   dumpFile.dump(dumpAt); \
-  IHasClockSignal.clk = !IHasClockSignal.clk; \
-  IHasClockSignal.eval(); \
+  clockProvider.clk = !clockProvider.clk; \
+  clockProvider.eval(); \
   dumpFile.dump(dumpAt + 1); \

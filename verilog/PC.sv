@@ -20,15 +20,17 @@ module PC (
 	output [7:0]   PCH_out
 );
 
+  localparam INITIAL_VALUE = 0;
+  localparam RESET_VECTOR = 16'hfffc;
+
   logic [15:0] data;
 
   initial
-    data = 0;
+    data = INITIAL_VALUE;
 
   always @ (posedge clk) begin
     if (~reset_n)
-      // Reset vector
-      data <= 16'hfffc;
+      data <= RESET_VECTOR;
     else if (L_inc)
       data <= data + 1'b1;
     else if (H_inc) begin

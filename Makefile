@@ -1,8 +1,8 @@
 CPP_SRCS = $(wildcard ./tests/*.cpp)
 CPP_PROGS = $(patsubst ./tests/%.cpp,%,$(CPP_SRCS))
 
-ASM_SRCS = $(wildcard ./6502-code/*.asm)
-ASM_PROGS = $(patsubst ./6502-code/%.asm,%,$(ASM_SRCS))
+ASM_SRCS = $(wildcard ./6502-code/ROM/*.asm)
+ASM_PROGS = $(patsubst ./6502-code/ROM/%.asm,%,$(ASM_SRCS))
 
 all:
 	make build
@@ -19,8 +19,8 @@ build: $(CPP_PROGS)
 
 assemble: $(ASM_PROGS)
 
-%: ./6502-code/%.asm
-	xa ./6502-code/$@.asm -o ./obj_dir/$@.o65
+%: ./6502-code/ROM/%.asm
+	xa ./6502-code/ROM/$@.asm -o ./obj_dir/$@.o65
 
 clean:
 	rm obj_dir/*
