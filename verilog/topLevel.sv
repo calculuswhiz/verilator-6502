@@ -134,6 +134,8 @@ module topLevel (
         .out(membuf_out)
     );
 
+    // #region X
+
     GpReg X_reg(
         .clk(clkDiv[divFactor]),
         .load(X_ld),
@@ -148,6 +150,10 @@ module topLevel (
         .out(Xbuf_out)
     );
 
+    // #endregion
+
+    // #region Y
+
     GpReg Y_reg(
         .clk(clkDiv[divFactor]),
         .load(Y_ld),
@@ -161,6 +167,10 @@ module topLevel (
         .enable(Y_en),
         .out(Ybuf_out)
     );
+
+    // #endregion
+
+    // #region S
 
     mux2 Smux(
         .a(data_bus),
@@ -196,6 +206,10 @@ module topLevel (
         .enable(Spagem_en),
         .out(Spagebuf_out)
     );
+
+    // #endregion
+
+    // #region ALU
 
     mux8 ALU_Amux(
         .in0(A_out),
@@ -248,6 +262,10 @@ module topLevel (
         .out(ALUmbuf_out)
     );
 
+    // #endregion
+
+    // #region A
+
     mux2 Amux(
         .a(data_bus),
         .b(ALU_out),
@@ -269,6 +287,8 @@ module topLevel (
         .out(Abuf_out)
     );
 
+    // #endregion
+
     assign zeroin=8'h00;
     dev_zero zero_device(
         .datain(zeroin),
@@ -286,6 +306,8 @@ module topLevel (
         .enable(Zh_en),
         .out(ZHbuf_out)
     );
+
+    // #region PC
 
     // Had to make it a mux4 for jump instruction.
     mux4 PCLmux(
@@ -345,7 +367,10 @@ module topLevel (
         .out(PCHmbuf_out)
     );
 
-    // D section:
+    // #endregion
+
+    // #region D (data latch)
+
     mux4 DLmux(
         .in0(data_bus),
         .in1(memory_bus_l),
@@ -400,7 +425,9 @@ module topLevel (
         .out(DHmbuf_out)
     );
 
-    // T section:
+    // #endregion
+
+    // #region T (transfers data from memory)
 
     mux4 TLmux(
         .in0(data_bus),
@@ -449,6 +476,10 @@ module topLevel (
         .out(THmbuf_out)
     );
 
+    // #endregion
+
+    // #region P
+
     mux2 Pmux(
         .a(ctl_pvect),
         .b(data_bus),
@@ -469,6 +500,10 @@ module topLevel (
         .enable(Pd_en),
         .out(Pbuf_out)
     );
+
+    // #endregion
+
+    // #region IR
 
     mux2 IRmux(
         .a(xfer_bus),
@@ -491,6 +526,10 @@ module topLevel (
         .out(IRbuf_out)
     );
 
+    // #endregion
+
+    // #region memory xfer
+
     tristate xferubuf(
         .in(data_bus),
         .enable(xferu_en),
@@ -502,6 +541,10 @@ module topLevel (
         .enable(xferd_en),
         .out(xferdbuf_out)
     );
+
+    // #endregion
+
+    // #region CTL
 
     control CTL(
         .forceReset_n(forceReset_n),
@@ -545,7 +588,10 @@ module topLevel (
         .state_out(dbg_state_out)
     );
 
-    // For interrupts:
+    // #endregion
+
+    // #region Interrupts
+
     tristate IRQHbuf(
         .in(8'hff),
         .enable(IRQH_en),
@@ -564,6 +610,10 @@ module topLevel (
         .enable(IRQL_en),
         .out(IRQLbuf_out)
     );
+
+    // #endregion
+
+    // #region tristate unions
 
     // A little hack to get verilator to cooperate (no tristate construct issue):
     assign data_bus = Xbuf_out
@@ -595,5 +645,7 @@ module topLevel (
         | PCLmbuf_out
         | TLmbuf_out
         | IRQLbuf_out;
+
+    // #endregion
 
 endmodule
