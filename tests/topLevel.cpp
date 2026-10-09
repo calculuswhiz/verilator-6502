@@ -104,14 +104,10 @@ void reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
 }
 
 /** Tests the reset procedure */
-void testReset() {
+void testReset(VtopLevel& top, VerilatedVcdC& vcdOut) {
   const char *vcdFile = "reset_test.vcd";
   const char *programFile = "./obj_dir/reset.test.o65";
 
-  VtopLevel top;
-
-  VerilatedVcdC vcdOut;
-  top.trace(&vcdOut, 99);
   vcdOut.open(vcdFile);
 
   uint8_t *memory = NULL;
@@ -127,18 +123,13 @@ void testReset() {
   reset(top, vcdOut, true);
 
   TestMap::cleanup();
-  vcdOut.close();
 }
 
 /** Tests the JMP instruction */
-void testJmp() {
+void testJmp(VtopLevel& top, VerilatedVcdC& vcdOut) {
   const char *vcdFile = "jmp_test.vcd";
   const char *programFile = "./obj_dir/jmp.test.o65";
 
-  VtopLevel top;
-
-  VerilatedVcdC vcdOut;
-  top.trace(&vcdOut, 99);
   vcdOut.open(vcdFile);
 
   uint8_t *memory = NULL;
@@ -156,20 +147,25 @@ void testJmp() {
   // Test logic here
 
   TestMap::cleanup();
-  vcdOut.close();
 }
 
 int main(int argc, char **argv, char **env) {
   Verilated::commandArgs(argc, argv);
 
-  void (*tests[])() = {testReset, testJmp};
+  void (*tests[])(VtopLevel&, VerilatedVcdC&) = {testReset, testJmp};
   size_t numTests = sizeof(tests) / sizeof(tests[0]);
 
   for (int i = 0; i < numTests; i++) {
     VerilatedContext context;
     Verilated::traceEverOn(true);
 
-    tests[i]();
+    VtopLevel top;
+    VerilatedVcdC vcdOut;
+    top.trace(&vcdOut, 99);
+
+    tests[i](top, vcdOut);
+
+    vcdOut.close();
   }
 
   std::printf("Done with %s\n", __FILE_NAME__);
