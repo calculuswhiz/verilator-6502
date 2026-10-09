@@ -55,6 +55,7 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
   return size;
 }
 
+// Update the memory bus (should be called every cycle)
 void updateMemory(VtopLevel &top) {
   if (top.mem_rW == 1)
     top.mem_rData = TestMap::read(top.mem_address);
@@ -62,31 +63,8 @@ void updateMemory(VtopLevel &top) {
     TestMap::write(top.mem_address, top.mem_wData);
 }
 
-int testBoot() {
-  const char *vcdFile = "topLevel.vcd";
-  const char *programFile = "./obj_dir/reset_test.o65";
-
-  VtopLevel top;
-
-  VerilatedVcdC vcdOut;
-  top.trace(&vcdOut, 99);
-  vcdOut.open(vcdFile);
-
-  uint8_t *memory = NULL;
-  size_t bytesRead = readBinaryFile(programFile, memory);
-  if (memory == NULL) {
-    std::printf("Could not read test memory\n");
-    return -1;
-  }
-
-  std::printf("Read memory for test program complete. %zuk Bytes\n",
-              bytesRead / 1000);
-
-  uint16_t romStart = 0x8000;
-  std::printf("ROM region set %d\n", romStart);
-
-  TestMap::initMap(memory, romStart);
-
+// Drive the reset signals for the tests
+void reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
   std::printf("Testing initial conditions\n");
   top.forceReset_n = 1;
   top.clk = 0;
@@ -100,14 +78,19 @@ int testBoot() {
   assert(testEqual(0, top.dbg_P_out));
   assert(testEqual(0xf00, top.dbg_state_out));
 
-  std::printf("Testing reset:\n");
-  std::printf("boot_1\n");
+  if (printForTest) {
+    std::printf("Testing reset:\n");
+    std::printf("boot_1\n");
+  }
   top.forceReset_n = 0;
   CycleClockWDump(top, vcdOut, 1);
   updateMemory(top);
   assert(testEqual(0xf00, top.dbg_state_out));
   assert(testEqual(0xfffc, top.dbg_PC_out));
-  std::printf("boot_2\n");
+
+  if (printForTest)
+    std::printf("boot_2\n");
+
   top.forceReset_n = 1;
   updateMemory(top);
   CycleClockWDump(top, vcdOut, 3);
@@ -118,18 +101,76 @@ int testBoot() {
   CycleClockWDump(top, vcdOut, 5);
   assert(testEqual(0x101, top.dbg_state_out));
   assert(testEqual(0x8000, top.dbg_PC_out));
+}
+
+/** Tests the reset procedure */
+void testReset() {
+  const char *vcdFile = "reset_test.vcd";
+  const char *programFile = "./obj_dir/reset.test.o65";
+
+  VtopLevel top;
+
+  VerilatedVcdC vcdOut;
+  top.trace(&vcdOut, 99);
+  vcdOut.open(vcdFile);
+
+  uint8_t *memory = NULL;
+  size_t bytesRead = readBinaryFile(programFile, memory);
+  if (memory == NULL) {
+    std::printf("Could not read test memory\n");
+    return;
+  }
+
+  uint16_t romStart = 0x8000;
+  TestMap::initMap(memory, romStart);
+
+  reset(top, vcdOut, true);
 
   TestMap::cleanup();
   vcdOut.close();
+}
 
-  return 0;
+/** Tests the JMP instruction */
+void testJmp() {
+  const char *vcdFile = "jmp_test.vcd";
+  const char *programFile = "./obj_dir/jmp.test.o65";
+
+  VtopLevel top;
+
+  VerilatedVcdC vcdOut;
+  top.trace(&vcdOut, 99);
+  vcdOut.open(vcdFile);
+
+  uint8_t *memory = NULL;
+  size_t bytesRead = readBinaryFile(programFile, memory);
+  if (memory == NULL) {
+    std::printf("Could not read test memory\n");
+    return;
+  }
+
+  uint16_t romStart = 0x8000;
+  TestMap::initMap(memory, romStart);
+
+  reset(top, vcdOut, false);
+
+  // Test logic here
+
+  TestMap::cleanup();
+  vcdOut.close();
 }
 
 int main(int argc, char **argv, char **env) {
   Verilated::commandArgs(argc, argv);
-  Verilated::traceEverOn(true);
 
-  testBoot();
+  void (*tests[])() = {testReset, testJmp};
+  size_t numTests = sizeof(tests) / sizeof(tests[0]);
+
+  for (int i = 0; i < numTests; i++) {
+    VerilatedContext context;
+    Verilated::traceEverOn(true);
+
+    tests[i]();
+  }
 
   std::printf("Done with %s\n", __FILE_NAME__);
   return 0;

@@ -17,4 +17,4 @@ start_mmio:
 end_mmio:
   .dsb    $8000 - end_mmio
 
-; After this, include this file from your custom ROM.
+; After this, #include this file from your custom ROM.
