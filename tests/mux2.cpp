@@ -1,5 +1,5 @@
 #include "../lib/helpAssert.cpp"
-#include "Vmux2.h"
+#include "../obj_dir/Vmux2.h"
 
 #include <cassert>
 #include <cstdio>

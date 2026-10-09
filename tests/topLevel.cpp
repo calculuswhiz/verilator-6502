@@ -1,4 +1,4 @@
-#include "VtopLevel.h"
+#include "../obj_dir/VtopLevel.h"
 // Used by verilator:
 #include "verilated.h"
 #include "verilated_vcd_c.h"

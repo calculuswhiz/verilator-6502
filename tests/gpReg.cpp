@@ -1,4 +1,4 @@
-#include "VGpReg.h"
+#include "../obj_dir/VGpReg.h"
 
 #include "../lib/helpAssert.cpp"
 #include <cassert>

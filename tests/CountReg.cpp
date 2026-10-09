@@ -1,4 +1,4 @@
-#include "VCountReg.h"
+#include "../obj_dir/VCountReg.h"
 
 #include "../lib/helpAssert.cpp"
 #include "../lib/testBenchMacros.cpp"

@@ -1,4 +1,4 @@
-#include "VPC.h"
+#include "../obj_dir/VPC.h"
 
 // Note: a lot of functionality is shared with CountReg
 

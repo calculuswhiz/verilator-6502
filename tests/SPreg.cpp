@@ -1,5 +1,5 @@
 #include "../lib/helpAssert.cpp"
-#include "VSPReg.h"
+#include "../obj_dir/VSPReg.h"
 
 #include <cassert>
 #include <cstdio>

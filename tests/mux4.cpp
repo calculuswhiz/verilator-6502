@@ -1,4 +1,4 @@
-#include "Vmux4.h"
+#include "../obj_dir/Vmux4.h"
 #include "../lib/helpAssert.cpp"
 
 #include <cstdio>

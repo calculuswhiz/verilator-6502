@@ -1,5 +1,5 @@
 #include "../lib/helpAssert.cpp"
-#include "Vtristate.h"
+#include "../obj_dir/Vtristate.h"
 
 #include <cassert>
 #include <cstdio>
