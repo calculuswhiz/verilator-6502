@@ -10,7 +10,34 @@
 
 #include "../lib/helpAssert.cpp"
 #include "../lib/testbenchMacros.cpp"
-#include "./memoryMaps/testMap.cpp"
+
+/** 
+  A very simple memory-mapper. Allows you to specify a ROM address start.
+  Above that address until 0xffff, that memory will be treated as read only,
+  i.e. writing to it will do nothing.
+
+  Address is 16 bit, byte-addressed.
+*/
+namespace TestMap {
+  uint8_t *data;
+  
+  uint16_t romAddress = 0;
+  
+  void initMap(uint8_t *initialMemory, uint16_t romStartAddress) {
+    data = initialMemory;
+    romAddress = romStartAddress;
+  }
+  
+  uint8_t read(uint16_t address) { 
+    return data[address]; 
+  }
+  
+  void write(uint16_t address, uint8_t byte) {
+    // ROM region
+    if (address < romAddress)
+      data[address] = byte;
+  }
+}
 
 size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
   FILE *file = std::fopen(fileName, "rb");
@@ -117,12 +144,11 @@ void testReset(VtopLevel& top, VerilatedVcdC& vcdOut) {
     return;
   }
 
-  uint16_t romStart = 0x8000;
-  TestMap::initMap(memory, romStart);
+  TestMap::initMap(memory, 0x8000);
 
   reset(top, vcdOut, true);
 
-  TestMap::cleanup();
+  delete[] memory;
 }
 
 /** Tests the JMP instruction */
@@ -139,14 +165,13 @@ void testJmp(VtopLevel& top, VerilatedVcdC& vcdOut) {
     return;
   }
 
-  uint16_t romStart = 0x8000;
-  TestMap::initMap(memory, romStart);
+  TestMap::initMap(memory, 0x8000);
 
   reset(top, vcdOut, false);
 
   // Test logic here
 
-  TestMap::cleanup();
+  delete[] memory;
 }
 
 int main(int argc, char **argv, char **env) {
