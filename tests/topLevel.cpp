@@ -11,7 +11,7 @@
 #include "../lib/helpAssert.cpp"
 #include "../lib/testbenchMacros.cpp"
 
-/** 
+/**
   A very simple memory-mapper. Allows you to specify a ROM address start.
   Above that address until 0xffff, that memory will be treated as read only,
   i.e. writing to it will do nothing.
@@ -19,25 +19,23 @@
   Address is 16 bit, byte-addressed.
 */
 namespace TestMap {
-  uint8_t *data;
-  
-  uint16_t romAddress = 0;
-  
-  void initMap(uint8_t *initialMemory, uint16_t romStartAddress) {
-    data = initialMemory;
-    romAddress = romStartAddress;
-  }
-  
-  uint8_t read(uint16_t address) { 
-    return data[address]; 
-  }
-  
-  void write(uint16_t address, uint8_t byte) {
-    // ROM region
-    if (address < romAddress)
-      data[address] = byte;
-  }
+uint8_t *data;
+
+uint16_t romAddress = 0;
+
+void initMap(uint8_t *initialMemory, uint16_t romStartAddress) {
+  data = initialMemory;
+  romAddress = romStartAddress;
 }
+
+uint8_t read(uint16_t address) { return data[address]; }
+
+void write(uint16_t address, uint8_t byte) {
+  // ROM region
+  if (address < romAddress)
+    data[address] = byte;
+}
+} // namespace TestMap
 
 size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
   FILE *file = std::fopen(fileName, "rb");
@@ -131,53 +129,37 @@ void reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
 }
 
 /** Tests the reset procedure */
-void testReset(VtopLevel& top, VerilatedVcdC& vcdOut) {
-  const char *vcdFile = "reset_test.vcd";
-  const char *programFile = "./obj_dir/reset.test.o65";
-
-  vcdOut.open(vcdFile);
-
-  uint8_t *memory = NULL;
-  size_t bytesRead = readBinaryFile(programFile, memory);
-  if (memory == NULL) {
-    std::printf("Could not read test memory\n");
-    return;
-  }
-
+void testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   TestMap::initMap(memory, 0x8000);
 
   reset(top, vcdOut, true);
-
-  delete[] memory;
 }
 
 /** Tests the JMP instruction */
-void testJmp(VtopLevel& top, VerilatedVcdC& vcdOut) {
-  const char *vcdFile = "jmp_test.vcd";
-  const char *programFile = "./obj_dir/jmp.test.o65";
-
-  vcdOut.open(vcdFile);
-
-  uint8_t *memory = NULL;
-  size_t bytesRead = readBinaryFile(programFile, memory);
-  if (memory == NULL) {
-    std::printf("Could not read test memory\n");
-    return;
-  }
-
+void testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   TestMap::initMap(memory, 0x8000);
 
   reset(top, vcdOut, false);
 
   // Test logic here
-
-  delete[] memory;
 }
+
+typedef struct {
+  void (*testFunction)(VtopLevel &, VerilatedVcdC &, uint8_t *memory);
+  const char *vcdFile;
+  const char *programFile;
+} testInfo_t;
 
 int main(int argc, char **argv, char **env) {
   Verilated::commandArgs(argc, argv);
 
-  void (*tests[])(VtopLevel&, VerilatedVcdC&) = {testReset, testJmp};
+  testInfo_t tests[] = {{.testFunction = testReset,
+                         .vcdFile = "reset_test.vcd",
+                         .programFile = "./obj_dir/reset.test.o65"},
+                        {.testFunction = testReset,
+                         .vcdFile = "jmp_test.vcd",
+                         .programFile = "./obj_dir/jmp.test.o65"}};
+
   size_t numTests = sizeof(tests) / sizeof(tests[0]);
 
   for (int i = 0; i < numTests; i++) {
@@ -187,10 +169,20 @@ int main(int argc, char **argv, char **env) {
     VtopLevel top;
     VerilatedVcdC vcdOut;
     top.trace(&vcdOut, 99);
+    vcdOut.open(tests[i].vcdFile);
 
-    tests[i](top, vcdOut);
+    uint8_t *memory;
+    size_t bytesRead = readBinaryFile(tests[i].programFile, memory);
+    if (memory == NULL) {
+      std::printf("Could not read test memory\n");
+      return -1;
+    }
+
+    tests[i].testFunction(top, vcdOut, memory);
 
     vcdOut.close();
+
+    delete[] memory;
   }
 
   std::printf("Done with %s\n", __FILE_NAME__);
