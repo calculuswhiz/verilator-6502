@@ -11,6 +11,7 @@ all:
 build: $(CPP_PROGS)
 
 %: ./tests/%.cpp
+	rm ./vcd_out/*.vcd
 # Generates the Verilator Makefile(s) and C++ source files for the specified Verilog module
 # Pass the testbench to verilator with --exe (don't use -I"$<" which is a .cpp file)
 	verilator --cc -Wall --trace -I"./verilog" ./verilog/$@.sv --exe $< --CFLAGS "-ggdb"

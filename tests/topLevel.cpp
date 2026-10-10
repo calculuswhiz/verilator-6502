@@ -19,17 +19,22 @@
   Address is 16 bit, byte-addressed.
 */
 namespace TestMap {
+// Base of the memory region
 uint8_t *data;
-
+// Where the ROM region starts. Above this, address is not writable
 uint16_t romAddress = 0;
 
+// Point the data and rom address to the right location for read/write
 void initMap(uint8_t *initialMemory, uint16_t romStartAddress) {
   data = initialMemory;
   romAddress = romStartAddress;
 }
 
+// Read from location of memory map
 uint8_t read(uint16_t address) { return data[address]; }
 
+// Write to location of memory map. If it's in a ROM region, it does not
+// overwrite the value
 void write(uint16_t address, uint8_t byte) {
   // ROM region
   if (address < romAddress)
@@ -37,45 +42,55 @@ void write(uint16_t address, uint8_t byte) {
 }
 } // namespace TestMap
 
+using std::printf;
+
+// Reads a file into a buffer of memory
 size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
-  FILE *file = std::fopen(fileName, "rb");
+  using std::fclose;
+  using std::ferror;
+  using std::fopen;
+  using std::fread;
+  using std::fseek;
+  using std::ftell;
+
+  FILE *file = fopen(fileName, "rb");
   if (file == NULL) {
     return -1;
   }
 
-  if (std::fseek(file, 0, SEEK_END) != 0) {
-    std::fclose(file);
+  if (fseek(file, 0, SEEK_END) != 0) {
+    fclose(file);
     return -1;
   }
 
-  long size = std::ftell(file);
+  long size = ftell(file);
   if (size < 0) {
-    std::fclose(file);
+    fclose(file);
     return -1;
   }
 
-  if (std::fseek(file, 0, SEEK_SET) != 0) {
-    std::fclose(file);
+  if (fseek(file, 0, SEEK_SET) != 0) {
+    fclose(file);
     return -1;
   }
 
   uint8_t *buffer = new uint8_t[size];
   if (buffer == NULL) {
-    std::fclose(file);
+    fclose(file);
     return -1;
   }
 
-  size_t bytesRead = std::fread(buffer, 1, size, file);
+  size_t bytesRead = fread(buffer, 1, size, file);
   if (bytesRead < (size_t)size) {
     // Partial read check (handles EOF vs actual read error)
-    if (std::ferror(file)) {
+    if (ferror(file)) {
       delete[] buffer;
-      std::fclose(file);
+      fclose(file);
       return -1;
     }
   }
 
-  std::fclose(file);
+  fclose(file);
   outBuffer = buffer;
   return size;
 }
@@ -88,9 +103,13 @@ void updateMemory(VtopLevel &top) {
     TestMap::write(top.mem_address, top.mem_wData);
 }
 
-// Drive the reset signals for the tests
+const int StandardProgramRomAddr = 0x8000;
+
+// Drive the reset signals for the tests. If you wish to see the reset dump, the
+// next timestamp you should use is 7
 void reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
-  std::printf("Testing initial conditions\n");
+  printForTest &&printf("Testing initial conditions\n");
+
   top.forceReset_n = 1;
   top.clk = 0;
   top.eval();
@@ -103,62 +122,78 @@ void reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
   assert(testEqual(0, top.dbg_P_out));
   assert(testEqual(0xf00, top.dbg_state_out));
 
-  if (printForTest) {
-    std::printf("Testing reset:\n");
-    std::printf("boot_1\n");
-  }
+  printForTest &&printf("Testing reset:\n");
+  printForTest &&printf("boot_1\n");
+
   top.forceReset_n = 0;
   CycleClockWDump(top, vcdOut, 1);
   updateMemory(top);
   assert(testEqual(0xf00, top.dbg_state_out));
   assert(testEqual(0xfffc, top.dbg_PC_out));
 
-  if (printForTest)
-    std::printf("boot_2\n");
+  printForTest &&printf("boot_2\n");
 
   top.forceReset_n = 1;
-  updateMemory(top);
   CycleClockWDump(top, vcdOut, 3);
+  updateMemory(top);
   assert(testEqual(0xf01, top.dbg_state_out));
   assert(testEqual(0xfffd, top.dbg_PC_out));
 
-  updateMemory(top);
   CycleClockWDump(top, vcdOut, 5);
+  updateMemory(top);
   assert(testEqual(0x101, top.dbg_state_out));
-  assert(testEqual(0x8000, top.dbg_PC_out));
+  assert(testEqual(StandardProgramRomAddr, top.dbg_PC_out));
 }
+
+/* Testing:
+  1. Set signals
+  2. Cycle clock
+  3. Update memory
+  3. Assert
+*/
 
 /** Tests the reset procedure */
 void testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
-  TestMap::initMap(memory, 0x8000);
-
   reset(top, vcdOut, true);
 }
 
 /** Tests the JMP instruction */
 void testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
-  TestMap::initMap(memory, 0x8000);
-
   reset(top, vcdOut, false);
 
-  // Test logic here
+  // After reset, need an additional fetch cycle (?)
+  CycleClockWDump(top, vcdOut, 7);
+  updateMemory(top);
+  // JMP takes 3 cycles to ready
+  for (int i = 0; i < 3; i++) {
+    CycleClockWDump(top, vcdOut, 9 + i * 2);
+    updateMemory(top);
+  }
+  assert(testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out));
+  printf("JMP jumps over trap in 3 cycles.\n");
 }
 
+// Configure test information with this
 typedef struct {
   void (*testFunction)(VtopLevel &, VerilatedVcdC &, uint8_t *memory);
   const char *vcdFile;
   const char *programFile;
+  uint16_t romStartAddress;
 } testInfo_t;
 
 int main(int argc, char **argv, char **env) {
   Verilated::commandArgs(argc, argv);
 
-  testInfo_t tests[] = {{.testFunction = testReset,
-                         .vcdFile = "reset_test.vcd",
-                         .programFile = "./obj_dir/reset.test.o65"},
-                        {.testFunction = testReset,
-                         .vcdFile = "jmp_test.vcd",
-                         .programFile = "./obj_dir/jmp.test.o65"}};
+  testInfo_t tests[] = {
+      {.testFunction = testReset,
+       .vcdFile = "./vcd_out/reset_test.vcd",
+       .programFile = "./obj_dir/reset.test.o65",
+       .romStartAddress = StandardProgramRomAddr},
+      {.testFunction = testJmp,
+       .vcdFile = "./vcd_out/jmp_test.vcd",
+       .programFile = "./obj_dir/jmp.test.o65",
+       .romStartAddress = StandardProgramRomAddr},
+  };
 
   size_t numTests = sizeof(tests) / sizeof(tests[0]);
 
@@ -174,17 +209,17 @@ int main(int argc, char **argv, char **env) {
     uint8_t *memory;
     size_t bytesRead = readBinaryFile(tests[i].programFile, memory);
     if (memory == NULL) {
-      std::printf("Could not read test memory\n");
+      printf("Could not read test memory\n");
       return -1;
     }
+    TestMap::initMap(memory, tests[i].romStartAddress);
 
     tests[i].testFunction(top, vcdOut, memory);
 
     vcdOut.close();
-
     delete[] memory;
   }
 
-  std::printf("Done with %s\n", __FILE_NAME__);
+  printf("Done with %s\n", __FILE_NAME__);
   return 0;
 }
