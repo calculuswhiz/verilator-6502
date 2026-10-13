@@ -29,7 +29,6 @@ module topLevel (
     logic [divFactor:0] clkDiv;
     assign clkDiv = clk;
 
-    /* verilator lint_off UNOPTFLAT */
     // #region Internal Signals
     // Enable:
     wire X_en, Y_en, Sd_en, Sm_en, Spagem_en, A_en;
@@ -72,6 +71,7 @@ module topLevel (
 
     // GP-Buses:
     wire [7:0] xfer_bus;
+    /* verilator lint_off UNOPTFLAT */
     wire [7:0] data_bus;
     wire [7:0] memory_bus_h, memory_bus_l;
     /* verilator lint_on UNOPTFLAT */
@@ -106,7 +106,9 @@ module topLevel (
     assign dbg_T_out = {TH_out, TL_out};
 
     // Mulitplexed data:
+    /* verilator lint_off UNOPTFLAT */
     wire [7:0] Smux_out, ALU_Amux_out, ALU_Bmux_out, Amux_out;
+    /* verilator lint_on UNOPTFLAT */
     wire [7:0] PCLmux_out, PCHmux_out;
     wire [7:0] DLmux_out, DHmux_out;
     wire [7:0] TLmux_out;
@@ -176,12 +178,7 @@ module topLevel (
 
     // #region S
 
-    mux2 Smux(
-        .a(data_bus),
-        .b(memory_bus_l),
-        .sel(Smux_sel),
-        .f(Smux_out)
-    );
+    assign Smux_out = Smux_sel == 0 ? data_bus : memory_bus_l;
 
     SPReg S_reg(
         .clk(clkDiv[divFactor]),
@@ -215,31 +212,25 @@ module topLevel (
 
     // #region ALU
 
-    mux8 ALU_Amux(
-        .in0(A_out),
-        .in1(X_out),
-        .in2(Y_out),
-        .in3(DL_out),
-        .in4(data_bus),
-        .in5(PCL_out),
-        .in6(memory_bus_l),
-        .in7(TL_out),
-        .sel(ALU_Amux_sel),
-        .f(ALU_Amux_out)
-    );
+    assign ALU_Amux_out = 
+        ALU_Amux_sel == 1 ? A_out
+        : ALU_Amux_sel == 2 ? X_out
+        : ALU_Amux_sel == 3 ? Y_out
+        : ALU_Amux_sel == 4 ? DL_out
+        : ALU_Amux_sel == 5 ? data_bus
+        : ALU_Amux_sel == 6 ? PCL_out
+        : ALU_Amux_sel == 7 ? memory_bus_l
+        : TL_out;
 
-    mux8 ALU_Bmux(
-        .in0(A_out),
-        .in1(X_out),
-        .in2(Y_out),
-        .in3(DL_out),
-        .in4(data_bus),
-        .in5(PCL_out),
-        .in6(memory_bus_l),
-        .in7(TL_out),
-        .sel(ALU_Bmux_sel),
-        .f(ALU_Bmux_out)
-    );
+    assign ALU_Bmux_out = 
+        ALU_Bmux_sel == 1 ? A_out
+        : ALU_Bmux_sel == 2 ? X_out
+        : ALU_Bmux_sel == 3 ? Y_out
+        : ALU_Bmux_sel == 4 ? DL_out
+        : ALU_Bmux_sel == 5 ? data_bus
+        : ALU_Bmux_sel == 6 ? PCL_out
+        : ALU_Bmux_sel == 7 ? memory_bus_l
+        : TL_out;
 
     ALU ALU_6502(
         .a(ALU_Amux_out),
@@ -270,12 +261,7 @@ module topLevel (
 
     // #region A
 
-    mux2 Amux(
-        .a(data_bus),
-        .b(ALU_out),
-        .sel(Amux_sel),
-        .f(Amux_out)
-    );
+    assign Amux_out = Amux_sel == 0 ? data_bus : ALU_out;
 
     GpReg A_reg(
         .clk(clkDiv[divFactor]),
@@ -313,23 +299,13 @@ module topLevel (
 
     // #region PC
 
-    // Had to make it a mux4 for jump instruction.
-    mux4 PCLmux(
-        .in0(data_bus),
-        .in1(memory_bus_l),
-        .in2(DL_out),
-        // Jump indirect
-        .in3(TL_out),
-        .sel(PCLmux_sel),
-        .f(PCLmux_out)
-    );
+    assign PCLmux_out = 
+        PCLmux_sel == 0 ? data_bus
+        : PCLmux_sel == 1 ? memory_bus_l
+        : PCLmux_sel == 2 ? DL_out
+        : TL_out;
 
-    mux2 PCHmux(
-        .a(data_bus),
-        .b(memory_bus_h),
-        .sel(PCHmux_sel),
-        .f(PCHmux_out)
-    );
+    assign PCHmux_out = PCHmux_sel == 0 ? data_bus : memory_bus_h;
 
     // 0xfffe is where the reset vector is
     PC PC_reg(
@@ -375,21 +351,13 @@ module topLevel (
 
     // #region D (data latch)
 
-    mux4 DLmux(
-        .in0(data_bus),
-        .in1(memory_bus_l),
-        .in2(ALU_out),
-        .in3(zeroout),
-        .sel(DLmux_sel),
-        .f(DLmux_out)
-    );
+    assign DLmux_out = 
+        DLmux_sel == 0 ? data_bus
+        : DLmux_sel == 1 ? memory_bus_l
+        : DLmux_sel == 2 ? ALU_out
+        : zeroout;
 
-    mux2 DHmux(
-        .a(data_bus),
-        .b(zeroout),    // Changed
-        .sel(DHmux_sel),
-        .f(DHmux_out)
-    );
+    assign DHmux_out = DHmux_sel == 0 ? data_bus : zeroout;
 
     CountReg D_reg(
         .clk(clkDiv[divFactor]),
@@ -433,14 +401,11 @@ module topLevel (
 
     // #region T (transfers data from memory)
 
-    mux4 TLmux(
-        .in0(data_bus),
-        .in1(memory_bus_l),
-        .in2(ALU_out),
-        .in3(zeroin),
-        .sel(TLmux_sel),
-        .f(TLmux_out)
-    );
+    assign TLmux_out = 
+        TLmux_sel == 1 ? data_bus
+        : TLmux_sel == 2 ? memory_bus_l
+        : TLmux_sel == 3 ? ALU_out
+        : zeroin;
 
     CountReg T_reg(
         .clk(clkDiv[divFactor]),
@@ -484,12 +449,7 @@ module topLevel (
 
     // #region P
 
-    mux2 Pmux(
-        .a(ctl_pvect),
-        .b(data_bus),
-        .sel(Pmux_sel),
-        .f(Pmux_out)
-    );
+    assign Pmux_out = Pmux_sel == 0 ? ctl_pvect : data_bus;
 
     GpReg P_reg(
         .clk(clkDiv[divFactor]),
@@ -509,12 +469,7 @@ module topLevel (
 
     // #region IR
 
-    mux2 IRmux(
-        .a(xfer_bus),
-        .b(ctl_irvect),
-        .sel(IRmux_sel),
-        .f(IRmux_out)
-    );
+    assign IRmux_out = IRmux_sel == 0 ? xfer_bus : ctl_irvect;
 
     GpReg IR_reg(
         .clk(clkDiv[divFactor]),
@@ -603,12 +558,7 @@ module topLevel (
         .out(IRQHbuf_out)
     );
 
-    mux2 IRQLmux(
-        .a(8'hfe),
-        .b(8'hff),
-        .sel(IRQLmux_sel),
-        .f(IRQLmux_out)
-    );
+    assign IRQLmux_out = IRQLmux_sel == 0 ? 8'hfe : 8'hff;
 
     tristate IRQLbuf(
         .in(IRQLmux_out),

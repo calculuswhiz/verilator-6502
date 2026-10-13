@@ -1,10 +1,5 @@
 // #region enums
 
-typedef enum logic {
-	write = 1'b0,
-	read = 1'b1
-} RW;
-
 typedef enum logic [2:0] {
 	aluSel_A = 0,
 	aluSel_X = 1,
@@ -15,6 +10,13 @@ typedef enum logic [2:0] {
 	aluSel_memory_bus_l = 6,
 	aluSel_TL = 7
 } alu_mux_src;
+
+typedef enum logic [1:0] {
+	pclSel_data_bus = 0,
+	pclSel_memory_bus_l = 1,
+	pclSel_DL_out = 2,
+	pclSel_TL_out = 3
+} pcl_mux_src;
 
 typedef enum logic [1:0] {
 	page_normal = 0,
@@ -71,7 +73,7 @@ module control (
 	output logic Smux_sel, Amux_sel,
 	// output SID_sel,
 	output alu_mux_src ALU_Amux_sel, ALU_Bmux_sel,
-	output logic [1:0] PCLmux_sel,
+	output pcl_mux_src PCLmux_sel,
 	output logic PCHmux_sel,
 	output logic [1:0] DLmux_sel,
 	output logic DHmux_sel,
@@ -88,18 +90,18 @@ module control (
 	// Selectively decide whether to send these flags to the ALU
 	output logic V_ctl, C_ctl,
 
-	output RW mem_rW,
+	output logic mem_rW,
 
 	output cpu_state state_out, next_state_out
 );
 	function void setWriteMem();
-		mem_rW = write;
+		mem_rW = 0;
 		xferu_en = 1;
 		xferd_en = 0;
 	endfunction
 
 	function void setReadMem();
-		mem_rW = read;
+		mem_rW = 1;
 		xferu_en = 0;
 		xferd_en = 1;
 	endfunction;
@@ -233,7 +235,7 @@ module control (
 		Smux_sel = 0;
 		Amux_sel = 0;
 		ALU_Amux_sel = aluSel_A; ALU_Bmux_sel = aluSel_A;
-		PCLmux_sel = 0; PCHmux_sel = 0;
+		PCLmux_sel = pclSel_data_bus; PCHmux_sel = 0;
 		DLmux_sel = 0; DHmux_sel = 0;
 		TLmux_sel = 2'b00; THmux_sel = 0;
 		Pmux_sel = 0;
@@ -262,7 +264,6 @@ module control (
 				next_state_path = IR_in;
 			end
 			boot_1: begin
-				// DL = M[PC]
 				PCL_inc = 1;
 				// PC is hardcoded at top level to reset vector address on reset
 				setReadMem();
@@ -274,7 +275,7 @@ module control (
 				setReadMem();
 				addressWith("PC");
 				PCL_ld = 1;
-				PCLmux_sel = 2;
+				PCLmux_sel = pclSel_DL_out;
 				PCH_ld = 1;
 				PCHmux_sel = 0;
 			end
@@ -294,7 +295,6 @@ module control (
 			ABSOLUTE_R: begin
 				setReadMem();
 				addressWith("D");
-				// TL=M[D]
 				TL_ld = 1;
 			end
 			ABSOLUTE_X: begin
@@ -334,27 +334,24 @@ module control (
 				TLd_en = 1;
 			end
 			BRANCH_CHECK: begin
-				if (
-					( IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) | // C
-					( IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[1])) | // Z
-					(~IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[6])) | // V
-					(~IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[7])) // N
-				) begin
-					// Branch taken:
+				let branch_taken = 
+						( IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) // C
+					| ( IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[1])) // Z
+					| (~IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[6])) // V
+					| (~IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[7])); // N
+				if (branch_taken) begin
 					IR_ld = 1;
 					setReadMem();
 					addressWith("PC");
 					PCLm_en = 0;
-					// PCL += DL
 					DLd_en = 1;
 					doAlu(alu_adc, aluSel_data_bus, aluSel_PCL);
 					ALUm_en = 1;
-					PCLmux_sel = 1;
+					PCLmux_sel = pclSel_memory_bus_l;
 					PCL_ld = 1;
 					// Fix PCH: if a: carry on positive addition, or b: no carry on negative addition.
 					set_invd();
 				end else
-					// Branch not taken:
 					fetchNextInstruction();
 			end
 			// Fix PC if page crossed.
@@ -378,14 +375,12 @@ module control (
 			BRK_IMP_1:
 				fetchNextInstruction();
 			BRK_IMP_2: begin
-				// M[S] = PCH, S-=1
 				setWriteMem();
 				addressWith("S");
 				S_dec = 1;
 				PCHd_en = 1;
 			end
 			BRK_IMP_3: begin
-				// M[S] = PCL, S-=1
 				setWriteMem();
 				addressWith("S");
 				S_dec = 1;
@@ -393,7 +388,6 @@ module control (
 			end
 			BRK_IMP_4: begin
 				// TODO P or PCL?
-				// M[S] = P, S-=1
 				setWriteMem();
 				addressWith("S");
 				S_dec = 1;
@@ -409,7 +403,6 @@ module control (
 				PCL_ld = 1;
 			end
 			IDY_2: begin
-				// TL=M[D]  D+=1
 				setReadMem();
 				addressWith("D");
 				DL_inc = 1;
@@ -494,7 +487,6 @@ module control (
 				PCH_ld = 1;
 			end
 			XID_1, IDY_1: begin
-				// DL = M[PC]
 				setReadMem();
 				addressWith("PC");
 				PCL_inc = 1;
@@ -502,20 +494,17 @@ module control (
 				DH_rst_n = 0;
 			end
 			XID_2: begin
-				// DL += X
 				doAlu(alu_adc, aluSel_DL, aluSel_X);
 				ALUd_en = 1;
 				DL_ld = 1;
 			end
 			XID_3: begin
-				// TL=M[D]  D+=1
 				setReadMem();
 				addressWith("D");
 				DL_inc = 1;
 				TL_ld = 1;
 			end
 			XID_4: begin
-				// TH = M[D]
 				setReadMem();
 				addressWith("D");
 				TH_ld = 1;
@@ -614,7 +603,7 @@ module control (
 			JSR_ABS: begin
 				setReadMem();
 				addressWith("PC");
-				PCLmux_sel = 2'b10;
+				PCLmux_sel = pclSel_DL_out;
 				PCL_ld = 1;
 				PCH_ld = 1;
 			end
@@ -633,7 +622,6 @@ module control (
 			end
 			AND_IMM: begin
 				fetchNextInstruction();
-				// DL holds operand
 				DLd_en = 1;
 				// A & M
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
@@ -643,7 +631,6 @@ module control (
 			end
 			CMP_IMM: begin
 				fetchNextInstruction();
-				// DL holds M
 				DLd_en = 1;
 				// A-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
@@ -653,7 +640,6 @@ module control (
 			end
 			CPX_IMM: begin
 				fetchNextInstruction();
-				// DL holds M
 				DLd_en = 1;
 				// X-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_sbc, aluSel_X, aluSel_data_bus);
@@ -663,7 +649,6 @@ module control (
 			end
 			CPY_IMM: begin
 				fetchNextInstruction();
-				// DL holds M
 				DLd_en = 1;
 				// Y-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_sbc, aluSel_Y, aluSel_data_bus);
@@ -673,7 +658,6 @@ module control (
 			end
 			EOR_IMM: begin
 				fetchNextInstruction();
-				// DL holds operand
 				DLd_en = 1;
 				// A^M
 				doAlu(alu_eor, aluSel_A, aluSel_data_bus);
@@ -683,7 +667,6 @@ module control (
 			end
 			LDA_IMM: begin
 				fetchNextInstruction();
-				// DL == M
 				DLd_en = 1;
 				A_ld = 1;
 				ALU_Amux_sel = aluSel_data_bus;
@@ -691,25 +674,20 @@ module control (
 			end
 			LDX_IMM: begin
 				fetchNextInstruction();
-				// DL == M
 				DLd_en = 1;
 				X_ld = 1;
-				// check x's data
 				ALU_Amux_sel = aluSel_X;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			LDY_IMM: begin
 				fetchNextInstruction();
-				// DL == M
 				DLd_en = 1;
 				Y_ld = 1;
-				// check y's data
 				ALU_Amux_sel = aluSel_Y;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			ORA_IMM: begin
 				fetchNextInstruction();
-				// DL holds operand
 				DLd_en = 1;
 				// A&M
 				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
@@ -719,7 +697,6 @@ module control (
 			end
 			SBC_IMM: begin
 				fetchNextInstruction();
-				// DL holds operand, move to data_bus
 				DLd_en = 1;
 				// A+M+C
 				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
@@ -1036,7 +1013,6 @@ module control (
 			/* rmw/zpg-abs */
 			ASL_ZPG, ASL_ZPX,
 			ASL_ABS, ASL_ABX: begin
-				// TL <<= (TL) (via memory bus)
 				PCLm_en = 0;
 				PCHm_en = 0;
 				TLm_en = 1;
@@ -1047,7 +1023,6 @@ module control (
 			end
 			DEC_ZPG, DEC_ZPX,
 			DEC_ABS, DEC_ABX: begin
-				// TL += 1 (via memory bus)
 				PCLm_en = 0;
 				PCHm_en = 0;
 				TLm_en = 1;
@@ -1058,7 +1033,6 @@ module control (
 			end
 			INC_ZPG, INC_ZPX,
 			INC_ABS, INC_ABX: begin
-				// TL += 1 (via memory bus)
 				PCLm_en = 0;
 				PCHm_en = 0;
 				TLm_en = 1;
@@ -1069,7 +1043,6 @@ module control (
 			end
 			LSR_ZPG, LSR_ZPX,
 			LSR_ABS, LSR_ABX: begin
-				// TL >>= op(TL) (via memory bus)
 				PCLm_en = 0;
 				PCHm_en = 0;
 				TLm_en = 1;
@@ -1080,7 +1053,6 @@ module control (
 			end
 			ROL_ZPG, ROL_ZPX,
 			ROL_ABS, ROL_ABX: begin
-				// TL = rol(TL) (via memory bus)
 				PCLm_en = 0;
 				PCHm_en = 0;
 				TLm_en = 1;
@@ -1092,7 +1064,6 @@ module control (
 			end
 			ROR_ZPG, ROR_ZPX,
 			ROR_ABS, ROR_ABX: begin
-				// TL = ror(TL) (via memory bus)
 				PCLm_en = 0;
 				PCHm_en = 0;
 				TLm_en = 1;
@@ -1125,7 +1096,6 @@ module control (
 			// #endregion
 			// #region XID
 			LDA_XID: begin
-				// A = M[T]
 				setReadMem();
 				addressWith("T");
 				// Put it through alu to set flags
@@ -1193,13 +1163,12 @@ module control (
 			// #endregion XID
 			// #region IDY
 			LDA_IDY: begin
-				// A=M[T]
 				if (page_invalid != page_normal)
 					TH_inc = 1;
 				else begin
 					setReadMem();
 					addressWith("T");
-					// put it through alu to set flags
+					// Put it through alu to set flags
 					ALU_Amux_sel = aluSel_data_bus;
 					A_ld = 1;
 					maskNvzcFromALU(1, 0, 1, 0);
@@ -1288,21 +1257,17 @@ module control (
 			// #endregion
 			// #region JMP
 			JMP_ABS: begin
-				// PCH = M
 				setReadMem();
 				addressWith("PC");
 				PCH_ld = 1;
-				// PCL = DL
-				PCLmux_sel = 2;
+				PCLmux_sel = pclSel_DL_out;
 				PCL_ld = 1;
 			end
 			JMP_IND: begin
 				setReadMem();
 				addressWith("D");
-				// TODO Get D+1 somehow?
 				PCH_ld = 1;
-				// PCL = TL
-				PCLmux_sel = 3;
+				PCLmux_sel = pclSel_TL_out;
 				PCL_ld = 1;
 			end
 			// #endregion JMP
@@ -1352,15 +1317,12 @@ module control (
 					end
 				end
 				else begin
-					if (
-						state == BRANCH_CHECK
-						& (
-							( IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[0])) | // C
-							( IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[1])) | // Z
-							(~IR_in[7] &  IR_in[6] & ~(IR_in[5]^P_in[6])) | // V
-							(~IR_in[7] & ~IR_in[6] & ~(IR_in[5]^P_in[7])) // N
-						)
-					)
+					let branch_taken = 
+							( IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) // C
+						| ( IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[1])) // Z
+						| (~IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[6])) // V
+						| (~IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[7])); // N
+					if (state == BRANCH_CHECK & branch_taken)
 						next_state = BRANCH_TAKEN;
 					else begin
 						// Source select. IR_out or mem_data. @relic
