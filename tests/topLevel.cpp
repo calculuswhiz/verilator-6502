@@ -44,6 +44,9 @@ void write(uint16_t address, uint8_t byte) {
 
 using std::printf;
 
+#define log_error(fmt, ...) \
+  fprintf(stderr, "[ERROR] (%s:%d) " fmt "\n", __FILE__, __LINE__)
+
 // Reads a file into a buffer of memory
 size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
   using std::fclose;
@@ -106,52 +109,96 @@ void updateMemory(VtopLevel &top) {
 
 const int StandardProgramRomAddr = 0x8000;
 
-#define ToggleClockWDump(clockProvider, dumpFile, dumpAt) \
-  updateMemory(clockProvider); \
-  clockProvider.clk = !clockProvider.clk; \
-  clockProvider.eval(); \
-  dumpFile.dump(dumpAt); \
+#define ToggleClockWDump(clockProvider, dumpFile, countVar)                    \
+  updateMemory(clockProvider);                                                 \
+  clockProvider.clk = !clockProvider.clk;                                      \
+  clockProvider.eval();                                                        \
+  dumpFile.dump(countVar);                                                     \
+  countVar++;
 
 // Cycle a module's test signal
-#define CycleClockWDump(clockProvider, dumpFile, dumpAt) \
-  ToggleClockWDump(clockProvider, dumpFile, dumpAt); \
-  ToggleClockWDump(clockProvider, dumpFile, dumpAt + 1); \
+#define CycleClockWDump(clockProvider, dumpFile, countVar)                     \
+  ToggleClockWDump(clockProvider, dumpFile, countVar);                         \
+  ToggleClockWDump(clockProvider, dumpFile, countVar);
 
 // Drive the reset signals for the tests. If you wish to see the reset dump, the
 // next timestamp you should use is 7
-void reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
+int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
   printForTest &&printf("Testing initial conditions\n");
 
   top.forceReset_n = 1;
   top.clk = 0;
   top.eval();
-  vcdOut.dump(0);
-  assert(testEqual(0x0000, top.dbg_PC_out));
-  assert(testEqual(0, top.dbg_A_out));
-  assert(testEqual(0, top.dbg_X_out));
-  assert(testEqual(0, top.dbg_Y_out));
-  assert(testEqual(0, top.dbg_S_out));
-  assert(testEqual(0, top.dbg_P_out));
-  assert(testEqual(0xf00, top.dbg_state_out));
+  int counter = 0;
+  vcdOut.dump(counter);
+  counter++;
+  if (!testEqual(0x0000, top.dbg_PC_out)) {
+    log_error("Failed in reset: dbg_PC_out\n");
+    return -1;
+  }
+  if (!testEqual(0, top.dbg_A_out)) {
+    log_error("Failed in reset: dbg_A_out\n");
+    return -1;
+  }
+  if (!testEqual(0, top.dbg_X_out)) {
+    log_error("Failed in reset: dbg_X_out\n");
+    return -1;
+  }
+  if (!testEqual(0, top.dbg_Y_out)) {
+    log_error("Failed in reset: dbg_Y_out\n");
+    return -1;
+  }
+  if (!testEqual(0, top.dbg_S_out)) {
+    log_error("Failed in reset: dbg_S_out\n");
+    return -1;
+  }
+  if (!testEqual(0, top.dbg_P_out)) {
+    log_error("Failed in reset: dbg_P_out\n");
+    return -1;
+  }
+  if (!testEqual(0xf00, top.dbg_state_out)) {
+    log_error("Failed in reset: dbg_state_out\n");
+    return -1;
+  }
 
   printForTest &&printf("Testing reset:\n");
   printForTest &&printf("boot_1\n");
 
   top.forceReset_n = 0;
-  CycleClockWDump(top, vcdOut, 1);
-  assert(testEqual(0xf00, top.dbg_state_out));
-  assert(testEqual(0xfffc, top.dbg_PC_out));
+  CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0xf00, top.dbg_state_out)) {
+    log_error("Failed in reset: dbg_state_out\n");
+    return -1;
+  }
+  if (!testEqual(0xfffc, top.dbg_PC_out)) {
+    log_error("Failed in reset: dbg_PC_out\n");
+    return -1;
+  }
 
   printForTest &&printf("boot_2\n");
 
   top.forceReset_n = 1;
-  CycleClockWDump(top, vcdOut, 3);
-  assert(testEqual(0xf01, top.dbg_state_out));
-  assert(testEqual(0xfffd, top.dbg_PC_out));
+  CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0xf01, top.dbg_state_out)) {
+    log_error("Failed in reset: dbg_state_out\n");
+    return -1;
+  }
+  if (!testEqual(0xfffd, top.dbg_PC_out)) {
+    log_error("Failed in reset: dbg_PC_out\n");
+    return -1;
+  }
 
-  CycleClockWDump(top, vcdOut, 5);
-  assert(testEqual(0x101, top.dbg_state_out));
-  assert(testEqual(StandardProgramRomAddr, top.dbg_PC_out));
+  CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0x101, top.dbg_state_out)) {
+    log_error("Failed in reset: dbg_state_out\n");
+    return -1;
+  }
+  if (!testEqual(StandardProgramRomAddr, top.dbg_PC_out)) {
+    log_error("Failed in reset: dbg_PC_out\n");
+    return -1;
+  }
+
+  return 0;
 }
 
 /* Testing:
@@ -162,36 +209,59 @@ void reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
 */
 
 /** Tests the reset procedure */
-void testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
-  reset(top, vcdOut, true);
+int testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
+  int resetResult = reset(top, vcdOut, true);
+  if (resetResult < -1)
+    log_error("Reset failed\n");
+  return resetResult;
 }
 
 /** Tests the JMP instruction */
-void testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
-  reset(top, vcdOut, false);
+int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
+  int resetResult = reset(top, vcdOut, true);
+  if (resetResult < -1)
+    log_error("Reset failed\n");
+  return resetResult;
+
+  int counter = 7;
 
   // After reset, need an additional fetch cycle (?)
-  CycleClockWDump(top, vcdOut, 7);
+  CycleClockWDump(top, vcdOut, counter);
 
   // JMP takes 3 cycles to ready
-  CycleClockWDump(top, vcdOut, 9);
-  CycleClockWDump(top, vcdOut, 11);
-  CycleClockWDump(top, vcdOut, 13);
-  // assert(testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out));
-  printf("JMP jumps over trap in 3 cycles.\n");
+  for (int i = 0; i < 3; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out)) {
+    log_error("Did not jump to correct address (absolute).\n");
+    return -1;
+  }
 
-  CycleClockWDump(top, vcdOut, 15);
-  CycleClockWDump(top, vcdOut, 17);
-  CycleClockWDump(top, vcdOut, 19);
-  CycleClockWDump(top, vcdOut, 21);
-  CycleClockWDump(top, vcdOut, 23);
-  CycleClockWDump(top, vcdOut, 25);
-  // assert(testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out));
+  // JMP indirect takes 5 cycles to ready
+  for (int i = 0; i < 5; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
+    log_error("Did not jump to correct address (absolute indirect)\n");
+    return -1;
+  }
+
+  // Steady state behavior
+  for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < 3; i++) {
+      CycleClockWDump(top, vcdOut, counter);
+    }
+    if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
+      log_error("Failed to JMP to trap\n");
+      return -1;
+    }
+  }
+  return 0;
 }
 
 // Configure test information with this
 typedef struct {
-  void (*testFunction)(VtopLevel &, VerilatedVcdC &, uint8_t *memory);
+  int (*testFunction)(VtopLevel &, VerilatedVcdC &, uint8_t *memory);
   const char *vcdFile;
   const char *programFile;
   uint16_t romStartAddress;
@@ -225,12 +295,16 @@ int main(int argc, char **argv, char **env) {
     uint8_t *memory;
     size_t bytesRead = readBinaryFile(tests[i].programFile, memory);
     if (memory == NULL) {
-      printf("Could not read test memory\n");
+      log_error("Could not read test memory\n");
       return -1;
     }
     TestMap::initMap(memory, tests[i].romStartAddress);
 
-    tests[i].testFunction(top, vcdOut, memory);
+    int result = tests[i].testFunction(top, vcdOut, memory);
+    if (result < 0) {
+      log_error("Failed tests.\n");
+      return -1;
+    }
 
     vcdOut.close();
     delete[] memory;
