@@ -642,7 +642,6 @@ different kinds of instructions.
         4   pointer   R  fetch low address to latch
                             TL=M[D]                                 (INDIRECT_1)
         5  pointer+1* R  fetch PCH, copy latch to PCL
-                         (Made a new input for PCLmux.)
                             PCH=M[D+1], PCL=TL                      (JMP_IND)
 
        Note: * The PCH will always be fetched from the same page

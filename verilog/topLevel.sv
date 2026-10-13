@@ -16,8 +16,9 @@ module topLevel (
     output [7:0] dbg_S_out,
     output [7:0] dbg_P_out,
     output [15:0] dbg_D_out,
+    output [15:0] dbg_T_out,
     output [15:0] dbg_PC_out,
-    output cpu_state dbg_state_out
+    output cpu_state dbg_state_out, dbg_next_state_out
 );
 
     // Clock divider:
@@ -102,6 +103,7 @@ module topLevel (
     assign dbg_P_out = P_out;
     assign dbg_PC_out = {PCH_out, PCL_out};
     assign dbg_D_out = {DH_out, DL_out};
+    assign dbg_T_out = {TH_out, TL_out};
 
     // Mulitplexed data:
     wire [7:0] Smux_out, ALU_Amux_out, ALU_Bmux_out, Amux_out;
@@ -587,6 +589,7 @@ module topLevel (
         .aluop(aluop),
         .V_ctl(V_in), .C_ctl(C_in),
         .mem_rW(mem_rW),
+        .next_state_out(dbg_next_state_out),
         .state_out(dbg_state_out)
     );
 

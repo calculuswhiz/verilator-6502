@@ -90,7 +90,7 @@ module control (
 
 	output RW mem_rW,
 
-	output cpu_state state_out
+	output cpu_state state_out, next_state_out
 );
 	function void setWriteMem();
 		mem_rW = write;
@@ -159,6 +159,8 @@ module control (
 
 	/** Fetch next instruction, increment PC */
 	function void fetchNextInstruction();
+		setReadMem();
+		addressWith("PC");
 		PCL_inc = 1;
 		IR_ld = 1;
 	endfunction
@@ -200,8 +202,7 @@ module control (
 		Spagem_en = 0;
 		A_en = 0;
 		PCLd_en = 0; PCHd_en = 0;
-		// Keep this as default addressor.
-		// PCLm_en = 1; PCHm_en = 1;
+		PCLm_en = 0; PCHm_en = 0;
 		DLd_en = 0; DHd_en = 0;
 		DLm_en = 0; DHm_en = 0;
 		TLd_en = 0; THd_en = 0;
@@ -250,9 +251,12 @@ module control (
 
 		/* State actions: */
 		case (state)
-			fetch1:
+			fetch1: begin
+				setReadMem();
+				addressWith("PC");
 				/* Ready memory */
 				IR_ld = 1;
+			end
 			fetch2: begin
 				fetchNextInstruction();
 				next_state_path = IR_in;
@@ -338,6 +342,8 @@ module control (
 				) begin
 					// Branch taken:
 					IR_ld = 1;
+					setReadMem();
+					addressWith("PC");
 					PCLm_en = 0;
 					// PCL += DL
 					DLd_en = 1;
@@ -354,6 +360,8 @@ module control (
 			// Fix PC if page crossed.
 			BRANCH_TAKEN: begin
 				IR_ld = 1;
+				setReadMem();
+				addressWith("PC");
 				case (page_invalid)
 					page_normal:
 						// @@ Test this out.
@@ -421,8 +429,11 @@ module control (
 				TLmux_sel = 2'b10;
 				TL_ld = 1;
 			end
-			IMPLIED_ACCUMULATOR:
+			IMPLIED_ACCUMULATOR: begin
 				IR_ld = 1;
+				setReadMem();
+				addressWith("PC");
+			end
 			INDIRECT_1: begin
 				setReadMem();
 				addressWith("D");
@@ -1175,8 +1186,8 @@ module control (
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
 			STA_XID: begin
-				addressWith("T");
 				setWriteMem();
+				addressWith("T");
 				A_en = 1;
 			end
 			// #endregion XID
@@ -1288,7 +1299,7 @@ module control (
 			JMP_IND: begin
 				setReadMem();
 				addressWith("D");
-				// Get D+1 somehow?
+				// TODO Get D+1 somehow?
 				PCH_ld = 1;
 				// PCL = TL
 				PCLmux_sel = 3;
@@ -1604,5 +1615,6 @@ module control (
 	end
 
 	assign state_out = state;
+	assign next_state_out = next_state;
 
 endmodule
