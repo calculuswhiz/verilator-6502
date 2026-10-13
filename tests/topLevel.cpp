@@ -97,13 +97,25 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
 
 // Update the memory bus (should be called every cycle)
 void updateMemory(VtopLevel &top) {
-  if (top.mem_rW == 1)
+  if (top.mem_rW == 1) {
     top.mem_rData = TestMap::read(top.mem_address);
-  else
+    top.eval();
+  } else
     TestMap::write(top.mem_address, top.mem_wData);
 }
 
 const int StandardProgramRomAddr = 0x8000;
+
+#define ToggleClockWDump(clockProvider, dumpFile, dumpAt) \
+  updateMemory(clockProvider); \
+  clockProvider.clk = !clockProvider.clk; \
+  clockProvider.eval(); \
+  dumpFile.dump(dumpAt); \
+
+// Cycle a module's test signal
+#define CycleClockWDump(clockProvider, dumpFile, dumpAt) \
+  ToggleClockWDump(clockProvider, dumpFile, dumpAt); \
+  ToggleClockWDump(clockProvider, dumpFile, dumpAt + 1); \
 
 // Drive the reset signals for the tests. If you wish to see the reset dump, the
 // next timestamp you should use is 7
@@ -127,7 +139,6 @@ void reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
 
   top.forceReset_n = 0;
   CycleClockWDump(top, vcdOut, 1);
-  updateMemory(top);
   assert(testEqual(0xf00, top.dbg_state_out));
   assert(testEqual(0xfffc, top.dbg_PC_out));
 
@@ -135,12 +146,10 @@ void reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
 
   top.forceReset_n = 1;
   CycleClockWDump(top, vcdOut, 3);
-  updateMemory(top);
   assert(testEqual(0xf01, top.dbg_state_out));
   assert(testEqual(0xfffd, top.dbg_PC_out));
 
   CycleClockWDump(top, vcdOut, 5);
-  updateMemory(top);
   assert(testEqual(0x101, top.dbg_state_out));
   assert(testEqual(StandardProgramRomAddr, top.dbg_PC_out));
 }
@@ -163,14 +172,16 @@ void testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
   // After reset, need an additional fetch cycle (?)
   CycleClockWDump(top, vcdOut, 7);
-  updateMemory(top);
+
   // JMP takes 3 cycles to ready
-  for (int i = 0; i < 3; i++) {
-    CycleClockWDump(top, vcdOut, 9 + i * 2);
-    updateMemory(top);
-  }
+  CycleClockWDump(top, vcdOut, 9);
+  CycleClockWDump(top, vcdOut, 11);
+  CycleClockWDump(top, vcdOut, 13);
   assert(testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out));
   printf("JMP jumps over trap in 3 cycles.\n");
+
+  CycleClockWDump(top, vcdOut, 15);
+  CycleClockWDump(top, vcdOut, 17);
 }
 
 // Configure test information with this

@@ -9,6 +9,7 @@ module topLevel (
     output [7:0] mem_wData,
     output [15:0] mem_address,
 
+    output [7:0] dbg_IR_out,
     output [7:0] dbg_A_out,
     output [7:0] dbg_X_out,
     output [7:0] dbg_Y_out,
@@ -93,6 +94,7 @@ module topLevel (
     wire [7:0] xferubuf_out, xferdbuf_out;
     wire [7:0] IRQLbuf_out, IRQHbuf_out;
 
+    assign dbg_IR_out = IR_out;
     assign dbg_A_out = A_out;
     assign dbg_X_out = X_out;
     assign dbg_Y_out = Y_out;
