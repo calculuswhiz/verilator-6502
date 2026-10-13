@@ -134,11 +134,7 @@ module topLevel (
 
     // See the datapath diagram for more info
 
-    tristate membuf(
-        .in(mem_rData),
-        .enable(mem_rW),
-        .out(membuf_out)
-    );
+    assign membuf_out = mem_rW ? mem_rData : 8'bz;
 
     // #region X
 
@@ -150,11 +146,7 @@ module topLevel (
         .out(X_out)
     );
 
-    tristate Xbuf(
-        .in(X_out),
-        .enable(X_en),
-        .out(Xbuf_out)
-    );
+    assign Xbuf_out = X_en ? X_out : 8'bz;
 
     // #endregion
 
@@ -168,11 +160,7 @@ module topLevel (
         .out(Y_out)
     );
 
-    tristate Ybuf(
-        .in(Y_out),
-        .enable(Y_en),
-        .out(Ybuf_out)
-    );
+    assign Ybuf_out = Y_en ? Y_out : 8'bz;
 
     // #endregion
 
@@ -190,23 +178,11 @@ module topLevel (
         .out(S_out)
     );
 
-    tristate Sdbuf(
-        .in(S_out),
-        .enable(Sd_en),
-        .out(Sdbuf_out)
-    );
+    assign Sdbuf_out = Sd_en ? S_out : 8'bz;
 
-    tristate Smbuf(
-        .in(S_out),
-        .enable(Sm_en),
-        .out(Smbuf_out)
-    );
+    assign Smbuf_out = Sm_en ? S_out : 8'bz;
 
-    tristate Spagebuf(
-        .in(8'h01),
-        .enable(Spagem_en),
-        .out(Spagebuf_out)
-    );
+    assign Spagebuf_out = Spagem_en ? 8'h01 : 8'bz;
 
     // #endregion
 
@@ -245,17 +221,9 @@ module topLevel (
         .f(ALU_out[7:0])
     );
 
-    tristate ALUd_buf(
-        .in(ALU_out),
-        .enable(ALUd_en),
-        .out(ALUdbuf_out)
-    );
+    assign ALUdbuf_out = ALUd_en ? ALU_out : 8'bz;
 
-    tristate ALUm_buf(
-        .in(ALU_out),
-        .enable(ALUm_en),
-        .out(ALUmbuf_out)
-    );
+    assign ALUmbuf_out = ALUm_en ? ALU_out : 8'bz;
 
     // #endregion
 
@@ -271,11 +239,7 @@ module topLevel (
         .out(A_out)
     );
 
-    tristate Abuf(
-        .in(A_out),
-        .enable(A_en),
-        .out(Abuf_out)
-    );
+    assign Abuf_out = A_en ? A_out : 8'bz;
 
     // #endregion
 
@@ -285,17 +249,9 @@ module topLevel (
         .dataout(zeroout)
     );
 
-    tristate ZLbuf(
-        .in(zeroout),
-        .enable(Zl_en),
-        .out(ZLbuf_out)
-    );
+    assign ZLbuf_out = Zl_en ? zeroout : 8'bz;
 
-    tristate ZHbuf(
-        .in(zeroout),
-        .enable(Zh_en),
-        .out(ZHbuf_out)
-    );
+    assign ZHbuf_out = Zh_en ? zeroout : 8'bz;
 
     // #region PC
 
@@ -323,29 +279,13 @@ module topLevel (
         .PCH_out(PCH_out)
     );
 
-    tristate PCLdbuf(
-        .in(PCL_out),
-        .enable(PCLd_en),
-        .out(PCLdbuf_out)
-    );
+    assign PCLdbuf_out = PCLd_en ? PCL_out : 8'bz;
 
-    tristate PCLmbuf(
-        .in(PCL_out),
-        .enable(PCLm_en),
-        .out(PCLmbuf_out)
-    );
+    assign PCLmbuf_out = PCLm_en ? PCL_out : 8'bz;
 
-    tristate PCHdbuf(
-        .in(PCH_out),
-        .enable(PCHd_en),
-        .out(PCHdbuf_out)
-    );
+    assign PCHdbuf_out = PCHd_en ? PCH_out : 8'bz;
 
-    tristate PCHmbuf(
-        .in(PCH_out),
-        .enable(PCHm_en),
-        .out(PCHmbuf_out)
-    );
+    assign PCHmbuf_out = PCHm_en ? PCH_out : 8'bz;
 
     // #endregion
 
@@ -373,29 +313,13 @@ module topLevel (
         .PCH_out(DH_out)
     );
 
-    tristate DLdbuf(
-        .in(DL_out),
-        .enable(DLd_en),
-        .out(DLdbuf_out)
-    );
+    assign DLdbuf_out = DLd_en ? DL_out : 8'bz;
 
-    tristate DLmbuf(
-        .in(DL_out),
-        .enable(DLm_en),
-        .out(DLmbuf_out)
-    );
+    assign DLmbuf_out = DLm_en ? DL_out : 8'bz;
 
-    tristate DHdbuf(
-        .in(DH_out),
-        .enable(DHd_en),
-        .out(DHdbuf_out)
-    );
+    assign DHdbuf_out = DHd_en ? DH_out : 8'bz;
 
-    tristate DHmbuf(
-        .in(DH_out),
-        .enable(DHm_en),
-        .out(DHmbuf_out)
-    );
+    assign DHmbuf_out = DHm_en ? DH_out : 8'bz;
 
     // #endregion
 
@@ -421,29 +345,13 @@ module topLevel (
         .PCH_out(TH_out)
     );
 
-    tristate TLdbuf(
-        .in(TL_out),
-        .enable(TLd_en),
-        .out(TLdbuf_out)
-    );
+    assign TLdbuf_out = TLd_en ? TL_out : 8'bz;
 
-    tristate TLmbuf(
-        .in(TL_out),
-        .enable(TLm_en),
-        .out(TLmbuf_out)
-    );
+    assign TLmbuf_out = TLm_en ? TL_out : 8'bz;
 
-    tristate THdbuf(
-        .in(TH_out),
-        .enable(THd_en),
-        .out(THdbuf_out)
-    );
+    assign THdbuf_out = THd_en ? TH_out : 8'bz;
 
-    tristate THmbuf(
-        .in(TH_out),
-        .enable(THm_en),
-        .out(THmbuf_out)
-    );
+    assign THmbuf_out = THm_en ? TH_out : 8'bz;
 
     // #endregion
 
@@ -459,11 +367,7 @@ module topLevel (
         .out(P_out)
     );
 
-    tristate Pbuf(
-        .in(P_out),
-        .enable(Pd_en),
-        .out(Pbuf_out)
-    );
+    assign Pbuf_out = Pd_en ? P_out : 8'bz;
 
     // #endregion
 
@@ -479,27 +383,15 @@ module topLevel (
         .out(IR_out)
     );
 
-    tristate IRbuf(
-        .in(IR_out),
-        .enable(IR_en),
-        .out(IRbuf_out)
-    );
+    assign IRbuf_out = IR_en ? IR_out : 8'bz;
 
     // #endregion
 
     // #region memory xfer
 
-    tristate xferubuf(
-        .in(data_bus),
-        .enable(xferu_en),
-        .out(xferubuf_out)
-    );
+    assign xferubuf_out = xferu_en ? data_bus : 8'bz;
 
-    tristate xferdbuf(
-        .in(xfer_bus),
-        .enable(xferd_en),
-        .out(xferdbuf_out)
-    );
+    assign xferdbuf_out = xferd_en ? xfer_bus : 8'bz;
 
     // #endregion
 
@@ -552,19 +444,11 @@ module topLevel (
 
     // #region Interrupts
 
-    tristate IRQHbuf(
-        .in(8'hff),
-        .enable(IRQH_en),
-        .out(IRQHbuf_out)
-    );
+    assign IRQHbuf_out = IRQH_en ? 8'hff : 8'bz;
 
     assign IRQLmux_out = IRQLmux_sel == 0 ? 8'hfe : 8'hff;
 
-    tristate IRQLbuf(
-        .in(IRQLmux_out),
-        .enable(IRQL_en),
-        .out(IRQLbuf_out)
-    );
+    assign IRQLbuf_out = IRQL_en ? IRQLmux_out : 8'bz;
 
     // #endregion
 
