@@ -38,7 +38,6 @@ module topLevel (
     wire Pd_en, IR_en;
     wire ALUd_en, ALUm_en;
     wire xferu_en, xferd_en;
-    wire Zl_en, Zh_en;
     wire IRQH_en;
     wire IRQL_en;
 
@@ -116,10 +115,6 @@ module topLevel (
     wire [7:0] IRmux_out;
     wire [7:0] IRQLmux_out;
 
-    // dev_zero
-    wire [7:0] zeroin, zeroout;
-    wire [7:0] ZLbuf_out, ZHbuf_out;
-
     // Test-memory signals:
     wire [7:0]  membuf_out;
 
@@ -179,7 +174,6 @@ module topLevel (
     );
 
     assign Sdbuf_out = Sd_en ? S_out : 8'bz;
-
     assign Smbuf_out = Sm_en ? S_out : 8'bz;
 
     assign Spagebuf_out = Spagem_en ? 8'h01 : 8'bz;
@@ -222,7 +216,6 @@ module topLevel (
     );
 
     assign ALUdbuf_out = ALUd_en ? ALU_out : 8'bz;
-
     assign ALUmbuf_out = ALUm_en ? ALU_out : 8'bz;
 
     // #endregion
@@ -242,16 +235,6 @@ module topLevel (
     assign Abuf_out = A_en ? A_out : 8'bz;
 
     // #endregion
-
-    assign zeroin=8'h00;
-    dev_zero zero_device(
-        .datain(zeroin),
-        .dataout(zeroout)
-    );
-
-    assign ZLbuf_out = Zl_en ? zeroout : 8'bz;
-
-    assign ZHbuf_out = Zh_en ? zeroout : 8'bz;
 
     // #region PC
 
@@ -280,11 +263,9 @@ module topLevel (
     );
 
     assign PCLdbuf_out = PCLd_en ? PCL_out : 8'bz;
-
     assign PCLmbuf_out = PCLm_en ? PCL_out : 8'bz;
 
     assign PCHdbuf_out = PCHd_en ? PCH_out : 8'bz;
-
     assign PCHmbuf_out = PCHm_en ? PCH_out : 8'bz;
 
     // #endregion
@@ -295,9 +276,9 @@ module topLevel (
         DLmux_sel == 0 ? data_bus
         : DLmux_sel == 1 ? memory_bus_l
         : DLmux_sel == 2 ? ALU_out
-        : zeroout;
+        : 0;
 
-    assign DHmux_out = DHmux_sel == 0 ? data_bus : zeroout;
+    assign DHmux_out = DHmux_sel == 0 ? data_bus : 0;
 
     CountReg D_reg(
         .clk(clkDiv[divFactor]),
@@ -314,11 +295,9 @@ module topLevel (
     );
 
     assign DLdbuf_out = DLd_en ? DL_out : 8'bz;
-
     assign DLmbuf_out = DLm_en ? DL_out : 8'bz;
 
     assign DHdbuf_out = DHd_en ? DH_out : 8'bz;
-
     assign DHmbuf_out = DHm_en ? DH_out : 8'bz;
 
     // #endregion
@@ -329,7 +308,7 @@ module topLevel (
         TLmux_sel == 1 ? data_bus
         : TLmux_sel == 2 ? memory_bus_l
         : TLmux_sel == 3 ? ALU_out
-        : zeroin;
+        : 0;
 
     CountReg T_reg(
         .clk(clkDiv[divFactor]),
@@ -340,17 +319,15 @@ module topLevel (
         .H_dec(1'b0),
         .PCL_in(TLmux_out),
         .H_rst_n(1'b1),
-        .PCH_in(zeroout),
+        .PCH_in(0),
         .PCL_out(TL_out),
         .PCH_out(TH_out)
     );
 
     assign TLdbuf_out = TLd_en ? TL_out : 8'bz;
-
     assign TLmbuf_out = TLm_en ? TL_out : 8'bz;
 
     assign THdbuf_out = THd_en ? TH_out : 8'bz;
-
     assign THmbuf_out = THm_en ? TH_out : 8'bz;
 
     // #endregion
@@ -390,7 +367,6 @@ module topLevel (
     // #region memory xfer
 
     assign xferubuf_out = xferu_en ? data_bus : 8'bz;
-
     assign xferdbuf_out = xferd_en ? xfer_bus : 8'bz;
 
     // #endregion
@@ -418,7 +394,6 @@ module topLevel (
         .Pd_en(Pd_en), .IR_en(IR_en),
         .ALUd_en(ALUd_en), .ALUm_en(ALUm_en),
         .xferu_en(xferu_en), .xferd_en(xferd_en),
-        .Zl_en(Zl_en), .Zh_en(Zh_en),
         .X_ld(X_ld), .Y_ld(Y_ld), .S_ld(S_ld), .S_inc(S_inc), .S_dec(S_dec), .A_ld(A_ld),
         .PCL_ld(PCL_ld), .PCH_ld(PCH_ld),
         .PCL_inc(PCL_inc), .PCH_inc(PCH_inc), .PCH_dec(PCH_dec),
@@ -429,7 +404,7 @@ module topLevel (
         .ALU_Amux_sel(ALU_Amux_sel), .ALU_Bmux_sel(ALU_Bmux_sel),
         .PCLmux_sel(PCLmux_sel), .PCHmux_sel(PCHmux_sel),
         .DLmux_sel(DLmux_sel), .DHmux_sel(DHmux_sel),
-        .TLmux_sel(TLmux_sel), .THmux_sel(zeroout[0]),
+        .TLmux_sel(TLmux_sel),
         .Pmux_sel(Pmux_sel),
         .IRmux_sel(IRmux_sel),
         .IRQLmux_sel(IRQLmux_sel),
@@ -471,15 +446,13 @@ module topLevel (
     assign xfer_bus = membuf_out
         | IRbuf_out
         | xferubuf_out;
-    assign memory_bus_h = ZHbuf_out
-        | DHmbuf_out
+    assign memory_bus_h = DHmbuf_out
         | PCHmbuf_out
         | THmbuf_out
         | Spagebuf_out
         | IRQHbuf_out;
     assign memory_bus_l = ALUmbuf_out
         | Smbuf_out
-        | ZLbuf_out
         | DLmbuf_out
         | PCLmbuf_out
         | TLmbuf_out

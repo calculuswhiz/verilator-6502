@@ -56,7 +56,6 @@ module control (
 	output logic Pd_en, IR_en,
 	output logic ALUd_en, ALUm_en,
 	output logic xferu_en, xferd_en,
-	output logic Zl_en, Zh_en,        // @@ Needed?
 	output logic IRQH_en, IRQL_en,
 
 	// Load:
@@ -78,7 +77,6 @@ module control (
 	output logic [1:0] DLmux_sel,
 	output logic DHmux_sel,
 	output logic [1:0] TLmux_sel,
-	output logic THmux_sel,
 	output logic Pmux_sel,
 	output logic IRmux_sel,
 	output logic IRQLmux_sel,
@@ -212,7 +210,6 @@ module control (
 		Pd_en = 0;
 		IR_en = 0;
 		ALUd_en = 0; ALUm_en = 0;
-		Zl_en = 0; Zh_en = 0;
 		IRQH_en = 0; IRQL_en = 0;
 
 		// Load:
@@ -237,7 +234,7 @@ module control (
 		ALU_Amux_sel = aluSel_A; ALU_Bmux_sel = aluSel_A;
 		PCLmux_sel = pclSel_data_bus; PCHmux_sel = 0;
 		DLmux_sel = 0; DHmux_sel = 0;
-		TLmux_sel = 2'b00; THmux_sel = 0;
+		TLmux_sel = 2'b00;
 		Pmux_sel = 0;
 		IRmux_sel = 0;
 		IRQLmux_sel = 0;
