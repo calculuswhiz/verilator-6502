@@ -1,5 +1,7 @@
-`include "aluops.sv"    // alu operations enum.
-`include "opCodeHex.sv" // Holds all the opcode values as enum.
+`include "aluops.sv"
+`include "opCodeHex.sv"
+`include "muxSignals.sv"
+
 module topLevel (
     input clk,
     input forceReset_n,
@@ -54,12 +56,12 @@ module topLevel (
     // Selection:
     wire Smux_sel, Amux_sel;
     // wire SID_sel;
-    wire [2:0] ALU_Amux_sel, ALU_Bmux_sel;
-    wire [1:0] PCLmux_sel;
+    alu_mux_src ALU_Amux_sel, ALU_Bmux_sel;
+    pcl_mux_src PCLmux_sel;
     wire PCHmux_sel;
-    wire [1:0] DLmux_sel;
+    dl_mux_src DLmux_sel;
     wire DHmux_sel;
-    wire [1:0] TLmux_sel;
+    tl_mux_src TLmux_sel;
     wire Pmux_sel;
     wire IRmux_sel;
     wire IRQLmux_sel;
@@ -183,23 +185,23 @@ module topLevel (
     // #region ALU
 
     assign ALU_Amux_out = 
-        ALU_Amux_sel == 1 ? A_out
-        : ALU_Amux_sel == 2 ? X_out
-        : ALU_Amux_sel == 3 ? Y_out
-        : ALU_Amux_sel == 4 ? DL_out
-        : ALU_Amux_sel == 5 ? data_bus
-        : ALU_Amux_sel == 6 ? PCL_out
-        : ALU_Amux_sel == 7 ? memory_bus_l
+        ALU_Amux_sel == aluSel_A ? A_out
+        : ALU_Amux_sel == aluSel_X ? X_out
+        : ALU_Amux_sel == aluSel_Y ? Y_out
+        : ALU_Amux_sel == aluSel_DL ? DL_out
+        : ALU_Amux_sel == aluSel_data_bus ? data_bus
+        : ALU_Amux_sel == aluSel_PCL ? PCL_out
+        : ALU_Amux_sel == aluSel_memory_bus_l ? memory_bus_l
         : TL_out;
 
     assign ALU_Bmux_out = 
-        ALU_Bmux_sel == 1 ? A_out
-        : ALU_Bmux_sel == 2 ? X_out
-        : ALU_Bmux_sel == 3 ? Y_out
-        : ALU_Bmux_sel == 4 ? DL_out
-        : ALU_Bmux_sel == 5 ? data_bus
-        : ALU_Bmux_sel == 6 ? PCL_out
-        : ALU_Bmux_sel == 7 ? memory_bus_l
+        ALU_Bmux_sel == aluSel_A ? A_out
+        : ALU_Bmux_sel == aluSel_X ? X_out
+        : ALU_Bmux_sel == aluSel_Y ? Y_out
+        : ALU_Bmux_sel == aluSel_DL ? DL_out
+        : ALU_Bmux_sel == aluSel_data_bus ? data_bus
+        : ALU_Bmux_sel == aluSel_PCL ? PCL_out
+        : ALU_Bmux_sel == aluSel_memory_bus_l ? memory_bus_l
         : TL_out;
 
     ALU ALU_6502(
@@ -239,9 +241,9 @@ module topLevel (
     // #region PC
 
     assign PCLmux_out = 
-        PCLmux_sel == 0 ? data_bus
-        : PCLmux_sel == 1 ? memory_bus_l
-        : PCLmux_sel == 2 ? DL_out
+        PCLmux_sel == pclSel_data_bus ? data_bus
+        : PCLmux_sel == pclSel_memory_bus_l ? memory_bus_l
+        : PCLmux_sel == pclSel_DL_out ? DL_out
         : TL_out;
 
     assign PCHmux_out = PCHmux_sel == 0 ? data_bus : memory_bus_h;
@@ -273,9 +275,9 @@ module topLevel (
     // #region D (data latch)
 
     assign DLmux_out = 
-        DLmux_sel == 0 ? data_bus
-        : DLmux_sel == 1 ? memory_bus_l
-        : DLmux_sel == 2 ? ALU_out
+        DLmux_sel == dlSel_data_bus ? data_bus
+        : DLmux_sel == dlSel_memory_bus_l ? memory_bus_l
+        : DLmux_sel == dlSel_ALU_out ? ALU_out
         : 0;
 
     assign DHmux_out = DHmux_sel == 0 ? data_bus : 0;
@@ -305,9 +307,9 @@ module topLevel (
     // #region T (transfers data from memory)
 
     assign TLmux_out = 
-        TLmux_sel == 1 ? data_bus
-        : TLmux_sel == 2 ? memory_bus_l
-        : TLmux_sel == 3 ? ALU_out
+        TLmux_sel == tlSel_data_bus ? data_bus
+        : TLmux_sel == tlSel_memory_bus_l ? memory_bus_l
+        : TLmux_sel == tlSel_ALU_out ? ALU_out
         : 0;
 
     CountReg T_reg(
@@ -385,6 +387,7 @@ module topLevel (
         .ctl_pvect(ctl_pvect), .ctl_irvect(ctl_irvect),
         .DH_rst_n(DH_rst_n),
         .PC_reset_n(PC_reset_n),
+
         .X_en(X_en), .Y_en(Y_en),
         .Sd_en(Sd_en), .Sm_en(Sm_en), .Spagem_en(Spagem_en),
         .A_en(A_en), .IRQH_en(IRQH_en), .IRQL_en(IRQL_en),
@@ -394,12 +397,14 @@ module topLevel (
         .Pd_en(Pd_en), .IR_en(IR_en),
         .ALUd_en(ALUd_en), .ALUm_en(ALUm_en),
         .xferu_en(xferu_en), .xferd_en(xferd_en),
+        
         .X_ld(X_ld), .Y_ld(Y_ld), .S_ld(S_ld), .S_inc(S_inc), .S_dec(S_dec), .A_ld(A_ld),
         .PCL_ld(PCL_ld), .PCH_ld(PCH_ld),
         .PCL_inc(PCL_inc), .PCH_inc(PCH_inc), .PCH_dec(PCH_dec),
         .DL_ld(DL_ld), .DH_ld(DH_ld), .DL_inc(DL_inc), .DH_inc(DH_inc), .DH_dec(DH_dec),
         .TL_ld(TL_ld), .TH_ld(TH_ld), .TH_inc(TH_inc),
         .P_ld(P_ld), .IR_ld(IR_ld),
+        
         .Smux_sel(Smux_sel), .Amux_sel(Amux_sel),
         .ALU_Amux_sel(ALU_Amux_sel), .ALU_Bmux_sel(ALU_Bmux_sel),
         .PCLmux_sel(PCLmux_sel), .PCHmux_sel(PCHmux_sel),
@@ -408,6 +413,7 @@ module topLevel (
         .Pmux_sel(Pmux_sel),
         .IRmux_sel(IRmux_sel),
         .IRQLmux_sel(IRQLmux_sel),
+        
         .aluop(aluop),
         .V_ctl(V_in), .C_ctl(C_in),
         .mem_rW(mem_rW),

@@ -86,4 +86,4 @@ typedef enum logic [11:0] {
     ERROR = 12'hfff
 } cpu_state;
 /* verilator lint_on UNDRIVEN */
-`endif // OP_CODE_HEX_SV
+`endif

@@ -1,22 +1,4 @@
-// #region enums
-
-typedef enum logic [2:0] {
-	aluSel_A = 0,
-	aluSel_X = 1,
-	aluSel_Y = 2,
-	aluSel_DL = 3,
-	aluSel_data_bus = 4,
-	aluSel_PCL = 5,
-	aluSel_memory_bus_l = 6,
-	aluSel_TL = 7
-} alu_mux_src;
-
-typedef enum logic [1:0] {
-	pclSel_data_bus = 0,
-	pclSel_memory_bus_l = 1,
-	pclSel_DL_out = 2,
-	pclSel_TL_out = 3
-} pcl_mux_src;
+`include "muxSignals.sv"
 
 typedef enum logic [1:0] {
 	page_normal = 0,
@@ -24,8 +6,6 @@ typedef enum logic [1:0] {
 	page_dec = 2,
 	page_undefined = 3
 } page_invalid_t;
-
-// #endregion
 
 // This is what issues the control signals necessary for the processor to run.
 // parameter SIZE = 12;
@@ -74,9 +54,9 @@ module control (
 	output alu_mux_src ALU_Amux_sel, ALU_Bmux_sel,
 	output pcl_mux_src PCLmux_sel,
 	output logic PCHmux_sel,
-	output logic [1:0] DLmux_sel,
+	output dl_mux_src DLmux_sel,
 	output logic DHmux_sel,
-	output logic [1:0] TLmux_sel,
+	output tl_mux_src TLmux_sel,
 	output logic Pmux_sel,
 	output logic IRmux_sel,
 	output logic IRQLmux_sel,
@@ -233,8 +213,8 @@ module control (
 		Amux_sel = 0;
 		ALU_Amux_sel = aluSel_A; ALU_Bmux_sel = aluSel_A;
 		PCLmux_sel = pclSel_data_bus; PCHmux_sel = 0;
-		DLmux_sel = 0; DHmux_sel = 0;
-		TLmux_sel = 2'b00;
+		DLmux_sel = dlSel_data_bus; DHmux_sel = 0;
+		TLmux_sel = tlSel_data_bus;
 		Pmux_sel = 0;
 		IRmux_sel = 0;
 		IRQLmux_sel = 0;
@@ -299,7 +279,7 @@ module control (
 				addressWith("PC");
 				DH_ld = 1;
 				doAlu(alu_adc, aluSel_X, aluSel_DL);
-				DLmux_sel = 2'b10;
+				DLmux_sel = dlSel_ALU_out;
 				DL_ld = 1;
 				PCL_inc = 1;
 				set_invd();
@@ -309,7 +289,7 @@ module control (
 				addressWith("PC");
 				DH_ld = 1;
 				doAlu(alu_adc, aluSel_Y, aluSel_DL);
-				DLmux_sel = 2'b10;
+				DLmux_sel = dlSel_ALU_out;
 				DL_ld = 1;
 				PCL_inc = 1;
 				set_invd();
@@ -416,7 +396,7 @@ module control (
 				page_invalid = alu_C
 					? page_inc
 					: page_normal;
-				TLmux_sel = 2'b10;
+				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 			end
 			IMPLIED_ACCUMULATOR: begin
@@ -532,7 +512,7 @@ module control (
 				DLd_en = 1;
 				doAlu(alu_adc, aluSel_data_bus, aluSel_X);
 				ALUm_en = 1;
-				DLmux_sel = 1;
+				DLmux_sel = dlSel_memory_bus_l;
 				DL_ld = 1;
 			end
 			ZEROPAGE_Y: begin
@@ -542,7 +522,7 @@ module control (
 				DLd_en = 1;
 				doAlu(alu_adc, aluSel_data_bus, aluSel_Y);
 				ALUm_en = 1;
-				DLmux_sel = 1;
+				DLmux_sel = dlSel_memory_bus_l;
 				DL_ld = 1;
 			end
 			// #endregion ZEROPAGE
