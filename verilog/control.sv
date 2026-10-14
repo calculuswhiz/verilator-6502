@@ -331,7 +331,7 @@ module control (
 				TLd_en = 1;
 			end
 			BRANCH_CHECK: begin
-				let branch_taken = 
+				let branch_taken =
 						( IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) // C
 					| ( IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[1])) // Z
 					| (~IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[6])) // V
@@ -1270,9 +1270,31 @@ module control (
 			// #endregion JMP
 			default: /*$display("Not implemented.")*/;
 		endcase
-	end
 
-	// #endregion
+		data_enable_check: begin
+			let num_data_enabled = X_en + Y_en + Sd_en + ALUd_en + A_en + PCLd_en + PCHd_en + DLd_en + DHd_en + TLd_en + THd_en + Pd_en + xferd_en;
+			assert (num_data_enabled <= 1)
+			else   $warning("%d data enable signal has been set", num_data_enabled);
+		end
+
+		xfer_enable_check: begin
+			let num_xfer_enable = mem_rW + IR_en + xferu_en;
+			assert (num_xfer_enable <= 1)
+			else   $warning("%d xfer bus signals have been set", num_xfer_enable);
+		end
+
+		membus_h_enable: begin
+			let num_membus_h_enable = Spagem_en + PCHm_en + DHm_en + THm_en + IRQH_en;
+			assert (num_membus_h_enable <= 1)
+			else   $warning("%d mem bus (high) signals have been set", num_membus_h_enable);
+		end
+
+		membus_l_enable: begin
+			let num_membus_l_enable = Sm_en + ALUm_en + PCLm_en + DLm_en + TLm_en + IRQL_en;
+			assert (num_membus_l_enable <= 1)
+			else   $warning("%d mem bus (low) signals have been set", num_membus_l_enable);
+		end
+	end
 
 	//  #region Next State Logic
 
@@ -1314,7 +1336,7 @@ module control (
 					end
 				end
 				else begin
-					let branch_taken = 
+					let branch_taken =
 							( IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) // C
 						| ( IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[1])) // Z
 						| (~IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[6])) // V

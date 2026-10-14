@@ -422,7 +422,6 @@ module topLevel (
     assign IRQHbuf_out = IRQH_en ? 8'hff : 8'bz;
 
     assign IRQLmux_out = IRQLmux_sel == 0 ? 8'hfe : 8'hff;
-
     assign IRQLbuf_out = IRQL_en ? IRQLmux_out : 8'bz;
 
     // #endregion
