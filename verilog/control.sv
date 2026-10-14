@@ -310,9 +310,9 @@ module control (
 			end
 			BRANCH_CHECK: begin
 				let branch_taken =
-						( IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) // C
-					| ( IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[1])) // Z
-					| (~IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[6])) // V
+					(IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) // C
+					| (IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in[1])) // Z
+					| (~IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in[6])) // V
 					| (~IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[7])); // N
 				if (branch_taken) begin
 					IR_ld = 1;
@@ -369,7 +369,7 @@ module control (
 				PCLd_en = 1;
 			end
 			BRK_IMP_5: begin
-				// PCL=M[$FFFE]   @@ add any special value buffers to datapath, S_page, etc.
+				// PCL=M[$FFFE]
 				setReadMem();
 				PCLm_en = 0;
 				PCHm_en = 0;
@@ -1252,29 +1252,29 @@ module control (
 		data_enable_check: begin
 			let num_data_enabled = X_en + Y_en + Sd_en + ALUd_en + A_en + PCLd_en + PCHd_en + DLd_en + DHd_en + TLd_en + THd_en + Pd_en + xferd_en;
 			assert (num_data_enabled <= 1)
-			else   $warning("%d data enable signal has been set", num_data_enabled);
+			else $warning("%d data enable signal has been set", num_data_enabled);
 		end
 
 		xfer_enable_check: begin
 			let num_xfer_enable = mem_rW + IR_en + xferu_en;
 			assert (num_xfer_enable <= 1)
-			else   $warning("%d xfer bus signals have been set", num_xfer_enable);
+			else $warning("%d xfer bus signals have been set", num_xfer_enable);
 		end
 
 		membus_h_enable: begin
 			let num_membus_h_enable = Spagem_en + PCHm_en + DHm_en + THm_en + IRQH_en;
 			assert (num_membus_h_enable <= 1)
-			else   $warning("%d mem bus (high) signals have been set", num_membus_h_enable);
+			else $warning("%d mem bus (high) signals have been set", num_membus_h_enable);
 		end
 
 		membus_l_enable: begin
 			let num_membus_l_enable = Sm_en + ALUm_en + PCLm_en + DLm_en + TLm_en + IRQL_en;
 			assert (num_membus_l_enable <= 1)
-			else   $warning("%d mem bus (low) signals have been set", num_membus_l_enable);
+			else $warning("%d mem bus (low) signals have been set", num_membus_l_enable);
 		end
 	end
 
-	//  #region Next State Logic
+	// #region Next State Logic
 
 	// TODO Temporarily removed SAX_ZPG
 	always @ (state, IR_in, P_in, forceReset_n) begin
@@ -1315,9 +1315,9 @@ module control (
 				end
 				else begin
 					let branch_taken =
-							( IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) // C
-						| ( IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[1])) // Z
-						| (~IR_in[7] &  IR_in[6] & ~(IR_in[5] ^ P_in[6])) // V
+						(IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) // C
+						| (IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in[1])) // Z
+						| (~IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in[6])) // V
 						| (~IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[7])); // N
 					if (state == BRANCH_CHECK & branch_taken)
 						next_state = BRANCH_TAKEN;
@@ -1552,7 +1552,7 @@ module control (
 			BRANCH:
 				next_state = BRANCH_CHECK;
 			boot_1:
-				next_state  = boot_2;
+				next_state = boot_2;
 			boot_2:
 				next_state = fetch1;
 			ERROR: begin

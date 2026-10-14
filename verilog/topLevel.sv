@@ -119,7 +119,7 @@ module topLevel (
     wire [7:0] IRQLmux_out;
 
     // Test-memory signals:
-    wire [7:0]  membuf_out;
+    wire [7:0] membuf_out;
 
     // Reset (neg. edge)
     wire DH_rst_n;
