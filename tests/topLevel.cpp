@@ -11,6 +11,8 @@
 #include "../lib/helpAssert.cpp"
 #include "../lib/testbenchMacros.cpp"
 
+using std::printf;
+
 /**
   A very simple memory-mapper. Allows you to specify a ROM address start.
   Above that address until 0xffff, that memory will be treated as read only,
@@ -40,11 +42,15 @@ void write(uint16_t address, uint8_t byte) {
   if (address < romAddress)
     data[address] = byte;
 }
+
+void dumpRange(uint16_t from, uint16_t to) {
+  for (int i = from; i <= to; i++) {
+    printf("%0x:%0x\n", i, read(i));
+  }
+}
 } // namespace TestMap
 
-using std::printf;
-
-#define log_error(fmt, ...) \
+#define log_error(fmt, ...)                                                    \
   fprintf(stderr, "[ERROR] (%s:%d) " fmt "\n", __FILE__, __LINE__)
 
 // Reads a file into a buffer of memory
@@ -188,8 +194,20 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
     return -1;
   }
 
+  printForTest &&printf("boot_3\n");
+
   CycleClockWDump(top, vcdOut, counter);
   if (!testEqual(0x101, top.dbg_state_out)) {
+    log_error("Failed in reset: dbg_state_out\n");
+    return -1;
+  }
+  if (!testEqual(StandardProgramRomAddr, top.dbg_PC_out)) {
+    log_error("Failed in reset: dbg_PC_out\n");
+    return -1;
+  }
+  
+  CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0x102, top.dbg_state_out)) {
     log_error("Failed in reset: dbg_state_out\n");
     return -1;
   }
@@ -211,24 +229,33 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
 /** Tests the reset procedure */
 int testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult < -1)
+  if (resetResult < -1) {
     log_error("Reset failed\n");
-  return resetResult;
+    return resetResult;
+  }
+
+  int counter = 9;
+
+  // Steady state behavior
+  for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < 3; i++) {
+      CycleClockWDump(top, vcdOut, counter);
+    }
+  }
+  return 0;
 }
 
 /** Tests the JMP instruction */
 int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult < -1)
+  if (resetResult < -1) {
     log_error("Reset failed\n");
-  return resetResult;
+    return resetResult;
+  }
 
-  int counter = 7;
+  int counter = 9;
 
-  // After reset, need an additional fetch cycle (?)
-  CycleClockWDump(top, vcdOut, counter);
-
-  // JMP takes 3 cycles to ready
+  // JMP absolute takes 3 cycles to ready
   for (int i = 0; i < 3; i++) {
     CycleClockWDump(top, vcdOut, counter);
   }
@@ -243,6 +270,47 @@ int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   }
   if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
     log_error("Did not jump to correct address (absolute indirect)\n");
+    return -1;
+  }
+
+  // Steady state behavior
+  for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < 3; i++) {
+      CycleClockWDump(top, vcdOut, counter);
+    }
+    if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
+      log_error("Failed to JMP to trap\n");
+      return -1;
+    }
+  }
+  return 0;
+}
+
+/** Tests JSR and RTS */
+int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
+  int resetResult = reset(top, vcdOut, true);
+  if (resetResult < -1) {
+    log_error("Reset failed\n");
+    return resetResult;
+  }
+
+  int counter = 9;
+
+  // JSR takes 6 cycles to ready
+  for (int i = 0; i < 6; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out)) {
+    log_error("Did not jump to correct address.\n");
+    return -1;
+  }
+  
+  // RTS takes 6 cycles to ready
+  for (int i = 0; i < 6; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
+    log_error("Did not return to correct address.\n");
     return -1;
   }
 
@@ -279,6 +347,10 @@ int main(int argc, char **argv, char **env) {
        .vcdFile = "./vcd_out/jmp_test.vcd",
        .programFile = "./obj_dir/jmp.test.o65",
        .romStartAddress = StandardProgramRomAddr},
+      {.testFunction = testSubroutines,
+       .vcdFile = "./vcd_out/subroutines_test.vcd",
+       .programFile = "./obj_dir/subroutines.test.o65",
+       .romStartAddress = StandardProgramRomAddr},
   };
 
   size_t numTests = sizeof(tests) / sizeof(tests[0]);
@@ -300,6 +372,7 @@ int main(int argc, char **argv, char **env) {
     }
     TestMap::initMap(memory, tests[i].romStartAddress);
 
+    printf("BEGIN TEST: %s\n", tests[i].programFile);
     int result = tests[i].testFunction(top, vcdOut, memory);
     if (result < 0) {
       log_error("Failed tests.\n");

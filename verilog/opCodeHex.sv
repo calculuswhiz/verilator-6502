@@ -51,8 +51,8 @@ typedef enum logic [11:0] {
     // #endregion Official opcodes.
     
     // Non-instruction states are reserved at >0xff
-    // e.g. fetch1, fetch2, jmp_abs_1.
-    fetch1 = 12'h101, fetch2 = 12'h102,
+    // e.g. boot_3, fetch2, jmp_abs_1.
+    boot_3 = 12'h101, fetch2 = 12'h102,
     IMMEDIATE = 12'h103,
     IMPLIED_ACCUMULATOR = 12'h104,
     ABSOLUTE_1 = 12'h105, ABSOLUTE_2 = 12'h106, ABSOLUTE_R = 12'h107, ABSOLUTE_W = 12'h108,
@@ -77,7 +77,8 @@ typedef enum logic [11:0] {
     
     // Stack extra stages:
     BRK_IMP_1 = 12'h200, BRK_IMP_2 = 12'h300, BRK_IMP_3 = 12'h400, BRK_IMP_4 = 12'h500,
-    BRK_IMP_5 = 12'h600, RTI_IMP_1 = 12'h240, RTI_IMP_2 = 12'h340, RTI_IMP_3 = 12'h440,
+    BRK_IMP_5 = 12'h600, 
+    RTI_IMP_1 = 12'h240, RTI_IMP_2 = 12'h340, RTI_IMP_3 = 12'h440,
     RTS_IMP_1 = 12'h260, RTS_IMP_2 = 12'h360, RTS_IMP_3 = 12'h460, RTS_IMP_4 = 12'h560,
     PLA_IMP_1 = 12'h268, JSR_ABS_1 = 12'h220, JSR_ABS_2 = 12'h320, JSR_ABS_3 = 12'h420, 
     JSR_ABS_4 = 12'h520, PLP_IMP_1 = 12'h228,

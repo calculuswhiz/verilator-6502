@@ -151,7 +151,7 @@
 070 BVS_REL
 06C JMP_IND
 #Special:
-101 fetch1
+101 boot_3
 102 fetch2
 103 IMM
 104 IMP_ACC

@@ -20,7 +20,7 @@ module topLevel (
     output [15:0] dbg_D_out,
     output [15:0] dbg_T_out,
     output [15:0] dbg_PC_out,
-    output cpu_state dbg_state_out, dbg_next_state_out
+    output cpu_state dbg_state_out
 );
 
     // Clock divider:
@@ -418,7 +418,6 @@ module topLevel (
         .aluop(aluop),
         .V_ctl(V_in), .C_ctl(C_in),
         .mem_rW(mem_rW),
-        .next_state_out(dbg_next_state_out),
         .state_out(dbg_state_out)
     );
 
