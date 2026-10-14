@@ -54,17 +54,18 @@ module topLevel (
     wire P_ld, IR_ld;
 
     // Selection:
-    wire Smux_sel, Amux_sel;
+    s_mux_src Smux_sel;
+    a_mux_src Amux_sel;
     // wire SID_sel;
     alu_mux_src ALU_Amux_sel, ALU_Bmux_sel;
     pcl_mux_src PCLmux_sel;
-    wire PCHmux_sel;
+    pch_mux_src PCHmux_sel;
     dl_mux_src DLmux_sel;
-    wire DHmux_sel;
+    dh_mux_src DHmux_sel;
     tl_mux_src TLmux_sel;
-    wire Pmux_sel;
-    wire IRmux_sel;
-    wire IRQLmux_sel;
+    p_mux_src Pmux_sel;
+    ir_mux_src IRmux_sel;
+    irql_mux_src IRQLmux_sel;
 
     // Other ALU signals:
     aluop_t aluop;
@@ -163,7 +164,7 @@ module topLevel (
 
     // #region S
 
-    assign Smux_out = Smux_sel == 0 ? data_bus : memory_bus_l;
+    assign Smux_out = Smux_sel == sSel_data_bus ? data_bus : memory_bus_l;
 
     SPReg S_reg(
         .clk(clkDiv[divFactor]),
@@ -224,7 +225,7 @@ module topLevel (
 
     // #region A
 
-    assign Amux_out = Amux_sel == 0 ? data_bus : ALU_out;
+    assign Amux_out = Amux_sel == aSel_data_bus ? data_bus : ALU_out;
 
     GpReg A_reg(
         .clk(clkDiv[divFactor]),
@@ -246,7 +247,7 @@ module topLevel (
         : PCLmux_sel == pclSel_DL_out ? DL_out
         : TL_out;
 
-    assign PCHmux_out = PCHmux_sel == 0 ? data_bus : memory_bus_h;
+    assign PCHmux_out = PCHmux_sel == pchSel_data_bus ? data_bus : memory_bus_h;
 
     // 0xfffe is where the reset vector is
     PC PC_reg(
@@ -280,7 +281,7 @@ module topLevel (
         : DLmux_sel == dlSel_ALU_out ? ALU_out
         : 0;
 
-    assign DHmux_out = DHmux_sel == 0 ? data_bus : 0;
+    assign DHmux_out = DHmux_sel == dhSel_data_bus ? data_bus : 0;
 
     CountReg D_reg(
         .clk(clkDiv[divFactor]),
@@ -336,7 +337,7 @@ module topLevel (
 
     // #region P
 
-    assign Pmux_out = Pmux_sel == 0 ? ctl_pvect : data_bus;
+    assign Pmux_out = Pmux_sel == pSel_ctl_pvect ? ctl_pvect : data_bus;
 
     GpReg P_reg(
         .clk(clkDiv[divFactor]),
@@ -352,7 +353,7 @@ module topLevel (
 
     // #region IR
 
-    assign IRmux_out = IRmux_sel == 0 ? xfer_bus : ctl_irvect;
+    assign IRmux_out = IRmux_sel == irSel_xfer_bus ? xfer_bus : ctl_irvect;
 
     GpReg IR_reg(
         .clk(clkDiv[divFactor]),
@@ -427,7 +428,7 @@ module topLevel (
 
     assign IRQHbuf_out = IRQH_en ? 8'hff : 8'bz;
 
-    assign IRQLmux_out = IRQLmux_sel == 0 ? 8'hfe : 8'hff;
+    assign IRQLmux_out = IRQLmux_sel == irqlSel_fe ? 8'hfe : 8'hff;
     assign IRQLbuf_out = IRQL_en ? IRQLmux_out : 8'bz;
 
     // #endregion
