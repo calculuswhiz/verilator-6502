@@ -18,12 +18,12 @@ start_program_ROM:
   ; Test immediate loading:
   ; Expect register to either be 0 or $80 with respective flag set
   ; 2 cycles each
-  LDA #$80
   LDA #$0
-  LDX #$80
+  LDA #$80
   LDX #0
-  LDY #$80
+  LDX #$80
   LDY #0
+  LDY #$80
   
   ; Test zero page storage
   ; Setup 6 cycles

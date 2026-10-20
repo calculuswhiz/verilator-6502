@@ -357,7 +357,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x80, top.dbg_A_out)) {
-    log_error("Did not load -1 to register\n");
+    log_error("Did not load 0x80 to register\n");
     return -1;
   }
   if (!testEqual(0b10000000, top.dbg_P_out)) {
@@ -383,7 +383,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x80, top.dbg_X_out)) {
-    log_error("Did not load -1 to register\n");
+    log_error("Did not load 0x80 to register\n");
     return -1;
   }
   if (!testEqual(0b10000000, top.dbg_P_out)) {
@@ -409,7 +409,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x80, top.dbg_Y_out)) {
-    log_error("Did not load -1 to register\n");
+    log_error("Did not load 0x80 to register\n");
     return -1;
   }
   if (!testEqual(0b10000000, top.dbg_P_out)) {
@@ -421,29 +421,29 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
 #pragma region Immediate loads
 
-  // LDA (negative)
-  for (int i = 0; i < 2; i++) {
-    CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x80, top.dbg_A_out)) {
-    log_error("Did not load -1 to register\n");
-    return -1;
-  }
-  if (!testEqual(0b10000000, top.dbg_P_out)) {
-    log_error("Did not set N flag\n");
-    return -1;
-  }
-
   // LDA (zero)
   for (int i = 0; i < 2; i++) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x00, top.dbg_A_out)) {
-    log_error("Did not load -1 to register\n");
+    log_error("Did not load 0x80 to register\n");
     return -1;
   }
   if (!testEqual(0b00000010, top.dbg_P_out)) {
     log_error("Did not set Z flag\n");
+    return -1;
+  }
+
+  // LDA (negative)
+  for (int i = 0; i < 2; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x80, top.dbg_A_out)) {
+    log_error("Did not load 0x80 to register\n");
+    return -1;
+  }
+  if (!testEqual(0b10000000, top.dbg_P_out)) {
+    log_error("Did not set N flag\n");
     return -1;
   }
 

@@ -53,12 +53,12 @@ typedef enum logic [11:0] {
     // Non-instruction states are reserved at >0xff
     // e.g. boot_3, fetch2, jmp_abs_1.
     boot_3 = 12'h101, fetch2 = 12'h102,
-    IMMEDIATE = 12'h103,
+    // TODO 103 is free now
     IMPLIED_ACCUMULATOR = 12'h104,
     ABSOLUTE_1 = 12'h105, ABSOLUTE_2 = 12'h106, ABSOLUTE_R = 12'h107, ABSOLUTE_W = 12'h108,
     ZEROPAGE = 12'h109, ZEROPAGE_W = 12'h10a, ZEROPAGE_R = 12'h10b,
     BRANCH = 12'h10c, BRANCH_CHECK = 12'h10d, BRANCH_TAKEN = 12'h10e, BRANCH_PAGE = 12'h10f,
-    // 110 is free now. Probably refactor later.
+    // TODO 110 is free now. Probably refactor later.
     ZEROPAGE_X = 12'h111, ZEROPAGE_Y = 12'h112,
     ABSOLUTE_X = 12'h113, ABSOLUTE_Y = 12'h114, ABSOLUTE_XYR = 12'h115, ABSOLUTE_XYR_PAGE = 12'h116,
 

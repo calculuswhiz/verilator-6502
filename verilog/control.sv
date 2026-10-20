@@ -138,12 +138,11 @@ module control (
 			page_invalid = page_normal;
 	endfunction
 
-	/** Fetch next instruction, increment PC */
-	function void fetchNextInstruction();
+	/** Fetch PC-addressed location, increment PC.  */
+	function void fetchAddressOpcode();
 		setReadMem();
 		addressWith("PC");
 		PCL_inc = 1;
-		IR_ld = 1;
 	endfunction
 
 	function void doAlu(aluop_t op, alu_mux_src a_src, alu_mux_src b_src);
@@ -236,7 +235,8 @@ module control (
 				IR_ld = 1;
 			end
 			fetch2: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				// next_state_path = IR_in;
 			end
 			boot_1: begin
@@ -254,7 +254,7 @@ module control (
 				PCH_ld = 1;
 			end
 			// #region General states
-			ABSOLUTE_1, BRANCH, IMMEDIATE: begin
+			ABSOLUTE_1, BRANCH: begin
 				PCL_inc = 1;
 				setReadMem();
 				addressWith("PC");
@@ -326,7 +326,8 @@ module control (
 					// Fix PCH: if a: carry on positive addition, or b: no carry on negative addition.
 					set_invd();
 				end else
-					fetchNextInstruction();
+					fetchAddressOpcode();
+					IR_ld = 1;
 			end
 			// Fix PC if page crossed.
 			BRANCH_TAKEN: begin
@@ -347,7 +348,8 @@ module control (
 			end
 			BRANCH_PAGE,
 			BRK_IMP_1:
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 			BRK_IMP_2: begin
 				setWriteMem();
 				addressWith("S");
@@ -584,28 +586,24 @@ module control (
 			// #endregion Stack
 			// #region IMM
 			ADC_IMM: begin
-				fetchNextInstruction();
-				// DL holds operand, move to data_bus
-				DLd_en = 1;
+				fetchAddressOpcode();
+				A_ld = 1;
 				// A+M+C
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				C_ctl = P_in[0];
 				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
 			AND_IMM: begin
-				fetchNextInstruction();
-				DLd_en = 1;
+				fetchAddressOpcode();
+				A_ld = 1;
 				// A & M
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			CMP_IMM: begin
-				fetchNextInstruction();
-				DLd_en = 1;
+				fetchAddressOpcode();
 				// A-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 				// Since we're subtracting.
@@ -613,8 +611,7 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			CPX_IMM: begin
-				fetchNextInstruction();
-				DLd_en = 1;
+				fetchAddressOpcode();
 				// X-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_sbc, aluSel_X, aluSel_data_bus);
 				// Since we're subtracting.
@@ -622,8 +619,7 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			CPY_IMM: begin
-				fetchNextInstruction();
-				DLd_en = 1;
+				fetchAddressOpcode();
 				// Y-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_sbc, aluSel_Y, aluSel_data_bus);
 				// Since we're subtracting.
@@ -631,58 +627,53 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			EOR_IMM: begin
-				fetchNextInstruction();
-				DLd_en = 1;
+				fetchAddressOpcode();
+				A_ld = 1;
 				// A^M
 				doAlu(alu_eor, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			LDA_IMM: begin
-				fetchNextInstruction();
-				DLd_en = 1;
+				fetchAddressOpcode();
 				A_ld = 1;
 				ALU_Amux_sel = aluSel_data_bus;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			LDX_IMM: begin
-				fetchNextInstruction();
-				DLd_en = 1;
+				fetchAddressOpcode();
 				X_ld = 1;
 				ALU_Amux_sel = aluSel_X;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			LDY_IMM: begin
-				fetchNextInstruction();
-				DLd_en = 1;
+				fetchAddressOpcode();
 				Y_ld = 1;
 				ALU_Amux_sel = aluSel_Y;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			ORA_IMM: begin
-				fetchNextInstruction();
-				DLd_en = 1;
+				fetchAddressOpcode();
+				A_ld = 1;
 				// A&M
 				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			SBC_IMM: begin
-				fetchNextInstruction();
-				DLd_en = 1;
+				fetchAddressOpcode();
+				A_ld = 1;
 				// A+M+C
 				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 				C_ctl = P_in[0];
 				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
 			// #endregion IMM
 			// #region IMP/ACC
 			ASL_ACC: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				// A<<1
 				doAlu(alu_asl, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
@@ -690,64 +681,75 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			CLC_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				ctl_pvect[0] = 0;
 				P_ld = 1;
 			end
 			CLD_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				ctl_pvect[3] = 0;
 				P_ld = 1;
 			end
 			CLI_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				ctl_pvect[2] = 0;
 				P_ld = 1;
 			end
 			CLV_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				ctl_pvect[6] = 0;
 				P_ld = 1;
 			end
 			DEX_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				doAlu(alu_dec, aluSel_X, aluSel_A);
 				ALUd_en = 1;
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			DEY_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				doAlu(alu_dec, aluSel_Y, aluSel_A);
 				ALUd_en = 1;
 				Y_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			INX_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				doAlu(alu_inc, aluSel_X, aluSel_A);
 				ALUd_en = 1;
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			INY_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				doAlu(alu_inc, aluSel_Y, aluSel_A);
 				ALUd_en = 1;
 				Y_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			LSR_ACC: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				doAlu(alu_lsr, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			NOP_IMP:
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 			ROL_ACC: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				doAlu(alu_rol, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
@@ -755,7 +757,8 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			ROR_ACC: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				doAlu(alu_ror, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
@@ -763,52 +766,61 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			SEC_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				ctl_pvect[0] = 1;
 				P_ld = 1;
 			end
 			SED_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				ctl_pvect[3] = 1;
 				P_ld = 1;
 			end
 			SEI_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				ctl_pvect[2] = 1;
 				P_ld = 1;
 			end
 			TAX_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				A_en = 1;
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			TAY_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				A_en = 1;
 				Y_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			TSX_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				Sd_en = 1;
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			TXA_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				X_en = 1;
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			TYA_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				Y_en = 1;
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			TXS_IMP: begin
-				fetchNextInstruction();
+				fetchAddressOpcode();
+				IR_ld = 1;
 				X_en = 1;
 				S_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
@@ -1307,8 +1319,9 @@ module control (
 					? (cpu_state)'({4'h2, state[7:0]})
 					: fetch2;
 			end
+			ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM:
+				next_state <= fetch2;
 			fetch2, BRANCH_TAKEN, BRANCH_CHECK,
-			ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM,
 			ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
 			LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC, SEC_IMP,
 			SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP,
@@ -1334,7 +1347,7 @@ module control (
 						case (next_state_opcode)
 							ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM,
 							ORA_IMM, SBC_IMM:
-								next_state <= IMMEDIATE;
+								next_state <= (cpu_state)'(next_state_opcode);
 							JSR_ABS:
 								next_state <= JSR_ABS_1;
 							BRK_IMP:
@@ -1396,7 +1409,7 @@ module control (
 						next_state <= ir_opcode;
 				endcase
 			end
-			IMMEDIATE, ABSOLUTE_R, ZEROPAGE_R, BRANCH_PAGE:
+			ABSOLUTE_R, ZEROPAGE_R, BRANCH_PAGE:
 				next_state <= ir_opcode;
 			ABSOLUTE_1: begin
 				case (ir_opcode)
