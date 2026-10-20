@@ -599,6 +599,31 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
 #pragma endregion
 
+#pragma region ZP idx loads
+
+  // Setup
+  for (int i = 0; i < 6; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+
+  // LDA
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x01, top.dbg_A_out)) {
+    return log_error(), -1;
+  }
+
+  // LDY
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x01, top.dbg_Y_out)) {
+    return log_error(), -1;
+  }
+
+#pragma endregion
+
   return 0;
 }
 

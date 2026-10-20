@@ -190,6 +190,7 @@ module control (
 		IR_en = 0;
 		ALUd_en = 0; ALUm_en = 0;
 		IRQH_en = 0; IRQL_en = 0;
+		xferd_en = 0;
 
 		// Load:
 		X_ld = 0;

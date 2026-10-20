@@ -55,9 +55,9 @@ start_program_ROM:
   LDA #0
   LDX #0
   LDY #0
-  ; Expect $80, 4 cycles
+  ; Expect $01, 4 cycles
   LDA $00,X
-  ; Expect $80, 4 cycles
+  ; Expect $01, 4 cycles
   LDY $00,X
   ; 2 cycles new index
   LDX #$03
