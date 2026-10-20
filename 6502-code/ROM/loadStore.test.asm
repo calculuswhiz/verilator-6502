@@ -45,10 +45,10 @@ start_program_ROM:
 
   ; Test absolute storage
   ; 4 cycles each
-  ; Expect $01 $02 $03 starting at $200
+  ; Expect $02 $03 $01 starting at $200
   STA program_RAM
-  STX program_RAM
-  STY program_RAM
+  STX program_RAM + 1
+  STY program_RAM + 2
 
   ; Test ZP indexed loads
   ; Reset for test, total 6 cycles

@@ -426,9 +426,11 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x00, top.dbg_A_out)) {
+    log_error();
     return -1;
   }
   if (!testEqual(0b00000010, top.dbg_P_out)) {
+    log_error();
     return -1;
   }
 
@@ -437,9 +439,11 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x80, top.dbg_A_out)) {
+    log_error();
     return -1;
   }
   if (!testEqual(0b10000000, top.dbg_P_out)) {
+    log_error();
     return -1;
   }
 
@@ -448,9 +452,11 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x00, top.dbg_X_out)) {
+    log_error();
     return -1;
   }
   if (!testEqual(0b00000010, top.dbg_P_out)) {
+    log_error();
     return -1;
   }
 
@@ -459,9 +465,11 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x80, top.dbg_X_out)) {
+    log_error();
     return -1;
   }
   if (!testEqual(0b10000000, top.dbg_P_out)) {
+    log_error();
     return -1;
   }
 
@@ -470,9 +478,11 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x00, top.dbg_Y_out)) {
+    log_error();
     return -1;
   }
   if (!testEqual(0b00000010, top.dbg_P_out)) {
+    log_error();
     return -1;
   }
 
@@ -481,15 +491,17 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x80, top.dbg_Y_out)) {
+    log_error();
     return -1;
   }
   if (!testEqual(0b10000000, top.dbg_P_out)) {
+    log_error();
     return -1;
   }
 
 #pragma endregion
 
-#pragma region Zero page storage
+#pragma region ZP storage
 
   // Setup
   for (int i = 0; i < 6; i++) {
@@ -501,6 +513,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(1, TestMap::read(0))) {
+    log_error();
     return -1;
   }
 
@@ -509,6 +522,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(2, TestMap::read(1))) {
+    log_error();
     return -1;
   }
 
@@ -517,18 +531,20 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(3, TestMap::read(2))) {
+    log_error();
     return -1;
   }
 
 #pragma endregion
 
-#pragma region Zero page loads
+#pragma region ZP loads
 
   // LDA
   for (int i = 0; i < 3; i++) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(2, top.dbg_A_out)) {
+    log_error();
     return -1;
   }
 
@@ -537,6 +553,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(3, top.dbg_X_out)) {
+    log_error();
     return -1;
   }
 
@@ -545,6 +562,38 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(1, top.dbg_Y_out)) {
+    log_error();
+    return -1;
+  }
+
+#pragma endregion
+
+#pragma region ZP loads
+
+  // STA
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x2, TestMap::read(0x200))) {
+    log_error();
+    return -1;
+  }
+
+  // STX
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x3, TestMap::read(0x201))) {
+    log_error();
+    return -1;
+  }
+
+  // STY
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x1, TestMap::read(0x202))) {
+    log_error();
     return -1;
   }
 
