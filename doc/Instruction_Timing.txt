@@ -183,7 +183,7 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  fetch value, increment PC
-                        DL=M[PC], PC+=1   (IMMEDIATE)
+                        Destination=M[PC], PC+=1   (Depends on state)
 
   Absolute addressing
 

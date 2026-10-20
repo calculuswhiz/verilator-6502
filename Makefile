@@ -14,9 +14,9 @@ build: $(CPP_PROGS)
 	rm -f ./vcd_out/*.vcd
 # Generates the Verilator Makefile(s) and C++ source files for the specified Verilog module
 # Pass the testbench to verilator with --exe (don't use -I"$<" which is a .cpp file)
-	verilator --cc -Wall --trace -I"./verilog" ./verilog/$@.sv --exe $< --CFLAGS "-ggdb"
+	verilator --cc -Wall --trace -I"./verilog" ./verilog/$@.sv --exe $< --CFLAGS "-glldb"
 # Build the generated makefile in obj_dir (use $(MAKE) for portability)
-	$(MAKE) -C obj_dir -j -f V$@.mk V$@ CXX=clang++ LINK=clang++ CXXFLAGS="-ggdb"
+	$(MAKE) -C obj_dir -j -f V$@.mk V$@ CXX=clang++ LINK=clang++ CXXFLAGS="-glldb"
 
 assemble: $(ASM_PROGS)
 

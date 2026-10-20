@@ -85,12 +85,30 @@ start_program_ROM:
   LDA $0ff,X
 
   ; Test indexed indirect (d, x)
+  ; Store reset vector's address at 0 page
+  LDA $fc
+  STA $00
+  LDA $ff
+  STA $01
   /*
     PEEK(
-      PEEK((arg + X) % 256) 
-      + PEEK((arg + X + 1) % 256) * 256
+      PEEK({arg + X + 1, arg + X})
     )
   */
+  ; Expect $8000 in A, 6 cycles
+  LDA ($00, X)
+
+  ; Test indirect indexed (d),y
+  LDY #00
+  /*
+    PEEK(
+      PEEK({arg + 1, arg}) + Y
+    )
+  */
+  ; Expect $8000, 5 cycles
+  LDA ($00), Y
+
+; TODO Page crossing cycle count test
 
 trap:
   JMP trap

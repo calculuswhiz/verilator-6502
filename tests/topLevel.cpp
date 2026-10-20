@@ -205,7 +205,7 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
     log_error("Failed in reset: dbg_PC_out\n");
     return -1;
   }
-  
+
   CycleClockWDump(top, vcdOut, counter);
   if (!testEqual(0x102, top.dbg_state_out)) {
     log_error("Failed in reset: dbg_state_out\n");
@@ -304,7 +304,7 @@ int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     log_error("Did not jump to correct address.\n");
     return -1;
   }
-  
+
   // RTS takes 6 cycles to ready
   for (int i = 0; i < 6; i++) {
     CycleClockWDump(top, vcdOut, counter);
@@ -327,12 +327,138 @@ int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   return 0;
 }
 
+/* Tests LDA, LDX, LDY, STA, STX, STY */
+int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
+  int resetResult = reset(top, vcdOut, true);
+  if (resetResult < -1) {
+    log_error("Reset failed\n");
+    return resetResult;
+  }
+
+  int counter = 9;
+
+#pragma region Absolute loads
+
+  // LDA (zero flag)
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0, top.dbg_A_out)) {
+    log_error("Did not load 0 to register\n");
+    return -1;
+  }
+  if (!testEqual(0b00000010, top.dbg_P_out)) {
+    log_error("Did not set Z flag\n");
+    return -1;
+  }
+
+  // LDA (negative flag)
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x80, top.dbg_A_out)) {
+    log_error("Did not load -1 to register\n");
+    return -1;
+  }
+  if (!testEqual(0b10000000, top.dbg_P_out)) {
+    log_error("Did not set N flag\n");
+    return -1;
+  }
+
+  // LDX (zero flag)
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0, top.dbg_X_out)) {
+    log_error("Did not load 0 to register\n");
+    return -1;
+  }
+  if (!testEqual(0b00000010, top.dbg_P_out)) {
+    log_error("Did not set Z flag\n");
+    return -1;
+  }
+
+  // LDX (negative flag)
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x80, top.dbg_X_out)) {
+    log_error("Did not load -1 to register\n");
+    return -1;
+  }
+  if (!testEqual(0b10000000, top.dbg_P_out)) {
+    log_error("Did not set N flag\n");
+    return -1;
+  }
+
+  // LDY (zero flag)
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0, top.dbg_Y_out)) {
+    log_error("Did not load 0 to register\n");
+    return -1;
+  }
+  if (!testEqual(0b00000010, top.dbg_P_out)) {
+    log_error("Did not set Z flag\n");
+    return -1;
+  }
+
+  // LDY (negative flag)
+  for (int i = 0; i < 4; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x80, top.dbg_Y_out)) {
+    log_error("Did not load -1 to register\n");
+    return -1;
+  }
+  if (!testEqual(0b10000000, top.dbg_P_out)) {
+    log_error("Did not set N flag\n");
+    return -1;
+  }
+
+#pragma endregion
+
+#pragma region Immediate loads
+
+  // LDA (negative)
+  for (int i = 0; i < 2; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x80, top.dbg_A_out)) {
+    log_error("Did not load -1 to register\n");
+    return -1;
+  }
+  if (!testEqual(0b10000000, top.dbg_P_out)) {
+    log_error("Did not set N flag\n");
+    return -1;
+  }
+
+  // LDA (zero)
+  for (int i = 0; i < 2; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x00, top.dbg_A_out)) {
+    log_error("Did not load -1 to register\n");
+    return -1;
+  }
+  if (!testEqual(0b00000010, top.dbg_P_out)) {
+    log_error("Did not set Z flag\n");
+    return -1;
+  }
+
+#pragma endregion
+
+  return 0;
+}
+
 // Configure test information with this
 typedef struct {
   int (*testFunction)(VtopLevel &, VerilatedVcdC &, uint8_t *memory);
   const char *vcdFile;
   const char *programFile;
   uint16_t romStartAddress;
+  bool skip;
 } testInfo_t;
 
 int main(int argc, char **argv, char **env) {
@@ -342,20 +468,32 @@ int main(int argc, char **argv, char **env) {
       {.testFunction = testReset,
        .vcdFile = "./vcd_out/reset_test.vcd",
        .programFile = "./obj_dir/reset.test.o65",
-       .romStartAddress = StandardProgramRomAddr},
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = true},
       {.testFunction = testJmp,
        .vcdFile = "./vcd_out/jmp_test.vcd",
        .programFile = "./obj_dir/jmp.test.o65",
-       .romStartAddress = StandardProgramRomAddr},
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = true},
       {.testFunction = testSubroutines,
        .vcdFile = "./vcd_out/subroutines_test.vcd",
        .programFile = "./obj_dir/subroutines.test.o65",
-       .romStartAddress = StandardProgramRomAddr},
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = true},
+      {.testFunction = testLoadStore,
+       .vcdFile = "./vcd_out/loadStore_test.vcd",
+       .programFile = "./obj_dir/loadStore.test.o65",
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = false},
   };
 
   size_t numTests = sizeof(tests) / sizeof(tests[0]);
 
   for (int i = 0; i < numTests; i++) {
+    if (tests[i].skip) {
+      continue;
+    }
+
     VerilatedContext context;
     Verilated::traceEverOn(true);
 
