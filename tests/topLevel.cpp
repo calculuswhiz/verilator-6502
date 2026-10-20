@@ -426,11 +426,9 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x00, top.dbg_A_out)) {
-    log_error("Did not load 0x80 to register\n");
     return -1;
   }
   if (!testEqual(0b00000010, top.dbg_P_out)) {
-    log_error("Did not set Z flag\n");
     return -1;
   }
 
@@ -439,11 +437,114 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
     CycleClockWDump(top, vcdOut, counter);
   }
   if (!testEqual(0x80, top.dbg_A_out)) {
-    log_error("Did not load 0x80 to register\n");
     return -1;
   }
   if (!testEqual(0b10000000, top.dbg_P_out)) {
-    log_error("Did not set N flag\n");
+    return -1;
+  }
+
+  // LDX (zero)
+  for (int i = 0; i < 2; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x00, top.dbg_X_out)) {
+    return -1;
+  }
+  if (!testEqual(0b00000010, top.dbg_P_out)) {
+    return -1;
+  }
+
+  // LDX (negative)
+  for (int i = 0; i < 2; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x80, top.dbg_X_out)) {
+    return -1;
+  }
+  if (!testEqual(0b10000000, top.dbg_P_out)) {
+    return -1;
+  }
+
+  // LDY (zero)
+  for (int i = 0; i < 2; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x00, top.dbg_Y_out)) {
+    return -1;
+  }
+  if (!testEqual(0b00000010, top.dbg_P_out)) {
+    return -1;
+  }
+
+  // LDY (negative)
+  for (int i = 0; i < 2; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(0x80, top.dbg_Y_out)) {
+    return -1;
+  }
+  if (!testEqual(0b10000000, top.dbg_P_out)) {
+    return -1;
+  }
+
+#pragma endregion
+
+#pragma region Zero page storage
+
+  // Setup
+  for (int i = 0; i < 6; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+
+  // STA
+  for (int i = 0; i < 3; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(1, TestMap::read(0))) {
+    return -1;
+  }
+
+  // STX
+  for (int i = 0; i < 3; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(2, TestMap::read(1))) {
+    return -1;
+  }
+
+  // STY
+  for (int i = 0; i < 3; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(3, TestMap::read(2))) {
+    return -1;
+  }
+
+#pragma endregion
+
+#pragma region Zero page loads
+
+  // LDA
+  for (int i = 0; i < 3; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(2, top.dbg_A_out)) {
+    return -1;
+  }
+
+  // LDX
+  for (int i = 0; i < 3; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(3, top.dbg_X_out)) {
+    return -1;
+  }
+
+  // LDY
+  for (int i = 0; i < 3; i++) {
+    CycleClockWDump(top, vcdOut, counter);
+  }
+  if (!testEqual(1, top.dbg_Y_out)) {
     return -1;
   }
 

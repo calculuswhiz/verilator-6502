@@ -34,18 +34,14 @@ start_program_ROM:
   ; Expect $010203 starting at $00
   STA $00
   STX $01
-  STX $02
+  STY $02
 
   ; Test zero page Loads
-  ; Reset for test, total 6 cycles
-  LDA #0
-  LDX #0
-  LDY #0
-  ; Recover $01, $02, $03 into A, X, Y
+  ; Rotate $02, $03, $01 into A, X, Y
   ; 3 cycles each
-  LDA $00
-  LDX $01
-  LDY $02
+  LDA $01
+  LDX $02
+  LDY $00
 
   ; Test absolute storage
   ; 4 cycles each

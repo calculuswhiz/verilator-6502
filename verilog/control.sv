@@ -325,9 +325,10 @@ module control (
 					PCL_ld = 1;
 					// Fix PCH: if a: carry on positive addition, or b: no carry on negative addition.
 					set_invd();
-				end else
+				end else begin
 					fetchAddressOpcode();
 					IR_ld = 1;
+				end
 			end
 			// Fix PC if page crossed.
 			BRANCH_TAKEN: begin
@@ -347,9 +348,10 @@ module control (
 				endcase
 			end
 			BRANCH_PAGE,
-			BRK_IMP_1:
+			BRK_IMP_1: begin
 				fetchAddressOpcode();
 				IR_ld = 1;
+			end
 			BRK_IMP_2: begin
 				setWriteMem();
 				addressWith("S");
@@ -486,9 +488,8 @@ module control (
 				TH_ld = 1;
 			end
 			ZEROPAGE: begin
+				fetchAddressOpcode();
 				// D=00,M[PC]
-				setReadMem();
-				addressWith("PC");
 				DHmux_sel = dhSel_zero;
 				DH_ld = 1;
 				DL_ld = 1;
@@ -643,13 +644,13 @@ module control (
 			LDX_IMM: begin
 				fetchAddressOpcode();
 				X_ld = 1;
-				ALU_Amux_sel = aluSel_X;
+				ALU_Amux_sel = aluSel_data_bus;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			LDY_IMM: begin
 				fetchAddressOpcode();
 				Y_ld = 1;
-				ALU_Amux_sel = aluSel_Y;
+				ALU_Amux_sel = aluSel_data_bus;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			ORA_IMM: begin
@@ -744,9 +745,10 @@ module control (
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
-			NOP_IMP:
+			NOP_IMP: begin
 				fetchAddressOpcode();
 				IR_ld = 1;
+			end
 			ROL_ACC: begin
 				fetchAddressOpcode();
 				IR_ld = 1;
