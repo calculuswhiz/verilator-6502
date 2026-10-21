@@ -5,7 +5,7 @@ typedef enum logic [1:0] {
 	page_inc = 1,
 	page_dec = 2,
 	page_undefined = 3
-} page_invalid_t;
+} page_invalid_state_t;
 
 // This is what issues the control signals necessary for the processor to run.
 // Also, determines next state
@@ -116,7 +116,7 @@ module control (
 
 	// If page crossed, fix page D
 	function void Dpage_invd();
-		case (page_invalid)
+		case (page_invalid_state)
 			page_normal:
 				/* None */;
 			page_inc:
@@ -129,13 +129,13 @@ module control (
 	endfunction
 
 	// If page cross will happen, set invalid buffer
-	function void set_invd();
+	function void set_page_invalid_state();
 		if (~ALUA_sign & alu_C)
-			page_invalid = page_inc;
+			page_invalid_state = page_inc;
 		else if (ALUA_sign & ~alu_C)
-			page_invalid = page_dec;
+			page_invalid_state = page_dec;
 		else
-			page_invalid = page_normal;
+			page_invalid_state = page_normal;
 	endfunction
 
 	/** Fetch PC-addressed location, increment PC.  */
@@ -153,14 +153,14 @@ module control (
 
 	cpu_state state, next_state;
 
-	page_invalid_t page_invalid;
+	page_invalid_state_t page_invalid_state;
 
 	// Source select. IR_out or mem_data.
 	logic [7:0] next_state_path;
 
 	initial begin
 		state = boot_1;
-		page_invalid = page_normal;
+		page_invalid_state = page_normal;
 	end
 
 	// #region State actions
@@ -280,7 +280,7 @@ module control (
 				DLmux_sel = dlSel_ALU_out;
 				DL_ld = 1;
 				PCL_inc = 1;
-				set_invd();
+				set_page_invalid_state();
 			end
 			ABSOLUTE_Y: begin
 				setReadMem();
@@ -290,7 +290,7 @@ module control (
 				DLmux_sel = dlSel_ALU_out;
 				DL_ld = 1;
 				PCL_inc = 1;
-				set_invd();
+				set_page_invalid_state();
 			end
 			ABSOLUTE_XYR: begin
 				setReadMem();
@@ -325,7 +325,7 @@ module control (
 					PCLmux_sel = pclSel_memory_bus_l;
 					PCL_ld = 1;
 					// Fix PCH: if a: carry on positive addition, or b: no carry on negative addition.
-					set_invd();
+					set_page_invalid_state();
 				end else begin
 					fetchAddressOpcode();
 					IR_ld = 1;
@@ -336,7 +336,7 @@ module control (
 				IR_ld = 1;
 				setReadMem();
 				addressWith("PC");
-				case (page_invalid)
+				case (page_invalid_state)
 					page_normal:
 						// TODO Test this out.
 						PCL_inc = 1;
@@ -393,9 +393,9 @@ module control (
 				addressWith("D");
 				doAlu(alu_adc, aluSel_Y, aluSel_TL);
 				TH_ld = 1;
-				// Do NOT use set_invd. That's for signed address addition. This is UNsigned.
+				// Do NOT use set_page_invalid_state. That's for signed address addition. This is UNsigned.
 				// Simple: if carry is set, that means need to add 1 to TH
-				page_invalid = alu_C
+				page_invalid_state = alu_C
 					? page_inc
 					: page_normal;
 				TLmux_sel = tlSel_ALU_out;
@@ -923,6 +923,7 @@ module control (
 			end
 			LDA_ZPG, LDA_ZPX,
 			LDA_ABS, LDA_ABX_PG, LDA_ABY_PG: begin
+				page_invalid_state = page_normal;
 				addressWith("D");
 				setReadMem();
 				ALU_Amux_sel = aluSel_data_bus;
@@ -939,6 +940,7 @@ module control (
 			end
 			LDX_ZPG, LDX_ZPY,
 			LDX_ABS, LDX_ABY_PG: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("D");
 				ALU_Amux_sel = aluSel_data_bus;
@@ -955,6 +957,7 @@ module control (
 			end
 			LDY_ZPG, LDY_ZPX,
 			LDY_ABS, LDY_ABX_PG: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("D");
 				ALU_Amux_sel = aluSel_data_bus;
@@ -972,6 +975,7 @@ module control (
 			end
 			ORA_ZPG, ORA_ZPX,
 			ORA_ABS, ORA_ABX_PG, ORA_ABY_PG: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("D");
 				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
@@ -991,6 +995,7 @@ module control (
 			end
 			SBC_ZPG, SBC_ZPX,
 			SBC_ABS, SBC_ABX_PG, SBC_ABY_PG: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("D");
 				doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
@@ -1152,7 +1157,7 @@ module control (
 			// #endregion XID
 			// #region IDY
 			LDA_IDY: begin
-				if (page_invalid != page_normal)
+				if (page_invalid_state != page_normal)
 					TH_inc = 1;
 				else begin
 					setReadMem();
@@ -1164,7 +1169,7 @@ module control (
 				end
 			end
 			ORA_IDY: begin
-				if (page_invalid != page_normal)
+				if (page_invalid_state != page_normal)
 					TH_inc = 1;
 				else begin
 					setReadMem();
@@ -1176,7 +1181,7 @@ module control (
 				end
 			end
 			EOR_IDY: begin
-				if (page_invalid != page_normal)
+				if (page_invalid_state != page_normal)
 					TH_inc = 1;
 				else begin
 					setReadMem();
@@ -1188,7 +1193,7 @@ module control (
 				end
 			end
 			AND_IDY: begin
-				if (page_invalid != page_normal)
+				if (page_invalid_state != page_normal)
 					TH_inc = 1;
 				else begin
 					setReadMem();
@@ -1200,7 +1205,7 @@ module control (
 				end
 			end
 			ADC_IDY: begin
-				if (page_invalid != page_normal)
+				if (page_invalid_state != page_normal)
 					TH_inc = 1;
 				else begin
 					setReadMem();
@@ -1214,7 +1219,7 @@ module control (
 				end
 			end
 			CMP_IDY: begin
-				if (page_invalid != page_normal)
+				if (page_invalid_state != page_normal)
 					TH_inc = 1;
 				else begin
 					setReadMem();
@@ -1227,7 +1232,7 @@ module control (
 				end
 			end
 			SBC_IDY: begin
-				if (page_invalid != page_normal)
+				if (page_invalid_state != page_normal)
 					TH_inc = 1;
 				else begin
 					setReadMem();
@@ -1240,7 +1245,7 @@ module control (
 				end
 			end
 			STA_IDY: begin
-				if (page_invalid != page_normal)
+				if (page_invalid_state != page_normal)
 					TH_inc = 1;
 			end
 			// #endregion
@@ -1317,7 +1322,7 @@ module control (
 				next_state <= fetch2;
 			ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
 			LDA_ABX, LDY_ABX, EOR_ABX, AND_ABX, ORA_ABX, ADC_ABX, SBC_ABX, CMP_ABX: begin
-				next_state <= page_invalid != page_normal
+				next_state <= page_invalid_state != page_normal
 					// Transition to ___PG state
 					? (cpu_state)'({4'h2, state[7:0]})
 					: fetch2;
@@ -1329,11 +1334,14 @@ module control (
 			LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC, SEC_IMP,
 			SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP,
 			PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP: begin
-				if (page_invalid != page_normal) begin
+				if (page_invalid_state != page_normal) begin
 					if (state == BRANCH_TAKEN)
 							next_state <= BRANCH_PAGE;
 					else begin
-						$display("State other than BRANCH_TAKEN at invalid page %x:%s", state, state.name());
+						$error(
+							"State (%s) other than BRANCH_TAKEN at invalid page (%s)", 
+							state.name(), page_invalid_state.name()
+						);
 						next_state <= ERROR;
 					end
 				end
@@ -1386,7 +1394,7 @@ module control (
 							BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVC_REL, BVS_REL:
 								next_state <= BRANCH;
 							default: begin
-								$display(
+								$error(
 									"Invalid no-branch state %x in %s. Mem: %x, IR: %x",
 									next_state_path,
 									state.name(),
@@ -1521,7 +1529,7 @@ module control (
 			end
 			
 			LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY: begin
-				next_state <= page_invalid != page_normal
+				next_state <= page_invalid_state != page_normal
 					// Share with ___XID states
 					? (cpu_state)'({4'h0, state[7:4] - 4'h1, state[3:0]})
 					: fetch2;
@@ -1578,10 +1586,11 @@ module control (
 			end
 			ZEROPAGE_X, ZEROPAGE_Y: begin
 				case (ir_opcode)
-					LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
+					LDA_ZPX, LDY_ZPX, LDX_ZPY, 
+					EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
 					STA_ZPX, STY_ZPX, STX_ZPY:
 						next_state <= ir_opcode;
-					ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX, LDX_ZPY:
+					ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX:
 						next_state <= ZEROPAGE_R;
 					default: begin
 						$display("Unrecognized IR code ZEROPAGE_X/Y %x", IR_in);

@@ -124,8 +124,10 @@ const int StandardProgramRomAddr = 0x8000;
 
 // Cycle a module's test signal
 #define CycleClockWDump(clockProvider, dumpFile, countVar)                     \
-  ToggleClockWDump(clockProvider, dumpFile, countVar);                         \
-  ToggleClockWDump(clockProvider, dumpFile, countVar);
+  do {                                                                         \
+    ToggleClockWDump(clockProvider, dumpFile, countVar);                       \
+    ToggleClockWDump(clockProvider, dumpFile, countVar);                       \
+  } while (false)
 
 // Drive the reset signals for the tests. If you wish to see the reset dump, the
 // next timestamp you should use is 7
@@ -138,83 +140,53 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
   int counter = 0;
   vcdOut.dump(counter);
   counter++;
-  if (!testEqual(0x0000, top.dbg_PC_out)) {
-    log_error("Failed in reset: dbg_PC_out\n");
-    return -1;
-  }
-  if (!testEqual(0, top.dbg_A_out)) {
-    log_error("Failed in reset: dbg_A_out\n");
-    return -1;
-  }
-  if (!testEqual(0, top.dbg_X_out)) {
-    log_error("Failed in reset: dbg_X_out\n");
-    return -1;
-  }
-  if (!testEqual(0, top.dbg_Y_out)) {
-    log_error("Failed in reset: dbg_Y_out\n");
-    return -1;
-  }
-  if (!testEqual(0, top.dbg_S_out)) {
-    log_error("Failed in reset: dbg_S_out\n");
-    return -1;
-  }
-  if (!testEqual(0, top.dbg_P_out)) {
-    log_error("Failed in reset: dbg_P_out\n");
-    return -1;
-  }
-  if (!testEqual(0xf00, top.dbg_state_out)) {
-    log_error("Failed in reset: dbg_state_out\n");
-    return -1;
-  }
+  if (!testEqual(0x0000, top.dbg_PC_out))
+    return log_error(), -1;
+  if (!testEqual(0, top.dbg_A_out))
+    return log_error(), -1;
+  if (!testEqual(0, top.dbg_X_out))
+    return log_error(), -1;
+  if (!testEqual(0, top.dbg_Y_out))
+    return log_error(), -1;
+  if (!testEqual(0, top.dbg_S_out))
+    return log_error(), -1;
+  if (!testEqual(0, top.dbg_P_out))
+    return log_error(), -1;
+  if (!testEqual(0xf00, top.dbg_state_out))
+    return log_error(), -1;
 
   printForTest &&printf("Testing reset:\n");
   printForTest &&printf("boot_1\n");
 
   top.forceReset_n = 0;
   CycleClockWDump(top, vcdOut, counter);
-  if (!testEqual(0xf00, top.dbg_state_out)) {
-    log_error("Failed in reset: dbg_state_out\n");
-    return -1;
-  }
-  if (!testEqual(0xfffc, top.dbg_PC_out)) {
-    log_error("Failed in reset: dbg_PC_out\n");
-    return -1;
-  }
+  if (!testEqual(0xf00, top.dbg_state_out))
+    return log_error(), -1;
+  if (!testEqual(0xfffc, top.dbg_PC_out))
+    return log_error(), -1;
 
   printForTest &&printf("boot_2\n");
 
   top.forceReset_n = 1;
   CycleClockWDump(top, vcdOut, counter);
-  if (!testEqual(0xf01, top.dbg_state_out)) {
-    log_error("Failed in reset: dbg_state_out\n");
-    return -1;
-  }
-  if (!testEqual(0xfffd, top.dbg_PC_out)) {
-    log_error("Failed in reset: dbg_PC_out\n");
-    return -1;
-  }
+  if (!testEqual(0xf01, top.dbg_state_out))
+    return log_error(), -1;
+  if (!testEqual(0xfffd, top.dbg_PC_out))
+    return log_error(), -1;
 
   printForTest &&printf("boot_3\n");
 
   CycleClockWDump(top, vcdOut, counter);
-  if (!testEqual(0x101, top.dbg_state_out)) {
-    log_error("Failed in reset: dbg_state_out\n");
-    return -1;
-  }
-  if (!testEqual(StandardProgramRomAddr, top.dbg_PC_out)) {
-    log_error("Failed in reset: dbg_PC_out\n");
-    return -1;
-  }
+  if (!testEqual(0x101, top.dbg_state_out))
+    return log_error(), -1;
+  if (!testEqual(StandardProgramRomAddr, top.dbg_PC_out))
+    return log_error(), -1;
 
   CycleClockWDump(top, vcdOut, counter);
-  if (!testEqual(0x102, top.dbg_state_out)) {
-    log_error("Failed in reset: dbg_state_out\n");
-    return -1;
-  }
-  if (!testEqual(StandardProgramRomAddr, top.dbg_PC_out)) {
-    log_error("Failed in reset: dbg_PC_out\n");
-    return -1;
-  }
+  if (!testEqual(0x102, top.dbg_state_out))
+    return log_error(), -1;
+  if (!testEqual(StandardProgramRomAddr, top.dbg_PC_out))
+    return log_error(), -1;
 
   return 0;
 }
@@ -229,18 +201,15 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
 /** Tests the reset procedure */
 int testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult < -1) {
-    log_error("Reset failed\n");
-    return resetResult;
-  }
+  if (resetResult < -1)
+    return log_error(), -1;
 
   int counter = 9;
 
   // Steady state behavior
   for (int j = 0; j < 3; j++) {
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++)
       CycleClockWDump(top, vcdOut, counter);
-    }
   }
   return 0;
 }
@@ -248,26 +217,22 @@ int testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 /** Tests the JMP instruction */
 int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult < -1) {
-    log_error("Reset failed\n");
-    return resetResult;
-  }
+  if (resetResult < -1)
+    return log_error(), -1;
 
   int counter = 9;
 
   // JMP absolute takes 3 cycles to ready
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
   if (!testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out)) {
     log_error("Did not jump to correct address (absolute).\n");
     return -1;
   }
 
   // JMP indirect takes 5 cycles to ready
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 5; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
   if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
     log_error("Did not jump to correct address (absolute indirect)\n");
     return -1;
@@ -289,26 +254,22 @@ int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 /** Tests JSR and RTS */
 int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult < -1) {
-    log_error("Reset failed\n");
-    return resetResult;
-  }
+  if (resetResult < -1)
+    return log_error(), -1;
 
   int counter = 9;
 
   // JSR takes 6 cycles to ready
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
   if (!testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out)) {
     log_error("Did not jump to correct address.\n");
     return -1;
   }
 
   // RTS takes 6 cycles to ready
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
   if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
     log_error("Did not return to correct address.\n");
     return -1;
@@ -330,297 +291,277 @@ int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 /* Tests LDA, LDX, LDY, STA, STX, STY */
 int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult < -1) {
-    log_error("Reset failed\n");
-    return resetResult;
-  }
+  if (resetResult < -1)
+    return log_error(), -1;
 
   int counter = 9;
 
 #pragma region Absolute loads
+  // [](../6502-code/ROM/loadStore.test.asm:9)
 
   // LDA (zero flag)
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0, top.dbg_A_out)) {
-    log_error("Did not load 0 to register\n");
-    return -1;
-  }
-  if (!testEqual(0b00000010, top.dbg_P_out)) {
-    log_error("Did not set Z flag\n");
-    return -1;
-  }
+  if (!testEqual(0, top.dbg_A_out))
+    return log_error(), -1;
+  if (!testEqual(0b00000010, top.dbg_P_out))
+    return log_error(), -1;
 
   // LDA (negative flag)
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x80, top.dbg_A_out)) {
-    log_error("Did not load 0x80 to register\n");
-    return -1;
-  }
-  if (!testEqual(0b10000000, top.dbg_P_out)) {
-    log_error("Did not set N flag\n");
-    return -1;
-  }
+  if (!testEqual(0x80, top.dbg_A_out))
+    return log_error(), -1;
+  if (!testEqual(0b10000000, top.dbg_P_out))
+    return log_error(), -1;
 
   // LDX (zero flag)
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0, top.dbg_X_out)) {
-    log_error("Did not load 0 to register\n");
-    return -1;
-  }
-  if (!testEqual(0b00000010, top.dbg_P_out)) {
-    log_error("Did not set Z flag\n");
-    return -1;
-  }
+  if (!testEqual(0, top.dbg_X_out))
+    return log_error(), -1;
+  if (!testEqual(0b00000010, top.dbg_P_out))
+    return log_error(), -1;
 
   // LDX (negative flag)
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x80, top.dbg_X_out)) {
-    log_error("Did not load 0x80 to register\n");
-    return -1;
-  }
-  if (!testEqual(0b10000000, top.dbg_P_out)) {
-    log_error("Did not set N flag\n");
-    return -1;
-  }
+  if (!testEqual(0x80, top.dbg_X_out))
+    return log_error(), -1;
+  if (!testEqual(0b10000000, top.dbg_P_out))
+    return log_error(), -1;
 
   // LDY (zero flag)
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0, top.dbg_Y_out)) {
-    log_error("Did not load 0 to register\n");
-    return -1;
-  }
-  if (!testEqual(0b00000010, top.dbg_P_out)) {
-    log_error("Did not set Z flag\n");
-    return -1;
-  }
+  if (!testEqual(0, top.dbg_Y_out))
+    return log_error(), -1;
+  if (!testEqual(0b00000010, top.dbg_P_out))
+    return log_error(), -1;
 
   // LDY (negative flag)
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x80, top.dbg_Y_out)) {
-    log_error("Did not load 0x80 to register\n");
-    return -1;
-  }
-  if (!testEqual(0b10000000, top.dbg_P_out)) {
-    log_error("Did not set N flag\n");
-    return -1;
-  }
+  if (!testEqual(0x80, top.dbg_Y_out))
+    return log_error(), -1;
+  if (!testEqual(0b10000000, top.dbg_P_out))
+    return log_error(), -1;
 
 #pragma endregion
 
 #pragma region Immediate loads
 
+  // [](../6502-code/ROM/loadStore.test.asm:21)
+
   // LDA (zero)
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 2; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x00, top.dbg_A_out)) {
-    log_error();
-    return -1;
-  }
-  if (!testEqual(0b00000010, top.dbg_P_out)) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(0x00, top.dbg_A_out))
+    return log_error(), -1;
+  if (!testEqual(0b00000010, top.dbg_P_out))
+    return log_error(), -1;
 
   // LDA (negative)
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 2; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x80, top.dbg_A_out)) {
-    log_error();
-    return -1;
-  }
-  if (!testEqual(0b10000000, top.dbg_P_out)) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(0x80, top.dbg_A_out))
+    return log_error(), -1;
+  if (!testEqual(0b10000000, top.dbg_P_out))
+    return log_error(), -1;
 
   // LDX (zero)
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 2; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x00, top.dbg_X_out)) {
-    log_error();
-    return -1;
-  }
-  if (!testEqual(0b00000010, top.dbg_P_out)) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(0x00, top.dbg_X_out))
+    return log_error(), -1;
+  if (!testEqual(0b00000010, top.dbg_P_out))
+    return log_error(), -1;
 
   // LDX (negative)
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 2; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x80, top.dbg_X_out)) {
-    log_error();
-    return -1;
-  }
-  if (!testEqual(0b10000000, top.dbg_P_out)) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(0x80, top.dbg_X_out))
+    return log_error(), -1;
+  if (!testEqual(0b10000000, top.dbg_P_out))
+    return log_error(), -1;
 
   // LDY (zero)
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 2; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x00, top.dbg_Y_out)) {
-    log_error();
-    return -1;
-  }
-  if (!testEqual(0b00000010, top.dbg_P_out)) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(0x00, top.dbg_Y_out))
+    return log_error(), -1;
+  if (!testEqual(0b00000010, top.dbg_P_out))
+    return log_error(), -1;
 
   // LDY (negative)
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 2; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x80, top.dbg_Y_out)) {
-    log_error();
-    return -1;
-  }
-  if (!testEqual(0b10000000, top.dbg_P_out)) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(0x80, top.dbg_Y_out))
+    return log_error(), -1;
+  if (!testEqual(0b10000000, top.dbg_P_out))
+    return log_error(), -1;
 
 #pragma endregion
 
 #pragma region ZP storage
 
+  // [](../6502-code/ROM/loadStore.test.asm:30)
+
   // Setup
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
 
   // STA
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(1, TestMap::read(0))) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(1, TestMap::read(0)))
+    return log_error(), -1;
 
   // STX
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(2, TestMap::read(1))) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(2, TestMap::read(1)))
+    return log_error(), -1;
 
   // STY
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(3, TestMap::read(2))) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(3, TestMap::read(2)))
+    return log_error(), -1;
 
 #pragma endregion
 
 #pragma region ZP loads
+
+  // [](../6502-code/ROM/loadStore.test.asm:41)
 
   // LDA
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(2, top.dbg_A_out)) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(2, top.dbg_A_out))
+    return log_error(), -1;
 
   // LDX
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(3, top.dbg_X_out)) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(3, top.dbg_X_out))
+    return log_error(), -1;
 
   // LDY
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(1, top.dbg_Y_out)) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(1, top.dbg_Y_out))
+    return log_error(), -1;
 
 #pragma endregion
 
-#pragma region ZP loads
+#pragma region Absolute Storage
+
+  // [](../6502-code/ROM/loadStore.test.asm:48)
 
   // STA
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x2, TestMap::read(0x200))) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(0x2, TestMap::read(0x200)))
+    return log_error(), -1;
 
   // STX
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x3, TestMap::read(0x201))) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(0x3, TestMap::read(0x201)))
+    return log_error(), -1;
 
   // STY
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x1, TestMap::read(0x202))) {
-    log_error();
-    return -1;
-  }
+  if (!testEqual(0x1, TestMap::read(0x202)))
+    return log_error(), -1;
 
 #pragma endregion
 
 #pragma region ZP idx loads
 
   // Setup
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
+
+  // [](../6502-code/ROM/loadStore.test.asm:59)
 
   // LDA
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x01, top.dbg_A_out)) {
+  if (!testEqual(0x01, top.dbg_A_out))
     return log_error(), -1;
-  }
 
   // LDY
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++)
     CycleClockWDump(top, vcdOut, counter);
-  }
-  if (!testEqual(0x01, top.dbg_Y_out)) {
+  if (!testEqual(0x01, top.dbg_Y_out))
     return log_error(), -1;
-  }
+
+  // New index => X
+  for (int i = 0; i < 2; i++)
+    CycleClockWDump(top, vcdOut, counter);
+
+  // Again, LDA
+  for (int i = 0; i < 4; i++)
+    CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0, top.dbg_A_out))
+    return log_error(), -1;
+  if (!testEqual(0b00000010, top.dbg_P_out))
+    return log_error(), -1;
+
+  // Again, LDY
+  for (int i = 0; i < 4; i++)
+    CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0, top.dbg_Y_out))
+    return log_error(), -1;
+  if (!testEqual(0b00000010, top.dbg_P_out))
+    return log_error(), -1;
+
+  // LDX
+  for (int i = 0; i < 4; i++)
+    CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(1, top.dbg_X_out))
+    return log_error(), -1;
+  if (!testEqual(0b00000000, top.dbg_P_out))
+    return log_error(), -1;
+
+  // New index => X
+  for (int i = 0; i < 2; i++)
+    CycleClockWDump(top, vcdOut, counter);
+  // LDX
+  for (int i = 0; i < 4; i++)
+    CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0, top.dbg_X_out))
+    return log_error(), -1;
+  if (!testEqual(0b00000010, top.dbg_P_out))
+    return log_error(), -1;
+
+#pragma endregion
+
+#pragma region Absolute Indexed
+
+  // [](../6502-code/ROM/loadStore.test.asm:79)
+
+  // Setup
+  for (int i = 0; i < 2; i++)
+    CycleClockWDump(top, vcdOut, counter);
+
+  // LDA
+  for (int i = 0; i < 4; i++)
+    CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0x1, top.dbg_A_out))
+    return log_error(), -1;
+
+  // LDA page cross
+  for (int i = 0; i < 5; i++)
+    CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0x3, top.dbg_A_out))
+    return log_error(), -1;
+  // Page cross should incur 1 extra cycle
+  if (!testEqual(0x102, top.dbg_state_out))
+    return log_error(), -1;
 
 #pragma endregion
 

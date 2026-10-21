@@ -59,26 +59,27 @@ start_program_ROM:
   LDA $00,X
   ; Expect $01, 4 cycles
   LDY $00,X
-  ; 2 cycles new index
+  ; 2 cycles new index. 3 is uninitialized, so assume 0
   LDX #$03
   ; Expect $00, 4 cycles
   LDA $00,X
   ; Expect $00, 4 cycles
   LDY $00,X
-  ; Expect $80, 4 cycles
+  ; Expect $01 (Y points to 0 now), 4 cycles
   LDX $00,Y
   ; 2 cycles new index
   LDY #$03
   ; Expect $00, 4 cycles
   LDX $00,Y
 
-  ; Test ZP absolute-indexed
-  ; Expect $02, 4 cycles
+  ; Test absolute-indexed
+  ; Setup, 2 cycles
   LDX #02
-  LDA 0,X
+  ; Expect M[$0202]=$01, 4 cycles
+  LDA $0200,X
   ; Test page crossing
-  ; Expect $01, 5 cycles
-  LDA $0ff,X
+  ; Expect M[$0201]=$03, 5 cycles
+  LDA $01ff,X
 
   ; Test indexed indirect (d, x)
   ; Store reset vector's address at 0 page
