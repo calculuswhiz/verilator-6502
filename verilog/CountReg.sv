@@ -4,8 +4,8 @@
 module CountReg (
 	input clk,
     
-	input load_pc_h,
-	input load_pc_l,
+	input load_h,
+	input load_l,
     
     // These both override the load signals
     input L_inc,
@@ -13,13 +13,13 @@ module CountReg (
     input H_inc,
     input H_dec,
     
-	input [7:0]    PCL_in,
-	input [7:0]    PCH_in,
+	input [7:0]    low_byte_in,
+	input [7:0]    high_byte_in,
     
     input H_rst_n,
     
-	output [7:0]   PCL_out,
-	output [7:0]   PCH_out
+	output [7:0]   low_byte_out,
+	output [7:0]   high_byte_out
 );
 
     logic [15:0] data;
@@ -29,7 +29,7 @@ module CountReg (
             data <= {
                 8'h00,
                 // Allow loading L if desired.
-                load_pc_l ? PCL_in : data[7:0]
+                load_l ? low_byte_in : data[7:0]
             };
         end else if (L_inc)
             data <= data + 1'b1;
@@ -39,13 +39,13 @@ module CountReg (
             data <= {data[15:8] - 1'b1, data[7:0]};
         end else begin
             data <= {
-                load_pc_h ? PCH_in : data[15:8],
-                load_pc_l ? PCL_in : data[7:0]
+                load_h ? high_byte_in : data[15:8],
+                load_l ? low_byte_in : data[7:0]
             };
         end
     end
 
-    assign PCL_out = data[7:0];
-    assign PCH_out = data[15:8];
+    assign low_byte_out = data[7:0];
+    assign high_byte_out = data[15:8];
 
 endmodule

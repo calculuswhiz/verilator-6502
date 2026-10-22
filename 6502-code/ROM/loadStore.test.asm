@@ -82,20 +82,23 @@ start_program_ROM:
   LDA $01ff,X
 
   ; Test indexed indirect (d, x)
-  ; Store reset vector's address at 0 page
-  LDA $fc
+  ; Setup
+  ; Store reset vector's high address at 0 page, 3 LDA (2) + 2 STA (3) = 12 cycles
+  LDA #$fd
   STA $00
-  LDA $ff
+  LDA #$ff
   STA $01
+  LDX #0
   /*
     PEEK(
-      PEEK({arg + X + 1, arg + X})
+      {PEEK(arg + X + 1), PEEK(arg + X)}
     )
   */
   ; Expect $8000 in A, 6 cycles
   LDA ($00, X)
 
   ; Test indirect indexed (d),y
+  LDA #00
   LDY #00
   /*
     PEEK(

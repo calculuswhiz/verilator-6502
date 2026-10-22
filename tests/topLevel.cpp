@@ -565,6 +565,45 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
 #pragma endregion
 
+#pragma region Indexed indirect
+
+  // [](../6502-code/ROM/loadStore.test.asm:96)
+
+  // Setup
+  for (int i = 0; i < 12; i++)
+    CycleClockWDump(top, vcdOut, counter);
+
+  // LDA
+  for (int i = 0; i < 6; i++)
+    CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0x80, top.dbg_A_out))
+    return log_error(), -1;
+
+#pragma endregion
+
+#pragma region Indirect indexed
+
+  // [](../6502-code/ROM/loadStore.test.asm:108)
+
+  // Setup
+  for (int i = 0; i < 4; i++)
+    CycleClockWDump(top, vcdOut, counter);
+
+  // LDA
+  for (int i = 0; i < 5; i++)
+    CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0x80, top.dbg_A_out))
+    return log_error(), -1;
+
+#pragma endregion
+
+  // Steady state JMP trap
+  for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < 3; i++) {
+      CycleClockWDump(top, vcdOut, counter);
+    }
+  }
+
   return 0;
 }
 

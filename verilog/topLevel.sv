@@ -285,16 +285,16 @@ module topLevel (
 
     CountReg D_reg(
         .clk(clkDiv[divFactor]),
-        .load_pc_h(DH_ld),
-        .load_pc_l(DL_ld),
+        .load_h(DH_ld),
+        .load_l(DL_ld),
         .L_inc(DL_inc),
         .H_inc(DH_inc),
         .H_dec(DH_dec),
-        .PCL_in(DLmux_out),
-        .PCH_in(DHmux_out),
+        .low_byte_in(DLmux_out),
+        .high_byte_in(DHmux_out),
         .H_rst_n(DH_rst_n),
-        .PCL_out(DL_out),
-        .PCH_out(DH_out)
+        .low_byte_out(DL_out),
+        .high_byte_out(DH_out)
     );
 
     assign DLdbuf_out = DLd_en ? DL_out : 8'bz;
@@ -315,16 +315,17 @@ module topLevel (
 
     CountReg T_reg(
         .clk(clkDiv[divFactor]),
-        .load_pc_h(TH_ld),  // Changed from data_bus. WHY?
-        .load_pc_l(TL_ld),
+        .load_h(TH_ld),
+        .load_l(TL_ld),
         .L_inc(1'b0),
         .H_inc(TH_inc),
         .H_dec(1'b0),
-        .PCL_in(TLmux_out),
+        .low_byte_in(TLmux_out),
+        // Data bus is relevant for indirect modes
+        .high_byte_in(data_bus),
         .H_rst_n(1'b1),
-        .PCH_in(0),
-        .PCL_out(TL_out),
-        .PCH_out(TH_out)
+        .low_byte_out(TL_out),
+        .high_byte_out(TH_out)
     );
 
     assign TLdbuf_out = TLd_en ? TL_out : 8'bz;
