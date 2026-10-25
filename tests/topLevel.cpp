@@ -8,47 +8,11 @@
 #include <cstdint>
 #include <cstdio>
 
+#include "../lib/Testmap.cpp"
 #include "../lib/helpAssert.cpp"
-#include "../lib/testbenchMacros.cpp"
+#include "../lib/testbenchMacros.h"
 
 using std::printf;
-
-/**
-  A very simple memory-mapper. Allows you to specify a ROM address start.
-  Above that address until 0xffff, that memory will be treated as read only,
-  i.e. writing to it will do nothing.
-
-  Address is 16 bit, byte-addressed.
-*/
-namespace TestMap {
-// Base of the memory region
-uint8_t *data;
-// Where the ROM region starts. Above this, address is not writable
-uint16_t romAddress = 0;
-
-// Point the data and rom address to the right location for read/write
-void initMap(uint8_t *initialMemory, uint16_t romStartAddress) {
-  data = initialMemory;
-  romAddress = romStartAddress;
-}
-
-// Read from location of memory map
-uint8_t read(uint16_t address) { return data[address]; }
-
-// Write to location of memory map. If it's in a ROM region, it does not
-// overwrite the value
-void write(uint16_t address, uint8_t byte) {
-  // ROM region
-  if (address < romAddress)
-    data[address] = byte;
-}
-
-void dumpRange(uint16_t from, uint16_t to) {
-  for (int i = from; i <= to; i++) {
-    printf("%0x:%0x\n", i, read(i));
-  }
-}
-} // namespace TestMap
 
 #define log_error(fmt, ...)                                                    \
   fprintf(stderr, "[ERROR] (%s:%d) " fmt "\n", __FILE__, __LINE__)
@@ -114,20 +78,6 @@ void updateMemory(VtopLevel &top) {
 }
 
 const int StandardProgramRomAddr = 0x8000;
-
-#define ToggleClockWDump(clockProvider, dumpFile, countVar)                    \
-  updateMemory(clockProvider);                                                 \
-  clockProvider.clk = !clockProvider.clk;                                      \
-  clockProvider.eval();                                                        \
-  dumpFile.dump(countVar);                                                     \
-  countVar++;
-
-// Cycle a module's test signal
-#define CycleClockWDump(clockProvider, dumpFile, countVar)                     \
-  do {                                                                         \
-    ToggleClockWDump(clockProvider, dumpFile, countVar);                       \
-    ToggleClockWDump(clockProvider, dumpFile, countVar);                       \
-  } while (false)
 
 // Drive the reset signals for the tests. If you wish to see the reset dump, the
 // next timestamp you should use is 7
@@ -201,38 +151,35 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
 /** Tests the reset procedure */
 int testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult < -1)
+  if (resetResult != 0)
     return log_error(), -1;
 
   int counter = 9;
 
   // Steady state behavior
-  for (int j = 0; j < 3; j++) {
-    for (int i = 0; i < 3; i++)
-      CycleClockWDump(top, vcdOut, counter);
-  }
+  for (int j = 0; j < 3; j++)
+    RunNCycles(top, vcdOut, counter, 3);
+
   return 0;
 }
 
 /** Tests the JMP instruction */
 int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult < -1)
+  if (resetResult != 0)
     return log_error(), -1;
 
   int counter = 9;
 
-  // JMP absolute takes 3 cycles to ready
-  for (int i = 0; i < 3; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  const int JMP_ABS_cycles = 3;
+  RunNCycles(top, vcdOut, counter, JMP_ABS_cycles);
   if (!testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out)) {
     log_error("Did not jump to correct address (absolute).\n");
     return -1;
   }
 
-  // JMP indirect takes 5 cycles to ready
-  for (int i = 0; i < 5; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  const int JMP_IND_cycles = 5;
+  RunNCycles(top, vcdOut, counter, JMP_IND_cycles);
   if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
     log_error("Did not jump to correct address (absolute indirect)\n");
     return -1;
@@ -240,9 +187,8 @@ int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
   // Steady state behavior
   for (int j = 0; j < 3; j++) {
-    for (int i = 0; i < 3; i++) {
-      CycleClockWDump(top, vcdOut, counter);
-    }
+    RunNCycles(top, vcdOut, counter, 3);
+
     if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
       log_error("Failed to JMP to trap\n");
       return -1;
@@ -254,22 +200,20 @@ int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 /** Tests JSR and RTS */
 int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult < -1)
+  if (resetResult != 0)
     return log_error(), -1;
 
   int counter = 9;
 
-  // JSR takes 6 cycles to ready
-  for (int i = 0; i < 6; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  const int JSR_cycles = 6;
+  RunNCycles(top, vcdOut, counter, JSR_cycles);
   if (!testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out)) {
     log_error("Did not jump to correct address.\n");
     return -1;
   }
 
-  // RTS takes 6 cycles to ready
-  for (int i = 0; i < 6; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  const int RTS_cycles = 6;
+  RunNCycles(top, vcdOut, counter, RTS_cycles);
   if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
     log_error("Did not return to correct address.\n");
     return -1;
@@ -277,9 +221,8 @@ int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
   // Steady state behavior
   for (int j = 0; j < 3; j++) {
-    for (int i = 0; i < 3; i++) {
-      CycleClockWDump(top, vcdOut, counter);
-    }
+    RunNCycles(top, vcdOut, counter, 3);
+
     if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
       log_error("Failed to JMP to trap\n");
       return -1;
@@ -291,7 +234,7 @@ int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 /* Tests LDA, LDX, LDY, STA, STX, STY */
 int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult < -1)
+  if (resetResult != 0)
     return log_error(), -1;
 
   int counter = 9;
@@ -299,49 +242,44 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 #pragma region Absolute loads
   // [](../6502-code/ROM/loadStore.test.asm:9)
 
+  const int LD_any_ABS_cycles = 4;
   // LDA (zero flag)
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
   if (!testEqual(0, top.dbg_A_out))
     return log_error(), -1;
   if (!testEqual(0b00000010, top.dbg_P_out))
     return log_error(), -1;
 
   // LDA (negative flag)
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
   if (!testEqual(0x80, top.dbg_A_out))
     return log_error(), -1;
   if (!testEqual(0b10000000, top.dbg_P_out))
     return log_error(), -1;
 
   // LDX (zero flag)
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
   if (!testEqual(0, top.dbg_X_out))
     return log_error(), -1;
   if (!testEqual(0b00000010, top.dbg_P_out))
     return log_error(), -1;
 
   // LDX (negative flag)
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
   if (!testEqual(0x80, top.dbg_X_out))
     return log_error(), -1;
   if (!testEqual(0b10000000, top.dbg_P_out))
     return log_error(), -1;
 
   // LDY (zero flag)
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
   if (!testEqual(0, top.dbg_Y_out))
     return log_error(), -1;
   if (!testEqual(0b00000010, top.dbg_P_out))
     return log_error(), -1;
 
   // LDY (negative flag)
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
   if (!testEqual(0x80, top.dbg_Y_out))
     return log_error(), -1;
   if (!testEqual(0b10000000, top.dbg_P_out))
@@ -352,50 +290,44 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 #pragma region Immediate loads
 
   // [](../6502-code/ROM/loadStore.test.asm:21)
-
+  const int LD_any_IMM_cycles = 2;
   // LDA (zero)
-  for (int i = 0; i < 2; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
   if (!testEqual(0x00, top.dbg_A_out))
     return log_error(), -1;
   if (!testEqual(0b00000010, top.dbg_P_out))
     return log_error(), -1;
 
   // LDA (negative)
-  for (int i = 0; i < 2; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
   if (!testEqual(0x80, top.dbg_A_out))
     return log_error(), -1;
   if (!testEqual(0b10000000, top.dbg_P_out))
     return log_error(), -1;
 
   // LDX (zero)
-  for (int i = 0; i < 2; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
   if (!testEqual(0x00, top.dbg_X_out))
     return log_error(), -1;
   if (!testEqual(0b00000010, top.dbg_P_out))
     return log_error(), -1;
 
   // LDX (negative)
-  for (int i = 0; i < 2; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
   if (!testEqual(0x80, top.dbg_X_out))
     return log_error(), -1;
   if (!testEqual(0b10000000, top.dbg_P_out))
     return log_error(), -1;
 
   // LDY (zero)
-  for (int i = 0; i < 2; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
   if (!testEqual(0x00, top.dbg_Y_out))
     return log_error(), -1;
   if (!testEqual(0b00000010, top.dbg_P_out))
     return log_error(), -1;
 
   // LDY (negative)
-  for (int i = 0; i < 2; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
   if (!testEqual(0x80, top.dbg_Y_out))
     return log_error(), -1;
   if (!testEqual(0b10000000, top.dbg_P_out))
@@ -408,24 +340,21 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   // [](../6502-code/ROM/loadStore.test.asm:30)
 
   // Setup
-  for (int i = 0; i < 6; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, 6);
+  const int ST_any_ZP_cycles = 3;
 
   // STA
-  for (int i = 0; i < 3; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, ST_any_ZP_cycles);
   if (!testEqual(1, TestMap::read(0)))
     return log_error(), -1;
 
   // STX
-  for (int i = 0; i < 3; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, ST_any_ZP_cycles);
   if (!testEqual(2, TestMap::read(1)))
     return log_error(), -1;
 
   // STY
-  for (int i = 0; i < 3; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, ST_any_ZP_cycles);
   if (!testEqual(3, TestMap::read(2)))
     return log_error(), -1;
 
@@ -435,21 +364,20 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
   // [](../6502-code/ROM/loadStore.test.asm:41)
 
+  const int LD_any_ZP_cycles = 3;
+
   // LDA
-  for (int i = 0; i < 3; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ZP_cycles);
   if (!testEqual(2, top.dbg_A_out))
     return log_error(), -1;
 
   // LDX
-  for (int i = 0; i < 3; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ZP_cycles);
   if (!testEqual(3, top.dbg_X_out))
     return log_error(), -1;
 
   // LDY
-  for (int i = 0; i < 3; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ZP_cycles);
   if (!testEqual(1, top.dbg_Y_out))
     return log_error(), -1;
 
@@ -459,21 +387,20 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
   // [](../6502-code/ROM/loadStore.test.asm:48)
 
+  const int ST_any_ABS_cycles = 4;
+
   // STA
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, ST_any_ABS_cycles);
   if (!testEqual(0x2, TestMap::read(0x200)))
     return log_error(), -1;
 
   // STX
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, ST_any_ABS_cycles);
   if (!testEqual(0x3, TestMap::read(0x201)))
     return log_error(), -1;
 
   // STY
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, ST_any_ABS_cycles);
   if (!testEqual(0x1, TestMap::read(0x202)))
     return log_error(), -1;
 
@@ -482,57 +409,50 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 #pragma region ZP idx loads
 
   // Setup
-  for (int i = 0; i < 6; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, 6);
 
   // [](../6502-code/ROM/loadStore.test.asm:59)
 
+  const int LD_any_ZP_IDX_cycles = 4;
+
   // LDA
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
   if (!testEqual(0x01, top.dbg_A_out))
     return log_error(), -1;
 
   // LDY
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
   if (!testEqual(0x01, top.dbg_Y_out))
     return log_error(), -1;
 
   // New index => X
-  for (int i = 0; i < 2; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
 
   // Again, LDA
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
   if (!testEqual(0, top.dbg_A_out))
     return log_error(), -1;
   if (!testEqual(0b00000010, top.dbg_P_out))
     return log_error(), -1;
 
   // Again, LDY
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
   if (!testEqual(0, top.dbg_Y_out))
     return log_error(), -1;
   if (!testEqual(0b00000010, top.dbg_P_out))
     return log_error(), -1;
 
   // LDX
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
   if (!testEqual(1, top.dbg_X_out))
     return log_error(), -1;
   if (!testEqual(0b00000000, top.dbg_P_out))
     return log_error(), -1;
 
   // New index => X
-  for (int i = 0; i < 2; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
   // LDX
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
   if (!testEqual(0, top.dbg_X_out))
     return log_error(), -1;
   if (!testEqual(0b00000010, top.dbg_P_out))
@@ -540,23 +460,20 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
 #pragma endregion
 
-#pragma region Absolute Indexed
+#pragma region LDA Absolute Indexed
 
   // [](../6502-code/ROM/loadStore.test.asm:79)
 
   // Setup
-  for (int i = 0; i < 2; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, 2);
 
-  // LDA
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  const int LDA_ABS_IDX_cycles = 4;
+  RunNCycles(top, vcdOut, counter, LDA_ABS_IDX_cycles);
   if (!testEqual(0x1, top.dbg_A_out))
     return log_error(), -1;
 
-  // LDA page cross
-  for (int i = 0; i < 5; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  // page cross
+  RunNCycles(top, vcdOut, counter, LDA_ABS_IDX_cycles);
   if (!testEqual(0x3, top.dbg_A_out))
     return log_error(), -1;
   // Page cross should incur 1 extra cycle
@@ -570,12 +487,10 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   // [](../6502-code/ROM/loadStore.test.asm:96)
 
   // Setup
-  for (int i = 0; i < 12; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, 12);
 
   // LDA
-  for (int i = 0; i < 6; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, 6);
   if (!testEqual(0x80, top.dbg_A_out))
     return log_error(), -1;
 
@@ -586,21 +501,17 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   // [](../6502-code/ROM/loadStore.test.asm:108)
 
   // Setup
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, 4);
 
   // LDA
-  for (int i = 0; i < 5; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, 5);
   if (!testEqual(0x80, top.dbg_A_out))
     return log_error(), -1;
 
   // New index
-  for (int i = 0; i < 4; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, 4);
 
-  for (int i = 0; i < 6; i++)
-    CycleClockWDump(top, vcdOut, counter);
+  RunNCycles(top, vcdOut, counter, 6);
   if (!testEqual(0xfd, top.dbg_A_out))
     return log_error(), -1;
   // Page cross should incur 1 extra cycle
@@ -610,11 +521,8 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 #pragma endregion
 
   // Steady state JMP trap
-  for (int j = 0; j < 3; j++) {
-    for (int i = 0; i < 3; i++) {
-      CycleClockWDump(top, vcdOut, counter);
-    }
-  }
+  for (int j = 0; j < 3; j++)
+    RunNCycles(top, vcdOut, counter, 3);
 
   return 0;
 }
@@ -669,7 +577,7 @@ int main(int argc, char **argv, char **env) {
     top.trace(&vcdOut, 99);
     vcdOut.open(tests[i].vcdFile);
 
-    uint8_t *memory;
+    uint8_t *memory = NULL;
     size_t bytesRead = readBinaryFile(tests[i].programFile, memory);
     if (memory == NULL) {
       log_error("Could not read test memory\n");
