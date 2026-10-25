@@ -1089,7 +1089,9 @@ module control (
 			end
 			// #endregion
 			// #region XID
+			// `page_invalid_state = page_normal` ensures that page crosses are reset by fetch time
 			LDA_XID: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("T");
 				// Put it through alu to set flags
@@ -1098,6 +1100,7 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			ORA_XID: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("T");
 				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
@@ -1106,6 +1109,7 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			EOR_XID: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("T");
 				doAlu(alu_eor, aluSel_A, aluSel_data_bus);
@@ -1114,6 +1118,7 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			AND_XID: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("T");
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
@@ -1122,6 +1127,7 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			ADC_XID: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("T");
 				// A+M+C
@@ -1132,6 +1138,7 @@ module control (
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
 			CMP_XID: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("T");
 				// A-M (Don't set flags, don't use carry, don't store A)
@@ -1141,6 +1148,7 @@ module control (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			SBC_XID: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith("T");
 				doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
@@ -1150,6 +1158,7 @@ module control (
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
 			STA_XID: begin
+				page_invalid_state = page_normal;
 				setWriteMem();
 				addressWith("T");
 				A_en = 1;
@@ -1157,8 +1166,9 @@ module control (
 			// #endregion XID
 			// #region IDY
 			LDA_IDY: begin
-				if (page_invalid_state != page_normal)
+				if (page_invalid_state != page_normal) begin
 					TH_inc = 1;
+				end
 				else begin
 					setReadMem();
 					addressWith("T");

@@ -595,6 +595,18 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   if (!testEqual(0x80, top.dbg_A_out))
     return log_error(), -1;
 
+  // New index
+  for (int i = 0; i < 4; i++)
+    CycleClockWDump(top, vcdOut, counter);
+
+  for (int i = 0; i < 6; i++)
+    CycleClockWDump(top, vcdOut, counter);
+  if (!testEqual(0xfd, top.dbg_A_out))
+    return log_error(), -1;
+  // Page cross should incur 1 extra cycle
+  if (!testEqual(0x102, top.dbg_state_out))
+    return log_error(), -1;
+
 #pragma endregion
 
   // Steady state JMP trap

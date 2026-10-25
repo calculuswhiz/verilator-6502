@@ -105,10 +105,13 @@ start_program_ROM:
       PEEK({arg + 1, arg}) + Y
     )
   */
-  ; Expect $8000, 5 cycles
+  ; Expect $80, 5 cycles
   LDA ($00), Y
-
-; TODO Page crossing cycle count test
+  ; New index, 4 cycles
+  LDA #00
+  LDY #03
+  ; Expect $fd, 6 cycles (page cross)
+  LDA ($00), Y
 
 trap:
   JMP trap
