@@ -8,14 +8,11 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "../lib/Testmap.cpp"
+#include "../lib/TestMap.cpp"
 #include "../lib/helpAssert.cpp"
 #include "../lib/testbenchMacros.h"
 
 using std::printf;
-
-#define log_error(fmt, ...)                                                    \
-  fprintf(stderr, "[ERROR] (%s:%d) " fmt "\n", __FILE__, __LINE__)
 
 // Reads a file into a buffer of memory
 size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
@@ -106,7 +103,6 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
     return log_error(), -1;
 
   printForTest &&printf("Testing reset:\n");
-  printForTest &&printf("boot_1\n");
 
   top.forceReset_n = 0;
   CycleClockWDump(top, vcdOut, counter);
@@ -115,16 +111,12 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
   if (!testEqual(0xfffc, top.dbg_PC_out))
     return log_error(), -1;
 
-  printForTest &&printf("boot_2\n");
-
   top.forceReset_n = 1;
   CycleClockWDump(top, vcdOut, counter);
   if (!testEqual(0xf01, top.dbg_state_out))
     return log_error(), -1;
   if (!testEqual(0xfffd, top.dbg_PC_out))
     return log_error(), -1;
-
-  printForTest &&printf("boot_3\n");
 
   CycleClockWDump(top, vcdOut, counter);
   if (!testEqual(0x101, top.dbg_state_out))
@@ -148,7 +140,9 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
   3. Assert
 */
 
-/** Tests the reset procedure */
+/** Tests the reset procedure
+  [](../6502-code/ROM/reset.test.asm)
+*/
 int testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
   if (resetResult != 0)
@@ -158,80 +152,64 @@ int testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
   // Steady state behavior
   for (int j = 0; j < 3; j++)
-    RunNCycles(top, vcdOut, counter, 3);
+    RunNCycles(3, top, vcdOut, counter);
 
   return 0;
 }
 
-/** Tests the JMP instruction */
+/** Tests the JMP instruction
+  [](../6502-code/ROM/jmp.test.asm)
+*/
 int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult != 0)
-    return log_error(), -1;
+  RETURN_NEQ(0, resetResult);
 
   int counter = 9;
 
   const int JMP_ABS_cycles = 3;
-  RunNCycles(top, vcdOut, counter, JMP_ABS_cycles);
-  if (!testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out)) {
-    log_error("Did not jump to correct address (absolute).\n");
-    return -1;
-  }
+  RunNCycles(JMP_ABS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(StandardProgramRomAddr + 6, top.dbg_PC_out);
 
   const int JMP_IND_cycles = 5;
-  RunNCycles(top, vcdOut, counter, JMP_IND_cycles);
-  if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
-    log_error("Did not jump to correct address (absolute indirect)\n");
-    return -1;
-  }
+  RunNCycles(JMP_IND_cycles, top, vcdOut, counter);
+  RETURN_NEQ(StandardProgramRomAddr + 3, top.dbg_PC_out);
 
   // Steady state behavior
   for (int j = 0; j < 3; j++) {
-    RunNCycles(top, vcdOut, counter, 3);
-
-    if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
-      log_error("Failed to JMP to trap\n");
-      return -1;
-    }
+    RunNCycles(3, top, vcdOut, counter);
+    RETURN_NEQ(StandardProgramRomAddr + 3, top.dbg_PC_out);
   }
   return 0;
 }
 
-/** Tests JSR and RTS */
+/** Tests JSR and RTS
+  [](../6502-code/ROM/subroutines.test.asm)
+*/
 int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult != 0)
-    return log_error(), -1;
+  RETURN_NEQ(0, resetResult);
 
   int counter = 9;
 
   const int JSR_cycles = 6;
-  RunNCycles(top, vcdOut, counter, JSR_cycles);
-  if (!testEqual(StandardProgramRomAddr + 6, top.dbg_PC_out)) {
-    log_error("Did not jump to correct address.\n");
-    return -1;
-  }
+  RunNCycles(JSR_cycles, top, vcdOut, counter);
+  RETURN_NEQ(StandardProgramRomAddr + 6, top.dbg_PC_out);
 
   const int RTS_cycles = 6;
-  RunNCycles(top, vcdOut, counter, RTS_cycles);
-  if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
-    log_error("Did not return to correct address.\n");
-    return -1;
-  }
+  RunNCycles(RTS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(StandardProgramRomAddr + 3, top.dbg_PC_out);
 
   // Steady state behavior
   for (int j = 0; j < 3; j++) {
-    RunNCycles(top, vcdOut, counter, 3);
-
-    if (!testEqual(StandardProgramRomAddr + 3, top.dbg_PC_out)) {
-      log_error("Failed to JMP to trap\n");
-      return -1;
-    }
+    RunNCycles(3, top, vcdOut, counter);
+    RETURN_NEQ(StandardProgramRomAddr + 3, top.dbg_PC_out);
   }
   return 0;
 }
 
-/* Tests LDA, LDX, LDY, STA, STX, STY */
+/* Tests LDA, LDX, LDY, STA, STX, STY
+  [](../6502-code/ROM/loadStore.test.asm)
+*/
 int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   int resetResult = reset(top, vcdOut, true);
   if (resetResult != 0)
@@ -244,46 +222,34 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
   const int LD_any_ABS_cycles = 4;
   // LDA (zero flag)
-  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
-  if (!testEqual(0, top.dbg_A_out))
-    return log_error(), -1;
-  if (!testEqual(0b00000010, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ABS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0, top.dbg_A_out);
+  RETURN_NEQ(0b00000010, top.dbg_P_out);
 
   // LDA (negative flag)
-  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
-  if (!testEqual(0x80, top.dbg_A_out))
-    return log_error(), -1;
-  if (!testEqual(0b10000000, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ABS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x80, top.dbg_A_out);
+  RETURN_NEQ(0b10000000, top.dbg_P_out);
 
   // LDX (zero flag)
-  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
-  if (!testEqual(0, top.dbg_X_out))
-    return log_error(), -1;
-  if (!testEqual(0b00000010, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ABS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0, top.dbg_X_out);
+  RETURN_NEQ(0b00000010, top.dbg_P_out);
 
   // LDX (negative flag)
-  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
-  if (!testEqual(0x80, top.dbg_X_out))
-    return log_error(), -1;
-  if (!testEqual(0b10000000, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ABS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x80, top.dbg_X_out);
+  RETURN_NEQ(0b10000000, top.dbg_P_out);
 
   // LDY (zero flag)
-  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
-  if (!testEqual(0, top.dbg_Y_out))
-    return log_error(), -1;
-  if (!testEqual(0b00000010, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ABS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0, top.dbg_Y_out);
+  RETURN_NEQ(0b00000010, top.dbg_P_out);
 
   // LDY (negative flag)
-  RunNCycles(top, vcdOut, counter, LD_any_ABS_cycles);
-  if (!testEqual(0x80, top.dbg_Y_out))
-    return log_error(), -1;
-  if (!testEqual(0b10000000, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ABS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x80, top.dbg_Y_out);
+  RETURN_NEQ(0b10000000, top.dbg_P_out);
 
 #pragma endregion
 
@@ -292,46 +258,34 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   // [](../6502-code/ROM/loadStore.test.asm:21)
   const int LD_any_IMM_cycles = 2;
   // LDA (zero)
-  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
-  if (!testEqual(0x00, top.dbg_A_out))
-    return log_error(), -1;
-  if (!testEqual(0b00000010, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_IMM_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x00, top.dbg_A_out);
+  RETURN_NEQ(0b00000010, top.dbg_P_out);
 
   // LDA (negative)
-  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
-  if (!testEqual(0x80, top.dbg_A_out))
-    return log_error(), -1;
-  if (!testEqual(0b10000000, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_IMM_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x80, top.dbg_A_out);
+  RETURN_NEQ(0b10000000, top.dbg_P_out);
 
   // LDX (zero)
-  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
-  if (!testEqual(0x00, top.dbg_X_out))
-    return log_error(), -1;
-  if (!testEqual(0b00000010, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_IMM_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x00, top.dbg_X_out);
+  RETURN_NEQ(0b00000010, top.dbg_P_out);
 
   // LDX (negative)
-  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
-  if (!testEqual(0x80, top.dbg_X_out))
-    return log_error(), -1;
-  if (!testEqual(0b10000000, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_IMM_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x80, top.dbg_X_out);
+  RETURN_NEQ(0b10000000, top.dbg_P_out);
 
   // LDY (zero)
-  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
-  if (!testEqual(0x00, top.dbg_Y_out))
-    return log_error(), -1;
-  if (!testEqual(0b00000010, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_IMM_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x00, top.dbg_Y_out);
+  RETURN_NEQ(0b00000010, top.dbg_P_out);
 
   // LDY (negative)
-  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
-  if (!testEqual(0x80, top.dbg_Y_out))
-    return log_error(), -1;
-  if (!testEqual(0b10000000, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_IMM_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x80, top.dbg_Y_out);
+  RETURN_NEQ(0b10000000, top.dbg_P_out);
 
 #pragma endregion
 
@@ -340,23 +294,20 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   // [](../6502-code/ROM/loadStore.test.asm:30)
 
   // Setup
-  RunNCycles(top, vcdOut, counter, 6);
+  RunNCycles(6, top, vcdOut, counter);
   const int ST_any_ZP_cycles = 3;
 
   // STA
-  RunNCycles(top, vcdOut, counter, ST_any_ZP_cycles);
-  if (!testEqual(1, TestMap::read(0)))
-    return log_error(), -1;
+  RunNCycles(ST_any_ZP_cycles, top, vcdOut, counter);
+  RETURN_NEQ(1, TestMap::read(0));
 
   // STX
-  RunNCycles(top, vcdOut, counter, ST_any_ZP_cycles);
-  if (!testEqual(2, TestMap::read(1)))
-    return log_error(), -1;
+  RunNCycles(ST_any_ZP_cycles, top, vcdOut, counter);
+  RETURN_NEQ(2, TestMap::read(1));
 
   // STY
-  RunNCycles(top, vcdOut, counter, ST_any_ZP_cycles);
-  if (!testEqual(3, TestMap::read(2)))
-    return log_error(), -1;
+  RunNCycles(ST_any_ZP_cycles, top, vcdOut, counter);
+  RETURN_NEQ(3, TestMap::read(2));
 
 #pragma endregion
 
@@ -367,19 +318,16 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   const int LD_any_ZP_cycles = 3;
 
   // LDA
-  RunNCycles(top, vcdOut, counter, LD_any_ZP_cycles);
-  if (!testEqual(2, top.dbg_A_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ZP_cycles, top, vcdOut, counter);
+  RETURN_NEQ(2, top.dbg_A_out);
 
   // LDX
-  RunNCycles(top, vcdOut, counter, LD_any_ZP_cycles);
-  if (!testEqual(3, top.dbg_X_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ZP_cycles, top, vcdOut, counter);
+  RETURN_NEQ(3, top.dbg_X_out);
 
   // LDY
-  RunNCycles(top, vcdOut, counter, LD_any_ZP_cycles);
-  if (!testEqual(1, top.dbg_Y_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ZP_cycles, top, vcdOut, counter);
+  RETURN_NEQ(1, top.dbg_Y_out);
 
 #pragma endregion
 
@@ -390,73 +338,60 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   const int ST_any_ABS_cycles = 4;
 
   // STA
-  RunNCycles(top, vcdOut, counter, ST_any_ABS_cycles);
-  if (!testEqual(0x2, TestMap::read(0x200)))
-    return log_error(), -1;
+  RunNCycles(ST_any_ABS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x2, TestMap::read(0x200));
 
   // STX
-  RunNCycles(top, vcdOut, counter, ST_any_ABS_cycles);
-  if (!testEqual(0x3, TestMap::read(0x201)))
-    return log_error(), -1;
+  RunNCycles(ST_any_ABS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x3, TestMap::read(0x201));
 
   // STY
-  RunNCycles(top, vcdOut, counter, ST_any_ABS_cycles);
-  if (!testEqual(0x1, TestMap::read(0x202)))
-    return log_error(), -1;
+  RunNCycles(ST_any_ABS_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x1, TestMap::read(0x202));
 
 #pragma endregion
 
 #pragma region ZP idx loads
 
   // Setup
-  RunNCycles(top, vcdOut, counter, 6);
+  RunNCycles(6, top, vcdOut, counter);
 
   // [](../6502-code/ROM/loadStore.test.asm:59)
 
   const int LD_any_ZP_IDX_cycles = 4;
 
   // LDA
-  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
-  if (!testEqual(0x01, top.dbg_A_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x01, top.dbg_A_out);
 
   // LDY
-  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
-  if (!testEqual(0x01, top.dbg_Y_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x01, top.dbg_Y_out);
 
   // New index => X
-  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
+  RunNCycles(LD_any_IMM_cycles, top, vcdOut, counter);
 
   // Again, LDA
-  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
-  if (!testEqual(0, top.dbg_A_out))
-    return log_error(), -1;
-  if (!testEqual(0b00000010, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0, top.dbg_A_out);
+  RETURN_NEQ(0b00000010, top.dbg_P_out);
 
   // Again, LDY
-  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
-  if (!testEqual(0, top.dbg_Y_out))
-    return log_error(), -1;
-  if (!testEqual(0b00000010, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0, top.dbg_Y_out);
+  RETURN_NEQ(0b00000010, top.dbg_P_out);
 
   // LDX
-  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
-  if (!testEqual(1, top.dbg_X_out))
-    return log_error(), -1;
-  if (!testEqual(0b00000000, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter);
+  RETURN_NEQ(1, top.dbg_X_out);
+  RETURN_NEQ(0b00000000, top.dbg_P_out);
 
   // New index => X
-  RunNCycles(top, vcdOut, counter, LD_any_IMM_cycles);
+  RunNCycles(LD_any_IMM_cycles, top, vcdOut, counter);
   // LDX
-  RunNCycles(top, vcdOut, counter, LD_any_ZP_IDX_cycles);
-  if (!testEqual(0, top.dbg_X_out))
-    return log_error(), -1;
-  if (!testEqual(0b00000010, top.dbg_P_out))
-    return log_error(), -1;
+  RunNCycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0, top.dbg_X_out);
+  RETURN_NEQ(0b00000010, top.dbg_P_out);
 
 #pragma endregion
 
@@ -465,20 +400,17 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   // [](../6502-code/ROM/loadStore.test.asm:79)
 
   // Setup
-  RunNCycles(top, vcdOut, counter, 2);
+  RunNCycles(2, top, vcdOut, counter);
 
   const int LDA_ABS_IDX_cycles = 4;
-  RunNCycles(top, vcdOut, counter, LDA_ABS_IDX_cycles);
-  if (!testEqual(0x1, top.dbg_A_out))
-    return log_error(), -1;
+  RunNCycles(LDA_ABS_IDX_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x1, top.dbg_A_out);
 
-  // page cross
-  RunNCycles(top, vcdOut, counter, LDA_ABS_IDX_cycles);
-  if (!testEqual(0x3, top.dbg_A_out))
-    return log_error(), -1;
+  // Page cross
+  RunNCycles(LDA_ABS_IDX_cycles + 1, top, vcdOut, counter);
+  RETURN_NEQ(0x3, top.dbg_A_out);
   // Page cross should incur 1 extra cycle
-  if (!testEqual(0x102, top.dbg_state_out))
-    return log_error(), -1;
+  RETURN_NEQ(0x102, top.dbg_state_out);
 
 #pragma endregion
 
@@ -487,12 +419,12 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   // [](../6502-code/ROM/loadStore.test.asm:96)
 
   // Setup
-  RunNCycles(top, vcdOut, counter, 12);
+  RunNCycles(12, top, vcdOut, counter);
 
   // LDA
-  RunNCycles(top, vcdOut, counter, 6);
-  if (!testEqual(0x80, top.dbg_A_out))
-    return log_error(), -1;
+  const int LDA_IDX_IND_cycles = 6;
+  RunNCycles(LDA_IDX_IND_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x80, top.dbg_A_out);
 
 #pragma endregion
 
@@ -501,28 +433,26 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
   // [](../6502-code/ROM/loadStore.test.asm:108)
 
   // Setup
-  RunNCycles(top, vcdOut, counter, 4);
+  RunNCycles(4, top, vcdOut, counter);
 
   // LDA
-  RunNCycles(top, vcdOut, counter, 5);
-  if (!testEqual(0x80, top.dbg_A_out))
-    return log_error(), -1;
+  const int LDA_IND_IDX_cycles = 5;
+  RunNCycles(LDA_IND_IDX_cycles, top, vcdOut, counter);
+  RETURN_NEQ(0x80, top.dbg_A_out);
 
   // New index
-  RunNCycles(top, vcdOut, counter, 4);
+  RunNCycles(4, top, vcdOut, counter);
 
-  RunNCycles(top, vcdOut, counter, 6);
-  if (!testEqual(0xfd, top.dbg_A_out))
-    return log_error(), -1;
+  RunNCycles(LDA_IND_IDX_cycles + 1, top, vcdOut, counter);
+  RETURN_NEQ(0xfd, top.dbg_A_out);
   // Page cross should incur 1 extra cycle
-  if (!testEqual(0x102, top.dbg_state_out))
-    return log_error(), -1;
+  RETURN_NEQ(0x102, top.dbg_state_out);
 
 #pragma endregion
 
-  // Steady state JMP trap
+  // Steady state behavior
   for (int j = 0; j < 3; j++)
-    RunNCycles(top, vcdOut, counter, 3);
+    RunNCycles(3, top, vcdOut, counter);
 
   return 0;
 }
@@ -544,17 +474,17 @@ int main(int argc, char **argv, char **env) {
        .vcdFile = "./vcd_out/reset_test.vcd",
        .programFile = "./obj_dir/reset.test.o65",
        .romStartAddress = StandardProgramRomAddr,
-       .skip = true},
+       .skip = false},
       {.testFunction = testJmp,
        .vcdFile = "./vcd_out/jmp_test.vcd",
        .programFile = "./obj_dir/jmp.test.o65",
        .romStartAddress = StandardProgramRomAddr,
-       .skip = true},
+       .skip = false},
       {.testFunction = testSubroutines,
        .vcdFile = "./vcd_out/subroutines_test.vcd",
        .programFile = "./obj_dir/subroutines.test.o65",
        .romStartAddress = StandardProgramRomAddr,
-       .skip = true},
+       .skip = false},
       {.testFunction = testLoadStore,
        .vcdFile = "./vcd_out/loadStore_test.vcd",
        .programFile = "./obj_dir/loadStore.test.o65",

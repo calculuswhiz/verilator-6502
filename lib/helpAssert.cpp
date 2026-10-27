@@ -1,3 +1,6 @@
+#ifndef HELP_ASSERT
+#define HELP_ASSERT
+
 #include <cstdio>
 
 // cassert is not very good. It does not give you custom messages.
@@ -15,3 +18,14 @@ bool testEqual(int a, int b, const char *message = nullptr) {
     return true;
   }
 }
+
+#define log_error(fmt, ...)                                                    \
+  fprintf(stderr, "[ERROR] (%s:%d) " fmt "\n", __FILE__, __LINE__)
+
+#define RETURN_NEQ(a, b)                                                       \
+  do {                                                                         \
+    if (!testEqual(a, b))                                                      \
+      return log_error(), -1;                                                  \
+  } while (false);
+
+#endif

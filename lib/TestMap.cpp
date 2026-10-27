@@ -1,3 +1,6 @@
+#ifndef TESTMAP_CPP
+#define TESTMAP_CPP
+
 #include <cstdint>
 #include <cstdio>
 using std::printf;
@@ -38,3 +41,5 @@ void dumpRange(uint16_t from, uint16_t to) {
   }
 }
 } // namespace TestMap
+
+#endif
