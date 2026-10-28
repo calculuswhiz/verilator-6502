@@ -10,7 +10,7 @@
 
 #include "../lib/TestMap.cpp"
 #include "../lib/helpAssert.cpp"
-#include "../lib/testbenchMacros.h"
+#include "../lib/testbenchHelpers.h"
 
 using std::printf;
 
@@ -53,15 +53,6 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
   fclose(file);
   outBuffer = buffer;
   return size;
-}
-
-// Update the memory bus (should be called every cycle)
-void updateMemory(VtopLevel &top) {
-  if (top.mem_rW == 1) {
-    top.mem_rData = TestMap::read(top.mem_address);
-    top.eval();
-  } else
-    TestMap::write(top.mem_address, top.mem_wData);
 }
 
 constexpr int StandardProgramRomAddr = 0x8000;

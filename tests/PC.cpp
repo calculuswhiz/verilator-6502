@@ -3,7 +3,7 @@
 // Note: a lot of functionality is shared with CountReg
 
 #include "../lib/helpAssert.cpp"
-#include "../lib/testbenchMacros.h"
+#include "../lib/testbenchHelpers.h"
 #include <cassert>
 #include <cstdio>
 

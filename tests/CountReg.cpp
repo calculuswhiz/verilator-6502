@@ -1,7 +1,7 @@
 #include "../obj_dir/VCountReg.h"
 
 #include "../lib/helpAssert.cpp"
-#include "../lib/testbenchMacros.h"
+#include "../lib/testbenchHelpers.h"
 #include <cassert>
 #include <cstdio>
 

@@ -1,6 +1,7 @@
 #ifndef TESTBENCH_MACROS_H
 #define TESTBENCH_MACROS_H
 
+#include "../lib/TestMap.cpp"
 #include "verilated_vcd_c.h"
 
 template <typename TModule> inline void cycle_clock(TModule &module) {
@@ -10,9 +11,20 @@ template <typename TModule> inline void cycle_clock(TModule &module) {
   module.eval();
 }
 
+// Update the memory bus (should be called every cycle)
+template <typename TModule>
+void updateMemory(TModule &module) {
+  if (module.mem_rW == 1) {
+    module.mem_rData = TestMap::read(module.mem_address);
+    module.eval();
+  } else
+    TestMap::write(module.mem_address, module.mem_wData);
+}
+
 template <typename TModule>
 inline void toggle_clock_with_dump(TModule &module, VerilatedVcdC &dump,
                                    int &count) {
+  updateMemory(module);
   module.clk = !module.clk;
   module.eval();
   dump.dump(count++);
