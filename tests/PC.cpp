@@ -24,7 +24,7 @@ int main(int argc, char **argv, char **env) {
   assert(testEqual(pc.PCH_out, 0x00));
 
   pc.reset_n = 0;
-  CycleClock(pc);
+  cycle_clock(pc);
   pc.eval();
   assert(testEqual(pc.PCL_out, 0xfc));
   assert(testEqual(pc.PCH_out, 0xff));
@@ -33,7 +33,7 @@ int main(int argc, char **argv, char **env) {
   pc.reset_n = 1;
   pc.load_pc_l = 1;
   pc.PCL_in = 0x34;
-  CycleClock(pc);
+  cycle_clock(pc);
   assert(testEqual(pc.PCL_out, 0x34));
   pc.load_pc_l = 0;
   pc.PCL_in = 0;
@@ -41,32 +41,32 @@ int main(int argc, char **argv, char **env) {
   // Load H
   pc.load_pc_h = 1;
   pc.PCH_in = 0x12;
-  CycleClock(pc);
+  cycle_clock(pc);
   assert(testEqual(pc.PCH_out, 0x12));
   assert(testEqual(pc.PCL_out, 0x34));
   pc.load_pc_h = 0;
 
   // Increment L
   pc.L_inc = 1;
-  CycleClock(pc);
+  cycle_clock(pc);
   assert(testEqual(pc.PCL_out, 0x35));
   pc.L_inc = 0;
 
   // Increment H
   pc.H_inc = 1;
-  CycleClock(pc);
+  cycle_clock(pc);
   assert(testEqual(pc.PCH_out, 0x13));
   pc.H_inc = 0;
 
   // Decrement H
   pc.H_dec = 1;
-  CycleClock(pc);
+  cycle_clock(pc);
   assert(testEqual(pc.PCH_out, 0x12));
   pc.H_dec = 0;
 
   // Reset H
   pc.reset_n = 0;
-  CycleClock(pc);
+  cycle_clock(pc);
   assert(testEqual(pc.PCH_out, 0xff));
   assert(testEqual(pc.PCL_out, 0xfe));
 

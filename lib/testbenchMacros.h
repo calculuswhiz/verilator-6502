@@ -1,40 +1,38 @@
 #ifndef TESTBENCH_MACROS_H
 #define TESTBENCH_MACROS_H
 
-// These are macros because I don't want to do all the setup for a type with
-// .clk
+#include "verilated_vcd_c.h"
 
-// Cycle a module's test signal (No dump)
-#define CycleClock(clockProvider)                                              \
-  do {                                                                         \
-    clockProvider.clk = !clockProvider.clk;                                    \
-    clockProvider.eval();                                                      \
-    clockProvider.clk = !clockProvider.clk;                                    \
-    clockProvider.eval();                                                      \
-  } while (false)
+template <typename TModule> inline void cycle_clock(TModule &module) {
+  module.clk = !module.clk;
+  module.eval();
+  module.clk = !module.clk;
+  module.eval();
+}
 
-#define ToggleClockWDump(clockProvider, dumpFile, countVar)                    \
-  do {                                                                         \
-    updateMemory(clockProvider);                                               \
-    clockProvider.clk = !clockProvider.clk;                                    \
-    clockProvider.eval();                                                      \
-    dumpFile.dump(countVar);                                                   \
-    countVar++;                                                                \
-  } while (false)
+template <typename TModule>
+inline void toggle_clock_with_dump(TModule &module, VerilatedVcdC &dump,
+                                   int &count) {
+  module.clk = !module.clk;
+  module.eval();
+  dump.dump(count++);
+}
 
 // Cycle a module's test signal
-#define CycleClockWDump(clockProvider, dumpFile, countVar)                     \
-  do {                                                                         \
-    ToggleClockWDump(clockProvider, dumpFile, countVar);                       \
-    ToggleClockWDump(clockProvider, dumpFile, countVar);                       \
-  } while (false)
+template <typename TModule>
+inline void cycle_clock_with_dump(TModule &module, VerilatedVcdC &dump,
+                                  int &count) {
+  toggle_clock_with_dump(module, dump, count);
+  toggle_clock_with_dump(module, dump, count);
+}
 
-#define RunNCycles(n, clockProvider, dumpFile, countVar)                       \
-  do {                                                                         \
-    for (int i = 0; i < n; i++) {                                              \
-      ToggleClockWDump(clockProvider, dumpFile, countVar);                     \
-      ToggleClockWDump(clockProvider, dumpFile, countVar);                     \
-    }                                                                          \
-  } while (false)
+template <typename TModule>
+inline void run_n_cycles(int n, TModule &module, VerilatedVcdC &dump,
+                         int &count) {
+  for (int i = 0; i < n; i++) {
+    toggle_clock_with_dump(module, dump, count);
+    toggle_clock_with_dump(module, dump, count);
+  }
+}
 
 #endif
