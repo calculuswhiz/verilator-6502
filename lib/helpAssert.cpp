@@ -14,15 +14,16 @@ bool testEqual(int a, int b, const char *message = nullptr) {
 
     return false;
   } else {
-    // std::printf("Success: %d (0x%x) == %d (0x%x)\n", a, a, b, b);
     return true;
   }
 }
 
 #define log_error(fmt, ...)                                                    \
+  /* Print location to stderr */                                               \
   fprintf(stderr, "[ERROR] (%s:%d) " fmt "\n", __FILE__, __LINE__)
 
-#define RETURN_NEQ(a, b)                                                       \
+#define ERR_IF_NEQ(a, b)                                                       \
+  /* Forces return of -1 if not equal */                                       \
   do {                                                                         \
     if (!testEqual(a, b))                                                      \
       return log_error(), -1;                                                  \
