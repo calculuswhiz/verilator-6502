@@ -10,8 +10,8 @@
 
 #include "../lib/TestMap.cpp"
 #include "../lib/helpAssert.cpp"
-#include "../lib/testbenchHelpers.h"
 #include "../lib/opcodes.h"
+#include "../lib/testbenchHelpers.h"
 
 using std::printf;
 
@@ -59,7 +59,8 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
 constexpr int StandardProgramRomAddr = 0x8000;
 constexpr int ResetLength = 8;
 
-// Drive the reset signals for the tests.
+// Drive the reset signals for the tests. Ends on a half-cycle so we can see the
+// result of the instruction.
 int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
   printForTest &&printf("Testing initial conditions\n");
 
@@ -94,7 +95,6 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
   ERR_IF_NEQ(boot_3, top.dbg_state_out);
   ERR_IF_NEQ(StandardProgramRomAddr, top.dbg_PC_out);
 
-  // Only once so we can see the result of the instruction.
   toggle_clock_with_dump(top, vcdOut, counter);
   ERR_IF_NEQ(fetch2, top.dbg_state_out);
   ERR_IF_NEQ(StandardProgramRomAddr, top.dbg_PC_out);

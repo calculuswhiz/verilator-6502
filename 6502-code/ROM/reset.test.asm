@@ -5,6 +5,9 @@ start_program_ROM:
   NOP
   NOP
   NOP
+  NOP
+  NOP
+  NOP
 
 end_program_ROM:
   .dsb    $fffa - end_program_ROM

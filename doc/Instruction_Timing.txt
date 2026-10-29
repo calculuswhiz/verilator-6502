@@ -98,7 +98,7 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR = M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        IR = M[PC]                                      (IMPLIED_ACCUMULATOR)
+                        IR = M[PC]                                      (BUS_NOP)
         3  $0100,S  R  increment S 
                         S+=1                                            (RTI_IMP_1)
         4  $0100,S  R  pull P from stack, increment S
@@ -115,7 +115,7 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        IR=M[PC]                                        (IMPLIED_ACCUMULATOR)
+                        M[PC]                                        (BUS_NOP)
         3  $0100,S  R  increment S
                         S+=1                                            (RTS_IMP_1)
         4  $0100,S  R  pull PCL from stack, increment S
@@ -132,7 +132,7 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        IR=M[PC]                                        (IMPLIED_ACCUMULATOR)
+                        M[PC]                                        (BUS_NOP)
         3  $0100,S  W  push register on stack, decrement S
                         M[S|$0100]=A/P, S-=1                            (depends)
 
@@ -143,7 +143,7 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        IR=M[PC]                                        (IMPLIED_ACCUMULATOR)
+                        M[PC]                                        (BUS_NOP)
         3  $0100,S  R  increment S
                         S+=1                                            (depends_1)
         4  $0100,S  R  pull register from stack
@@ -174,7 +174,7 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        Use M[PC]       (IMPLIED_ACCUMULATOR) (depends?)
+                        M[PC]       (depends on instruction)
 
   Immediate addressing
 

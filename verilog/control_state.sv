@@ -24,6 +24,10 @@ module control_state (
 			boot_3, ABSOLUTE_W, ZEROPAGE_W,
 			JSR_ABS, RTS_IMP,
 			BRK_IMP, RTI_IMP,
+			ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
+			LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC, SEC_IMP,
+			SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP,
+			PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP,
 			JMP_ABS, JMP_IND,
 			ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS,SBC_ABS,
 			STA_ABS, STX_ABS, STY_ABS,
@@ -45,11 +49,7 @@ module control_state (
 			end
 			ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM:
 				next_state <= fetch2;
-			fetch2, BRANCH_TAKEN, BRANCH_CHECK,
-			ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
-			LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC, SEC_IMP,
-			SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP, TXS_IMP, TYA_IMP,
-			PHA_IMP, PHP_IMP, PLP_IMP, PLA_IMP: begin
+			fetch2, BRANCH_TAKEN, BRANCH_CHECK: begin
 				if (page_invalid_state != page_normal) begin
 					if (state == BRANCH_TAKEN)
 							next_state <= BRANCH_PAGE;
@@ -73,18 +73,18 @@ module control_state (
 						let next_state_opcode = {4'h0, next_state_path};
 						case (next_state_opcode)
 							ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM,
-							ORA_IMM, SBC_IMM:
+							ORA_IMM, SBC_IMM,
+							ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP,
+							INY_IMP, LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC,
+							SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP,
+							TXS_IMP, TYA_IMP:
 								next_state <= (cpu_state)'(next_state_opcode);
 							JSR_ABS:
 								next_state <= JSR_ABS_1;
 							BRK_IMP:
 								next_state <= BRK_IMP_1;
-							ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP,
-							INY_IMP, LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC,
-							SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP,
-							TXS_IMP, TYA_IMP,
 							RTI_IMP, RTS_IMP, PHA_IMP, PHP_IMP, PLA_IMP, PLP_IMP:
-								next_state <= IMPLIED_ACCUMULATOR;
+								next_state <= BUS_NOP;
 							ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS,
 							LDY_ABS, ORA_ABS, SBC_ABS,
 							ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
@@ -123,9 +123,8 @@ module control_state (
 					end
 				end
 			end
-			/* Hardware implementation allows many instructions to skip this cycle, due to xfer_bus and data_bus being seperate.
-			Unfortunately, I care about cycle accuracy, so this is staying. */
-			IMPLIED_ACCUMULATOR: begin
+			BUS_NOP: begin
+				// Original hardware required this due to having one bus
 				case (ir_opcode)
 					PLA_IMP: next_state <= PLA_IMP_1;
 					PLP_IMP: next_state <= PLP_IMP_1;

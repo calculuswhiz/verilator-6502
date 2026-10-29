@@ -373,10 +373,8 @@ module control_signal (
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 			end
-			boot_3, IMPLIED_ACCUMULATOR: begin
-				// A lot like fetch2, but does not increment PC. 
+			boot_3, BUS_NOP: begin
 				// No operand, so PC is already in the right place.
-				IR_ld = 1;
 				setReadMem();
 				addressWith(pc);
 			end
@@ -647,8 +645,8 @@ module control_signal (
 			// #endregion IMM
 			// #region IMP/ACC
 			ASL_ACC: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				// A<<1
 				doAlu(alu_asl, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
@@ -656,76 +654,76 @@ module control_signal (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			CLC_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				ctl_pvect[0] = 0;
 				P_ld = 1;
 			end
 			CLD_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				ctl_pvect[3] = 0;
 				P_ld = 1;
 			end
 			CLI_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				ctl_pvect[2] = 0;
 				P_ld = 1;
 			end
 			CLV_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				ctl_pvect[6] = 0;
 				P_ld = 1;
 			end
 			DEX_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				doAlu(alu_dec, aluSel_X, aluSel_A);
 				ALUd_en = 1;
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			DEY_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				doAlu(alu_dec, aluSel_Y, aluSel_A);
 				ALUd_en = 1;
 				Y_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			INX_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				doAlu(alu_inc, aluSel_X, aluSel_A);
 				ALUd_en = 1;
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			INY_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				doAlu(alu_inc, aluSel_Y, aluSel_A);
 				ALUd_en = 1;
 				Y_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			LSR_ACC: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				doAlu(alu_lsr, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			NOP_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 			end
 			ROL_ACC: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				doAlu(alu_rol, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
@@ -733,8 +731,8 @@ module control_signal (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			ROR_ACC: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				doAlu(alu_ror, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
@@ -742,61 +740,61 @@ module control_signal (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			SEC_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				ctl_pvect[0] = 1;
 				P_ld = 1;
 			end
 			SED_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				ctl_pvect[3] = 1;
 				P_ld = 1;
 			end
 			SEI_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				ctl_pvect[2] = 1;
 				P_ld = 1;
 			end
 			TAX_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				A_en = 1;
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			TAY_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				A_en = 1;
 				Y_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			TSX_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				Sd_en = 1;
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			TXA_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				X_en = 1;
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			TYA_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				Y_en = 1;
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			TXS_IMP: begin
-				fetchAddressOpcode();
-				IR_ld = 1;
+				setReadMem();
+				addressWith(pc);
 				X_en = 1;
 				S_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);

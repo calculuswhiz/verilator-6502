@@ -38,3 +38,10 @@ await fs.writeFile(
 constexpr int ${parsed.map(([name, value]) => `${name} = 0x${value}`).join(",\n\t")};
 `, "utf-8"
 )
+
+await fs.writeFile(
+  path.join(import.meta.dirname, "../filters/6502-state.toml"),
+  `# Please add more if you update opCodeHex.sv
+# On mac, copy to ~/Library/Application Support/org.surfer-project.surfer/mappings
+${parsed.map(([name, value]) => `0x${value} ${name}`).join("\n")}`
+);
