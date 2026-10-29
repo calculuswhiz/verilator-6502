@@ -1,5 +1,4 @@
-#ifndef TESTBENCH_MACROS_H
-#define TESTBENCH_MACROS_H
+#pragma once
 
 #include "../lib/TestMap.cpp"
 #include "verilated_vcd_c.h"
@@ -30,7 +29,7 @@ inline void toggle_clock_with_dump(TModule &module, VerilatedVcdC &dump,
   dump.dump(count++);
 }
 
-// Cycle a module's test signal
+// Cycle a module's test signal. Takes 2 time units.
 template <typename TModule>
 inline void cycle_clock_with_dump(TModule &module, VerilatedVcdC &dump,
                                   int &count) {
@@ -46,5 +45,3 @@ inline void run_n_cycles(int n, TModule &module, VerilatedVcdC &dump,
     toggle_clock_with_dump(module, dump, count);
   }
 }
-
-#endif

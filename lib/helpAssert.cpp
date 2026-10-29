@@ -1,5 +1,4 @@
-#ifndef HELP_ASSERT
-#define HELP_ASSERT
+#pragma once
 
 #include <cstdio>
 
@@ -28,5 +27,3 @@ bool testEqual(int a, int b, const char *message = nullptr) {
     if (!testEqual(a, b))                                                      \
       return log_error(), -1;                                                  \
   } while (false);
-
-#endif

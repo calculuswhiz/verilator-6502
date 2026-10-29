@@ -11,6 +11,7 @@
 #include "../lib/TestMap.cpp"
 #include "../lib/helpAssert.cpp"
 #include "../lib/testbenchHelpers.h"
+#include "../lib/opcodes.h"
 
 using std::printf;
 
@@ -56,9 +57,9 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
 }
 
 constexpr int StandardProgramRomAddr = 0x8000;
+constexpr int ResetLength = 8;
 
-// Drive the reset signals for the tests. If you wish to see the reset dump, the
-// next timestamp you should use is 7
+// Drive the reset signals for the tests.
 int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
   printForTest &&printf("Testing initial conditions\n");
 
@@ -81,20 +82,21 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
 
   top.forceReset_n = 0;
   cycle_clock_with_dump(top, vcdOut, counter);
-  ERR_IF_NEQ(0xf00, top.dbg_state_out);
+  ERR_IF_NEQ(boot_1, top.dbg_state_out);
   ERR_IF_NEQ(0xfffc, top.dbg_PC_out);
 
   top.forceReset_n = 1;
   cycle_clock_with_dump(top, vcdOut, counter);
-  ERR_IF_NEQ(0xf01, top.dbg_state_out);
+  ERR_IF_NEQ(boot_2, top.dbg_state_out);
   ERR_IF_NEQ(0xfffd, top.dbg_PC_out);
 
   cycle_clock_with_dump(top, vcdOut, counter);
-  ERR_IF_NEQ(0x101, top.dbg_state_out);
+  ERR_IF_NEQ(boot_3, top.dbg_state_out);
   ERR_IF_NEQ(StandardProgramRomAddr, top.dbg_PC_out);
 
-  cycle_clock_with_dump(top, vcdOut, counter);
-  ERR_IF_NEQ(0x102, top.dbg_state_out);
+  // Only once so we can see the result of the instruction.
+  toggle_clock_with_dump(top, vcdOut, counter);
+  ERR_IF_NEQ(fetch2, top.dbg_state_out);
   ERR_IF_NEQ(StandardProgramRomAddr, top.dbg_PC_out);
 
   return 0;
@@ -114,7 +116,7 @@ int testReset(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int resetResult = reset(top, vcdOut, true);
   ERR_IF_NEQ(resetResult, 0);
 
-  int counter = 9;
+  int counter = ResetLength;
 
   // Steady state behavior
   for (int i = 0; i < 3; i++)
@@ -130,7 +132,7 @@ int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int resetResult = reset(top, vcdOut, true);
   ERR_IF_NEQ(0, resetResult);
 
-  int counter = 9;
+  int counter = ResetLength;
 
   const int JMP_ABS_cycles = 3;
   run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter);
@@ -155,7 +157,7 @@ int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int resetResult = reset(top, vcdOut, true);
   ERR_IF_NEQ(0, resetResult);
 
-  int counter = 9;
+  int counter = ResetLength;
 
   const int JSR_cycles = 6;
   run_n_cycles(JSR_cycles, top, vcdOut, counter);
@@ -178,10 +180,9 @@ int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut) {
 */
 int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int resetResult = reset(top, vcdOut, true);
-  if (resetResult != 0)
-    return log_error(), -1;
+  ERR_IF_NEQ(0, resetResult);
 
-  int counter = 9;
+  int counter = ResetLength;
 
 #pragma region Absolute loads
   // [](../6502-code/ROM/loadStore.test.asm:9)
@@ -376,7 +377,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   run_n_cycles(LDA_ABS_IDX_cycles + 1, top, vcdOut, counter);
   ERR_IF_NEQ(0x3, top.dbg_A_out);
   // Page cross should incur 1 extra cycle
-  ERR_IF_NEQ(0x102, top.dbg_state_out);
+  ERR_IF_NEQ(fetch2, top.dbg_state_out);
 
 #pragma endregion
 
@@ -412,7 +413,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   run_n_cycles(LDA_IND_IDX_cycles + 1, top, vcdOut, counter);
   ERR_IF_NEQ(0xfd, top.dbg_A_out);
   // Page cross should incur 1 extra cycle
-  ERR_IF_NEQ(0x102, top.dbg_state_out);
+  ERR_IF_NEQ(fetch2, top.dbg_state_out);
 
 #pragma endregion
 

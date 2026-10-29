@@ -209,15 +209,9 @@ module control_signal (
 
 		/* State actions: */
 		case (state)
-			boot_3: begin
-				setReadMem();
-				addressWith(pc);
-				IR_ld = 1;
-			end
 			fetch2: begin
 				fetchAddressOpcode();
 				IR_ld = 1;
-				// next_state_path = IR_in;
 			end
 			boot_1: begin
 				PCL_inc = 1;
@@ -372,14 +366,16 @@ module control_signal (
 				doAlu(alu_adc, aluSel_Y, aluSel_TL);
 				TH_ld = 1;
 				// Do NOT use set_page_invalid_state. That's for signed address addition. This is UNsigned.
-				// Simple: if carry is set, that means need to add 1 to TH
+				// If carry is set, that means need to add 1 to TH
 				page_invalid_state = alu_C
 					? page_inc
 					: page_normal;
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 			end
-			IMPLIED_ACCUMULATOR: begin
+			boot_3, IMPLIED_ACCUMULATOR: begin
+				// A lot like fetch2, but does not increment PC. 
+				// No operand, so PC is already in the right place.
 				IR_ld = 1;
 				setReadMem();
 				addressWith(pc);
