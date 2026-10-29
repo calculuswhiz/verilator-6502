@@ -110,7 +110,7 @@ int reset(VtopLevel &top, VerilatedVcdC &vcdOut, bool printForTest) {
 /** Tests the reset procedure
   [](../6502-code/ROM/reset.test.asm)
 */
-int testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
+int testReset(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int resetResult = reset(top, vcdOut, true);
   ERR_IF_NEQ(resetResult, 0);
 
@@ -126,7 +126,7 @@ int testReset(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 /** Tests the JMP instruction
   [](../6502-code/ROM/jmp.test.asm)
 */
-int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
+int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int resetResult = reset(top, vcdOut, true);
   ERR_IF_NEQ(0, resetResult);
 
@@ -151,7 +151,7 @@ int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 /** Tests JSR and RTS
   [](../6502-code/ROM/subroutines.test.asm)
 */
-int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
+int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int resetResult = reset(top, vcdOut, true);
   ERR_IF_NEQ(0, resetResult);
 
@@ -176,7 +176,7 @@ int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 /* Tests LDA, LDX, LDY, STA, STX, STY
   [](../6502-code/ROM/loadStore.test.asm)
 */
-int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
+int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int resetResult = reset(top, vcdOut, true);
   if (resetResult != 0)
     return log_error(), -1;
@@ -425,7 +425,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut, uint8_t *memory) {
 
 // Configure test information with this
 typedef struct {
-  int (*testFunction)(VtopLevel &, VerilatedVcdC &, uint8_t *memory);
+  int (*testFunction)(VtopLevel &, VerilatedVcdC &);
   const char *vcdFile;
   const char *programFile;
   uint16_t romStartAddress;
@@ -481,7 +481,7 @@ int main(int argc, char **argv, char **env) {
     TestMap::initMap(memory, tests[i].romStartAddress);
 
     printf("BEGIN TEST: %s\n", tests[i].programFile);
-    int result = tests[i].testFunction(top, vcdOut, memory);
+    int result = tests[i].testFunction(top, vcdOut);
     if (result != 0)
       return log_error("Failed tests.\n"), -1;
 
