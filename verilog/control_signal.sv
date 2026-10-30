@@ -846,8 +846,10 @@ module control_signal (
 				addressWith(d);
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
-				P_ld = 1;
-				maskNvzcFromALU(1, 1, 1, 0);
+				// Copy in memory NV bits. Not set by ALU
+				ctl_pvect[7] = mem_data[7];
+				ctl_pvect[6] = mem_data[6];
+				maskNvzcFromALU(0, 0, 1, 0);
 			end
 			CMP_ABX, CMP_ABY: begin
 				setReadMem();

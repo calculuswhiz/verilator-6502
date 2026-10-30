@@ -10,6 +10,11 @@ sei
 cli
 sec
 clc
+
+; No direct set overflow, so use bit
+; 4 cycles
+bit v_set
+; 2 cycles
 clv
 
 ; BCC
@@ -41,6 +46,8 @@ bvs error_zone
 
 error_zone:
   jmp error_zone
+
+v_set: .byte $40
 
 end_program_ROM:
   .dsb    $fffa - end_program_ROM

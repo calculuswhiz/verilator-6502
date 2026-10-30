@@ -428,10 +428,44 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   return 0;
 }
 
+namespace P_Flags {
+enum Flags {
+  NONE = 0,
+  C = 1 << 0,
+  Z = 1 << 1,
+  I = 1 << 2,
+  D = 1 << 3,
+  B = 1 << 4,
+  // 5 not used
+  V = 1 << 6,
+  N = 1 << 7
+};
+}
+
 int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int resetResult = reset(top, vcdOut, true);
+  if (resetResult == -1)
+    return log_error(), -1;
 
   int counter = resetResult;
+
+  const int setClear_cycles = 2;
+  // Interrupt
+  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::I, top.dbg_P_out);
+  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
+  // Carry
+  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
+  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
+  // Bit + clv
+  const int BIT_ABS_Cycles = 4;
+  run_n_cycles(BIT_ABS_Cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::V | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // Steady state behavior
   for (int i = 0; i < 3; i++)
@@ -471,6 +505,11 @@ int main(int argc, char **argv, char **env) {
       {.testFunction = testLoadStore,
        .vcdFile = "./vcd_out/loadStore_test.vcd",
        .programFile = "./obj_dir/loadStore.test.o65",
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = false},
+      {.testFunction = testFlagsBranch,
+       .vcdFile = "./vcd_out/flags_branch_test.vcd",
+       .programFile = "./obj_dir/flags_branch.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
   };
