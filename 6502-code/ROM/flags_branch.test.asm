@@ -44,11 +44,19 @@ a3:
   clv
   lda #01 ; Clears N/Z
 
-nop
-nop
-nop
-nop
-nop
+bcc b0
+b2:
+  bne b3
+b1:
+  bpl b2
+b0:
+  bvc b1
+
+b3:
+  NOP
+
+trap:
+  jmp trap
 
 ; TODO Page crossing
 

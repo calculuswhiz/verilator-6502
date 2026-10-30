@@ -483,6 +483,14 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
   // CLV
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::N | P_Flags::Z, top.dbg_P_out);
+  // LDA
+  const int LDA_IMM_cycles = 2;
+  run_n_cycles(LDA_IMM_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
+
+  // Branch taken bcc bne bpl bvc
+  run_n_cycles(branch_cycles * 4, top, vcdOut, counter, true);
+  ERR_IF_NEQ(NOP_IMP, top.dbg_IR_out);
 
   // Pad output
   for (int i = 0; i < 3; i++)
