@@ -391,8 +391,9 @@ module control_signal (
 				DL_ld = 1;
 			end
 			JSR_ABS_2: begin
-				/* Might not need this. IDK what this is. See Instruction Timings. */
-				// S_dec = 1;
+				/* See Instruction Timings. "internal operation"
+					Seems to do nothing 
+				*/
 			end
 			JSR_ABS_3: begin
 				setWriteMem();

@@ -98,7 +98,7 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR = M[PC], PC+=1
         2    PC     R  read next instruction byte (and throw it away)
-                        IR = M[PC]                                      (BUS_NOP)
+                        M[PC]                                      (BUS_NOP)
         3  $0100,S  R  increment S 
                         S+=1                                            (RTI_IMP_1)
         4  $0100,S  R  pull P from stack, increment S
@@ -157,7 +157,7 @@ different kinds of instructions.
                         IR=M[PC], PC+=1
         2    PC     R  fetch low address byte, increment PC
                         DL=M[PC], PC+=1                                 (JSR_ABS_1)
-        3  $0100,S  R  internal operation (predecrement S?)
+        3  $0100,S  R  internal operation
                         S-=1?                                           (JSR_ABS_2)
         4  $0100,S  W  push PCH on stack, decrement S
                         M[S]=PCH, S-=1                                  (JSR_ABS_3)

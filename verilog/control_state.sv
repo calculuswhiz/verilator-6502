@@ -3,7 +3,7 @@
 module control_state (
 	input forceReset_n,
   input clk,
-  input [7:0] IR_in, 
+  input [7:0] IR_in,
   /* verilator lint_off UNUSEDSIGNAL */
     // Not all bits used by CPU in 6502
     P_in,
@@ -55,7 +55,7 @@ module control_state (
 							next_state <= BRANCH_PAGE;
 					else begin
 						$error(
-							"State (%s) other than BRANCH_TAKEN at invalid page (%s)", 
+							"State (%s) other than BRANCH_TAKEN at invalid page (%s)",
 							state.name(), page_invalid_state.name()
 						);
 						next_state <= ERROR;
@@ -130,9 +130,8 @@ module control_state (
 					PLP_IMP: next_state <= PLP_IMP_1;
 					RTI_IMP: next_state <= RTI_IMP_1;
 					RTS_IMP: next_state <= RTS_IMP_1;
-					default: 
-						// For non-stack instructions:
-						next_state <= ir_opcode;
+					default:
+						$error("Somehow ended up here: IR:%x", ir_opcode);
 				endcase
 			end
 			ABSOLUTE_R, ZEROPAGE_R, BRANCH_PAGE:
@@ -227,7 +226,7 @@ module control_state (
 			XID_3: next_state <= XID_4;
 			XID_4:
 				next_state <= ir_opcode;
-			
+
 			IDY_1: next_state <= IDY_2;
 			IDY_2: next_state <= IDY_3;
 			IDY_3: begin
@@ -240,7 +239,7 @@ module control_state (
 					end
 				endcase
 			end
-			
+
 			LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY: begin
 				next_state <= page_invalid_state != page_normal
 					// Share with ___XID states
@@ -299,7 +298,7 @@ module control_state (
 			end
 			ZEROPAGE_X, ZEROPAGE_Y: begin
 				case (ir_opcode)
-					LDA_ZPX, LDY_ZPX, LDX_ZPY, 
+					LDA_ZPX, LDY_ZPX, LDX_ZPY,
 					EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
 					STA_ZPX, STY_ZPX, STX_ZPY:
 						next_state <= ir_opcode;
@@ -334,5 +333,5 @@ module control_state (
 	always @(posedge clk) begin
 		state <= ~forceReset_n ? boot_1 : next_state;
 	end
-  
+
 endmodule

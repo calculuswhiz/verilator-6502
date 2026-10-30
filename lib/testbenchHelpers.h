@@ -11,8 +11,7 @@ template <typename TModule> inline void cycle_clock(TModule &module) {
 }
 
 // Update the memory bus (should be called every cycle)
-template <typename TModule>
-void updateMemory(TModule &module) {
+template <typename TModule> void updateMemory(TModule &module) {
   if (module.mem_rW == 1) {
     module.mem_rData = TestMap::read(module.mem_address);
     module.eval();
@@ -21,27 +20,28 @@ void updateMemory(TModule &module) {
 }
 
 template <typename TModule>
-inline void toggle_clock_with_dump(TModule &module, VerilatedVcdC &dump,
-                                   int &count) {
+inline void toggle_clock(TModule &module, VerilatedVcdC &dumpFile,
+                                   int &count, bool dump) {
   updateMemory(module);
   module.clk = !module.clk;
   module.eval();
-  dump.dump(count++);
+  if (dump)
+    dumpFile.dump(count++);
 }
 
 // Cycle a module's test signal. Takes 2 time units.
 template <typename TModule>
-inline void cycle_clock_with_dump(TModule &module, VerilatedVcdC &dump,
-                                  int &count) {
-  toggle_clock_with_dump(module, dump, count);
-  toggle_clock_with_dump(module, dump, count);
+inline void cycle_clock(TModule &module, VerilatedVcdC &dumpFile,
+                                  int &count, bool dump) {
+  toggle_clock(module, dumpFile, count, dump);
+  toggle_clock(module, dumpFile, count, dump);
 }
 
 template <typename TModule>
-inline void run_n_cycles(int n, TModule &module, VerilatedVcdC &dump,
-                         int &count) {
+inline void run_n_cycles(int n, TModule &module, VerilatedVcdC &dumpFile,
+                         int &count, bool dump) {
   for (int i = 0; i < n; i++) {
-    toggle_clock_with_dump(module, dump, count);
-    toggle_clock_with_dump(module, dump, count);
+    toggle_clock(module, dumpFile, count, dump);
+    toggle_clock(module, dumpFile, count, dump);
   }
 }
