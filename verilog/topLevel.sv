@@ -338,7 +338,9 @@ module topLevel (
 
     // #region P
 
-    assign Pmux_out = Pmux_sel == pSel_ctl_pvect ? ctl_pvect : data_bus;
+    // Bit 5 hardwired to 1
+    assign Pmux_out =  8'b0010_0000 
+        | (Pmux_sel == pSel_ctl_pvect ? ctl_pvect : data_bus);
 
     GpReg P_reg(
         .clk(clkDiv[divFactor]),

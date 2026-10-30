@@ -58,6 +58,21 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
 
 constexpr int StandardProgramRomAddr = 0x8000;
 
+namespace P_Flags {
+enum Flags {
+  NONE = 0 | 1 << 5,
+  C = 1 << 0 | 1 << 5,
+  Z = 1 << 1 | 1 << 5,
+  I = 1 << 2 | 1 << 5,
+  D = 1 << 3 | 1 << 5,
+  B = 1 << 4 | 1 << 5,
+  // Hardwire to 1
+  ONE = 1 << 5,
+  V = 1 << 6 | 1 << 5,
+  N = 1 << 7 | 1 << 5
+};
+}
+
 // Drive the reset signals for the tests. Ends on a half-cycle so we can see the
 // result of the instruction.
 // Returns clock time after done. -1 if error
@@ -195,32 +210,32 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   // LDA (zero flag)
   run_n_cycles(LD_any_ABS_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
-  ERR_IF_NEQ(0b00000010, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDA (negative flag)
   run_n_cycles(LD_any_ABS_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
-  ERR_IF_NEQ(0b10000000, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
   // LDX (zero flag)
   run_n_cycles(LD_any_ABS_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_X_out);
-  ERR_IF_NEQ(0b00000010, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDX (negative flag)
   run_n_cycles(LD_any_ABS_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_X_out);
-  ERR_IF_NEQ(0b10000000, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
   // LDY (zero flag)
   run_n_cycles(LD_any_ABS_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_Y_out);
-  ERR_IF_NEQ(0b00000010, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDY (negative flag)
   run_n_cycles(LD_any_ABS_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_Y_out);
-  ERR_IF_NEQ(0b10000000, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
 #pragma endregion
 
@@ -231,32 +246,32 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   // LDA (zero)
   run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x00, top.dbg_A_out);
-  ERR_IF_NEQ(0b00000010, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDA (negative)
   run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
-  ERR_IF_NEQ(0b10000000, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
   // LDX (zero)
   run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x00, top.dbg_X_out);
-  ERR_IF_NEQ(0b00000010, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDX (negative)
   run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_X_out);
-  ERR_IF_NEQ(0b10000000, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
   // LDY (zero)
   run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x00, top.dbg_Y_out);
-  ERR_IF_NEQ(0b00000010, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDY (negative)
   run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_Y_out);
-  ERR_IF_NEQ(0b10000000, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
 #pragma endregion
 
@@ -345,24 +360,24 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   // Again, LDA
   run_n_cycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
-  ERR_IF_NEQ(0b00000010, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // Again, LDY
   run_n_cycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_Y_out);
-  ERR_IF_NEQ(0b00000010, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDX
   run_n_cycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(1, top.dbg_X_out);
-  ERR_IF_NEQ(0b00000000, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
 
   // New index => X
   run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
   // LDX
   run_n_cycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_X_out);
-  ERR_IF_NEQ(0b00000010, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
 #pragma endregion
 
@@ -428,26 +443,15 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   return 0;
 }
 
-namespace P_Flags {
-enum Flags {
-  NONE = 0,
-  C = 1 << 0,
-  Z = 1 << 1,
-  I = 1 << 2,
-  D = 1 << 3,
-  B = 1 << 4,
-  // 5 not used
-  V = 1 << 6,
-  N = 1 << 7
-};
-}
-
 int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
-  int resetResult = reset(top, vcdOut, true);
+  int resetResult = reset(top, vcdOut, false);
   if (resetResult == -1)
     return log_error(), -1;
 
   int counter = resetResult;
+
+  const int noBranch_cycles = 2;
+  run_n_cycles(noBranch_cycles * 4, top, vcdOut, counter, true);
 
   const int setClear_cycles = 2;
   // Interrupt

@@ -5,6 +5,12 @@ start_program_ROM:
 
 ; SED, CLD not supported
 
+; Test non-branching (2 cycles each). P is clear right now
+bcs error_zone
+beq error_zone
+bmi error_zone
+bvs error_zone
+
 ; 2 cycles each
 sei
 cli
@@ -14,7 +20,7 @@ clc
 ; No direct set overflow, so use bit
 ; 4 cycles
 bit v_set
-; 2 cycles
+; 2 cycles. Note that this will leave the zero flag set. A is 0.
 clv
 
 ; BCC

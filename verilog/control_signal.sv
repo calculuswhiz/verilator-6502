@@ -214,6 +214,7 @@ module control_signal (
 				IR_ld = 1;
 			end
 			boot_1: begin
+				P_ld = 1;
 				PCL_inc = 1;
 				// PC is hardcoded at top level to reset vector address on reset
 				setReadMem();
