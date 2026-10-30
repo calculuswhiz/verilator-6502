@@ -293,8 +293,7 @@ module control_signal (
 					setReadMem();
 					addressWith(pc);
 					PCLm_en = 0;
-					DLd_en = 1;
-					doAlu(alu_adc, aluSel_data_bus, aluSel_PCL);
+					doAlu(alu_adc, aluSel_DL, aluSel_PCL);
 					ALUm_en = 1;
 					PCLmux_sel = pclSel_memory_bus_l;
 					PCL_ld = 1;

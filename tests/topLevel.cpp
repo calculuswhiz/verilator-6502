@@ -159,7 +159,7 @@ int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut) {
   run_n_cycles(JMP_IND_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(StandardProgramRomAddr + 3, top.dbg_PC_out);
 
-  // Steady state behavior
+  // Pad output
   for (int i = 0; i < 3; i++) {
     run_n_cycles(3, top, vcdOut, counter, true);
     ERR_IF_NEQ(StandardProgramRomAddr + 3, top.dbg_PC_out);
@@ -185,7 +185,7 @@ int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut) {
   run_n_cycles(RTS_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(StandardProgramRomAddr + 3, top.dbg_PC_out);
 
-  // Steady state behavior
+  // Pad output
   for (int i = 0; i < 3; i++) {
     run_n_cycles(3, top, vcdOut, counter, true);
     ERR_IF_NEQ(StandardProgramRomAddr + 3, top.dbg_PC_out);
@@ -436,7 +436,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
 #pragma endregion
 
-  // Steady state behavior
+  // Pad output
   for (int i = 0; i < 3; i++)
     run_n_cycles(3, top, vcdOut, counter, true);
 
@@ -450,28 +450,41 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int counter = resetResult;
 
+  // No-branch bcs beq bmi bvs
   const int noBranch_cycles = 2;
   run_n_cycles(noBranch_cycles * 4, top, vcdOut, counter, true);
 
   const int setClear_cycles = 2;
-  // Interrupt
+  // SEI
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::I, top.dbg_P_out);
+  // SEC
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
-  // Carry
-  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
-  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
-  // Bit + clv
+  ERR_IF_NEQ(P_Flags::C | P_Flags::I, top.dbg_P_out);
+  // BIT for setting NV
   const int BIT_ABS_Cycles = 4;
   run_n_cycles(BIT_ABS_Cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(P_Flags::V | P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::I | P_Flags::N | P_Flags::V | P_Flags::Z,
+             top.dbg_P_out);
 
-  // Steady state behavior
+  // No branch bcc bne bpl bvc
+  run_n_cycles(noBranch_cycles * 4, top, vcdOut, counter, true);
+
+  // Branch taken bcs beq bmi bvs
+  const int branch_cycles = 3;
+  run_n_cycles(branch_cycles * 4, top, vcdOut, counter, true);
+
+  // CLC
+  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::I | P_Flags::N | P_Flags::V | P_Flags::Z, top.dbg_P_out);
+  // CLI
+  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N | P_Flags::V | P_Flags::Z, top.dbg_P_out);
+  // CLV
+  run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N | P_Flags::Z, top.dbg_P_out);
+
+  // Pad output
   for (int i = 0; i < 3; i++)
     run_n_cycles(3, top, vcdOut, counter, true);
 

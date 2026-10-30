@@ -1,59 +1,61 @@
 #include "./6502-code/ram_setup.asm"
 
+; Tests Branching instructions:
+;  BCC, BCS, BEQ, BNE, BPL, BMI, BVC, BVS
+; Flag instructions:
+;  CLC, SEC, CLI, SEI, (CLD), (SED), CLV
+; BIT
+; SED, CLD not supported
+
 ; 8000-fff9
 start_program_ROM:
 
-; SED, CLD not supported
+  ; Test non-branching (2 cycles each). P is clear right now
+  bcs error_zone
+  beq error_zone
+  bmi error_zone
+  bvs error_zone
 
-; Test non-branching (2 cycles each). P is clear right now
-bcs error_zone
-beq error_zone
-bmi error_zone
-bvs error_zone
+  ; 2 cycles each
+  sei
+  sec
+  ; No direct set overflow/negative, so use bit
+  ; 4 cycles
+  bit nv_set
+  ; Now all bits should be set
+  bcc error_zone
+  bne error_zone
+  bpl error_zone
+  bvc error_zone
 
-; 2 cycles each
-sei
-cli
-sec
-clc
+  ; Test branching (3 cycles each)
+  bcs a0
+a2:
+  bvs a3
+a1:
+  bmi a2
+a0:
+  beq a1
 
-; No direct set overflow, so use bit
-; 4 cycles
-bit v_set
-; 2 cycles. Note that this will leave the zero flag set. A is 0.
-clv
+a3:
+  ; 2 cycles each.
+  clc
+  cli
+  clv
+  lda #01 ; Clears N/Z
 
-; BCC
-sec
-bcc error_zone
+nop
+nop
+nop
+nop
+nop
 
-; BCS
-clc
-bcs error_zone
-
-; BEQ (Z)
-
-beq error_zone
-
-; BNE (!Z)
-bne error_zone
-
-; BPL (!Z & !N)
-bpl error_zone
-
-; BMI (N)
-bmi error_zone
-
-; BVC
-bvc error_zone
-
-; BVS
-bvs error_zone
+; TODO Page crossing
 
 error_zone:
-  jmp error_zone
+  brk
 
-v_set: .byte $40
+nv_set: .byte $c0
 
 end_program_ROM:
   .dsb    $fffa - end_program_ROM
