@@ -450,14 +450,6 @@ different kinds of instructions.
         5!    PC      R  Fetch opcode of next instruction,          (BRANCH_PAGE)
                          increment PC.
                             IR=M[PC], PC+=1
-                            
-        == Fix condition examples:
-        - PCL   REL:
-        - $ff + $01 = yes -> Carry on addition of positive #.
-        - $fe + $01 = no  -> No carry on addition of positive #.
-        - $01 + $ff = no  -> Carry on addition of negative #.
-        - $01 + $fe = yes -> No carry on addition of negative #.
-        
 
        Notes: The opcode fetch of the next instruction is included to
               this diagram for illustration purposes. When determining

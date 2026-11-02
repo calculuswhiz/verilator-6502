@@ -3,6 +3,7 @@
 #include "../lib/TestMap.cpp"
 #include "verilated_vcd_c.h"
 
+/** Basic version with no memory */
 template <typename TModule> inline void cycle_clock(TModule &module) {
   module.clk = !module.clk;
   module.eval();

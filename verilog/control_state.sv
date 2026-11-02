@@ -49,17 +49,9 @@ module control_state (
 			end
 			ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM:
 				next_state <= fetch2;
-			fetch2, BRANCH_TAKEN, BRANCH_CHECK: begin
-				if (page_invalid_state != page_normal) begin
-					if (state == BRANCH_TAKEN)
-							next_state <= BRANCH_PAGE;
-					else begin
-						$error(
-							"State (%s) other than BRANCH_TAKEN at invalid page (%s)",
-							state.name(), page_invalid_state.name()
-						);
-						next_state <= ERROR;
-					end
+			fetch2, BRANCH_CHECK, BRANCH_TAKEN, BRANCH_PAGE: begin
+				if (state == BRANCH_TAKEN & page_invalid_state != page_normal) begin
+					next_state <= BRANCH_PAGE;
 				end
 				else begin
 					let branch_taken =
@@ -134,7 +126,7 @@ module control_state (
 						$error("Somehow ended up here: IR:%x", ir_opcode);
 				endcase
 			end
-			ABSOLUTE_R, ZEROPAGE_R, BRANCH_PAGE:
+			ABSOLUTE_R, ZEROPAGE_R:
 				next_state <= ir_opcode;
 			ABSOLUTE_1: begin
 				case (ir_opcode)

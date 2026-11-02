@@ -450,47 +450,88 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int counter = resetResult;
 
-  // No-branch bcs beq bmi bvs
   const int noBranch_cycles = 2;
-  run_n_cycles(noBranch_cycles * 4, top, vcdOut, counter, true);
+  int noBranchOps[] = {BCS_REL, BEQ_REL, BMI_REL, BVS_REL};
+  for (int i = 0; i < 4; i++) {
+    ERR_IF_NEQ(noBranchOps[i], TestMap::read(top.dbg_PC_out));
+    run_n_cycles(noBranch_cycles, top, vcdOut, counter, true);
+  }
 
   const int setClear_cycles = 2;
-  // SEI
+
+  ERR_IF_NEQ(SEI_IMP, TestMap::read(top.dbg_PC_out));
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::I, top.dbg_P_out);
-  // SEC
+
+  ERR_IF_NEQ(SEC_IMP, TestMap::read(top.dbg_PC_out));
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::C | P_Flags::I, top.dbg_P_out);
-  // BIT for setting NV
+
   const int BIT_ABS_Cycles = 4;
+  ERR_IF_NEQ(BIT_ABS, TestMap::read(top.dbg_PC_out));
   run_n_cycles(BIT_ABS_Cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::C | P_Flags::I | P_Flags::N | P_Flags::V | P_Flags::Z,
              top.dbg_P_out);
 
-  // No branch bcc bne bpl bvc
-  run_n_cycles(noBranch_cycles * 4, top, vcdOut, counter, true);
+  int noBranchOps2[] = {BCC_REL, BNE_REL, BPL_REL, BVC_REL};
+  for (int i = 0; i < 4; i++) {
+    ERR_IF_NEQ(noBranchOps2[i], TestMap::read(top.dbg_PC_out));
+    run_n_cycles(noBranch_cycles, top, vcdOut, counter, true);
+  }
 
-  // Branch taken bcs beq bmi bvs
   const int branch_cycles = 3;
-  run_n_cycles(branch_cycles * 4, top, vcdOut, counter, true);
+  int branchOps1[] = {BCS_REL, BEQ_REL, BMI_REL, BVS_REL};
+  for (int i = 0; i < 4; i++) {
+    ERR_IF_NEQ(branchOps1[i], TestMap::read(top.dbg_PC_out));
+    run_n_cycles(branch_cycles, top, vcdOut, counter, true);
+  }
 
-  // CLC
+  ERR_IF_NEQ(CLC_IMP, TestMap::read(top.dbg_PC_out));
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::I | P_Flags::N | P_Flags::V | P_Flags::Z, top.dbg_P_out);
-  // CLI
+
+  ERR_IF_NEQ(CLI_IMP, TestMap::read(top.dbg_PC_out));
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::N | P_Flags::V | P_Flags::Z, top.dbg_P_out);
-  // CLV
+
+  ERR_IF_NEQ(CLV_IMP, TestMap::read(top.dbg_PC_out));
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::N | P_Flags::Z, top.dbg_P_out);
-  // LDA
+
   const int LDA_IMM_cycles = 2;
   run_n_cycles(LDA_IMM_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
 
-  // Branch taken bcc bne bpl bvc
-  run_n_cycles(branch_cycles * 4, top, vcdOut, counter, true);
-  ERR_IF_NEQ(NOP_IMP, top.dbg_IR_out);
+  int branchOps2[] = {BCC_REL, BNE_REL, BPL_REL, BVC_REL};
+  for (int i = 0; i < 4; i++) {
+    ERR_IF_NEQ(branchOps2[i], TestMap::read(top.dbg_PC_out));
+    run_n_cycles(branch_cycles, top, vcdOut, counter, true);
+  }
+
+  // Jumps to close-enough spot to test page crossing branch
+  const int JMP_ABS_cycles = 3;
+  run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80a0, top.dbg_PC_out);
+
+  int branchPageFixOps1[] = {BCC_REL, BNE_REL, BPL_REL, BVC_REL};
+  for (int i = 0; i < 4; i++) {
+    ERR_IF_NEQ(branchPageFixOps1[i], TestMap::read(top.dbg_PC_out));
+    run_n_cycles(branch_cycles + 1, top, vcdOut, counter, true);
+    run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter, true);
+  }
+  ERR_IF_NEQ(fetch2, top.dbg_state_out);
+
+  // Set flags
+  run_n_cycles(8, top, vcdOut, counter, true);
+  ERR_IF_NEQ(fetch2, top.dbg_state_out);
+
+  int branchPageFixOps2[] = {BCS_REL, BEQ_REL, BMI_REL, BVS_REL};
+  for (int i = 0; i < 4; i++) {
+    ERR_IF_NEQ(branchPageFixOps2[i], TestMap::read(top.dbg_PC_out));
+    run_n_cycles(branch_cycles + 1, top, vcdOut, counter, true);
+    run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter, true);
+  }
+  ERR_IF_NEQ(fetch2, top.dbg_state_out);
 
   // Pad output
   for (int i = 0; i < 3; i++)

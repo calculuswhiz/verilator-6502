@@ -46,24 +46,54 @@ a3:
 
 bcc b0
 b2:
-  bne b3
+  bvc finish_nopage_tests
 b1:
   bpl b2
 b0:
-  bvc b1
+  bne b1
 
-b3:
-  NOP
-
-trap:
-  jmp trap
-
-; TODO Page crossing
+finish_nopage_tests: 
+  jmp start_page_cross_tests
 
 error_zone:
   brk
 
 nv_set: .byte $c0
+
+remote_pad:
+  .dsb $80a0 - remote_pad
+
+; Jump range is -128 to 127 inclusive
+start_page_cross_tests:
+  bcc c0
+c1: bne c2
+c3: bpl c4
+c5: bvc c6
+c7:
+  ; Set flags again. 8 cycles
+  sei
+  sec
+  bit nv_set
+
+bcs d0
+d1: beq d2
+d3: bmi d4
+d5: bvs trap
+
+page_pad:
+  .dsb $8100 - page_pad
+
+c0: jmp c1
+c2: jmp c3
+c4: jmp c5
+c6: jmp c7
+
+d0: jmp d1
+d2: jmp d3
+d4: jmp d5
+
+trap:
+  jmp trap
 
 end_program_ROM:
   .dsb    $fffa - end_program_ROM
