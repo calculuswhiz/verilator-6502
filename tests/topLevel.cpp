@@ -540,6 +540,65 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
   return 0;
 }
 
+int testTransfer(VtopLevel &top, VerilatedVcdC &vcdOut) {
+  int resetResult = reset(top, vcdOut, false);
+  if (resetResult == -1)
+    return log_error(), -1;
+
+  int counter = resetResult;
+  const int all_cycles = 2;
+
+  // A->XY
+
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  ERR_IF_NEQ(0xff, top.dbg_X_out);
+
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  ERR_IF_NEQ(0x00, top.dbg_X_out);
+
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  ERR_IF_NEQ(0xff, top.dbg_Y_out);
+
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  ERR_IF_NEQ(0x00, top.dbg_Y_out);
+
+  // XY->A
+
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  ERR_IF_NEQ(0x00, top.dbg_A_out);
+
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  run_n_cycles(all_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  ERR_IF_NEQ(0x00, top.dbg_A_out);
+
+  // Pad output
+  for (int i = 0; i < 3; i++)
+    run_n_cycles(3, top, vcdOut, counter, true);
+
+  return 0;
+}
+
 // Configure test information with this
 typedef struct {
   int (*testFunction)(VtopLevel &, VerilatedVcdC &);
@@ -576,6 +635,11 @@ int main(int argc, char **argv, char **env) {
       {.testFunction = testFlagsBranch,
        .vcdFile = "./vcd_out/flags_branch_test.vcd",
        .programFile = "./obj_dir/flags_branch.test.o65",
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = false},
+      {.testFunction = testTransfer,
+       .vcdFile = "./vcd_out/transfer_test.vcd",
+       .programFile = "./obj_dir/transfer.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
   };

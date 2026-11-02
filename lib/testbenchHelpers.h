@@ -21,8 +21,8 @@ template <typename TModule> void updateMemory(TModule &module) {
 }
 
 template <typename TModule>
-inline void toggle_clock(TModule &module, VerilatedVcdC &dumpFile,
-                                   int &count, bool dump) {
+inline void toggle_clock(TModule &module, VerilatedVcdC &dumpFile, int &count,
+                         bool dump) {
   updateMemory(module);
   module.clk = !module.clk;
   module.eval();
@@ -32,8 +32,8 @@ inline void toggle_clock(TModule &module, VerilatedVcdC &dumpFile,
 
 // Cycle a module's test signal. Takes 2 time units.
 template <typename TModule>
-inline void cycle_clock(TModule &module, VerilatedVcdC &dumpFile,
-                                  int &count, bool dump) {
+inline void cycle_clock(TModule &module, VerilatedVcdC &dumpFile, int &count,
+                        bool dump) {
   toggle_clock(module, dumpFile, count, dump);
   toggle_clock(module, dumpFile, count, dump);
 }

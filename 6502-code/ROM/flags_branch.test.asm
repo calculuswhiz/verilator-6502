@@ -30,12 +30,9 @@ start_program_ROM:
 
   ; Test branching (3 cycles each)
   bcs a0
-a2:
-  bvs a3
-a1:
-  bmi a2
-a0:
-  beq a1
+a2: bvs a3
+a1: bmi a2
+a0: beq a1
 
 a3:
   ; 2 cycles each.
@@ -45,12 +42,9 @@ a3:
   lda #01 ; Clears N/Z
 
 bcc b0
-b2:
-  bvc finish_nopage_tests
-b1:
-  bpl b2
-b0:
-  bne b1
+b2: bvc finish_nopage_tests
+b1: bpl b2
+b0: bne b1
 
 finish_nopage_tests: 
   jmp start_page_cross_tests
