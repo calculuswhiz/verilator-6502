@@ -599,6 +599,22 @@ int testTransfer(VtopLevel &top, VerilatedVcdC &vcdOut) {
   return 0;
 }
 
+int testStack(VtopLevel &top, VerilatedVcdC &vcdOut) {
+  int resetResult = reset(top, vcdOut, false);
+  if (resetResult == -1)
+    return log_error(), -1;
+
+  int counter = resetResult;
+
+  // TODO write tests
+
+  // Pad output
+  for (int i = 0; i < 3; i++)
+    run_n_cycles(3, top, vcdOut, counter, true);
+
+  return 0;
+}
+
 // Configure test information with this
 typedef struct {
   int (*testFunction)(VtopLevel &, VerilatedVcdC &);
@@ -640,6 +656,11 @@ int main(int argc, char **argv, char **env) {
       {.testFunction = testTransfer,
        .vcdFile = "./vcd_out/transfer_test.vcd",
        .programFile = "./obj_dir/transfer.test.o65",
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = false},
+       {.testFunction = testStack,
+       .vcdFile = "./vcd_out/stack_test.vcd",
+       .programFile = "./obj_dir/stack.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
   };

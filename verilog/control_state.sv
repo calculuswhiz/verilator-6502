@@ -119,7 +119,9 @@ module control_state (
 				// Original hardware required this due to having one bus
 				case (ir_opcode)
 					PLA_IMP: next_state <= PLA_IMP_1;
+					PHA_IMP: next_state <= PHA_IMP;
 					PLP_IMP: next_state <= PLP_IMP_1;
+					PHP_IMP: next_state <= PHP_IMP;
 					RTI_IMP: next_state <= RTI_IMP_1;
 					RTS_IMP: next_state <= RTS_IMP_1;
 					default:

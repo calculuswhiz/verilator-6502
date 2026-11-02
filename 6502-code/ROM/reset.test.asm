@@ -2,12 +2,12 @@
 
 ; 8000-fff9
 start_program_ROM:
-  NOP
-  NOP
-  NOP
-  NOP
-  NOP
-  NOP
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
 
 end_program_ROM:
   .dsb    $fffa - end_program_ROM

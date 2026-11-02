@@ -6,115 +6,115 @@ start_program_ROM:
   ; Test absolute loading: 
   ; 4 cycles each
   ; Expect register to either be 0 or $80 with respective flag set
-  LDA zero
-  LDA negative
+  lda zero
+  lda negative
 
-  LDX zero
-  LDX negative
+  ldx zero
+  ldx negative
   
-  LDY zero
-  LDY negative
+  ldy zero
+  ldy negative
   
   ; Test immediate loading:
   ; Expect register to either be 0 or $80 with respective flag set
   ; 2 cycles each
-  LDA #$0
-  LDA #$80
-  LDX #0
-  LDX #$80
-  LDY #0
-  LDY #$80
+  lda #$0
+  lda #$80
+  ldx #0
+  ldx #$80
+  ldy #0
+  ldy #$80
   
   ; Test zero page storage
   ; Setup 6 cycles
-  LDA #1
-  LDX #2
-  LDY #3
+  lda #1
+  ldx #2
+  ldy #3
   ; 3 cycles each
   ; Expect $010203 starting at $00
-  STA $00
-  STX $01
-  STY $02
+  sta $00
+  stx $01
+  sty $02
 
   ; Test zero page Loads
   ; Rotate $02, $03, $01 into A, X, Y
   ; 3 cycles each
-  LDA $01
-  LDX $02
-  LDY $00
+  lda $01
+  ldx $02
+  ldy $00
 
   ; Test absolute storage
   ; 4 cycles each
   ; Expect $02 $03 $01 starting at $200
-  STA program_RAM
-  STX program_RAM + 1
-  STY program_RAM + 2
+  sta program_RAM
+  stx program_RAM + 1
+  sty program_RAM + 2
 
   ; Test ZP indexed loads
   ; Reset for test, total 6 cycles
-  LDA #0
-  LDX #0
-  LDY #0
+  lda #0
+  ldx #0
+  ldy #0
   ; Expect $01, 4 cycles
-  LDA $00,X
+  lda $00,X
   ; Expect $01, 4 cycles
-  LDY $00,X
+  ldy $00,X
   ; 2 cycles new index. 3 is uninitialized, so assume 0
-  LDX #$03
+  ldx #$03
   ; Expect $00, 4 cycles
-  LDA $00,X
+  lda $00,X
   ; Expect $00, 4 cycles
-  LDY $00,X
+  ldy $00,X
   ; Expect $01 (Y points to 0 now), 4 cycles
-  LDX $00,Y
+  ldx $00,Y
   ; 2 cycles new index
-  LDY #$03
+  ldy #$03
   ; Expect $00, 4 cycles
-  LDX $00,Y
+  ldx $00,Y
 
   ; Test absolute-indexed
   ; Setup, 2 cycles
-  LDX #02
+  ldx #02
   ; Expect M[$0202]=$01, 4 cycles
-  LDA $0200,X
+  lda $0200,X
   ; Test page crossing
   ; Expect M[$0201]=$03, 5 cycles
-  LDA $01ff,X
+  lda $01ff,X
 
   ; Test indexed indirect (d, x)
   ; Setup
-  ; Store reset vector's high address at 0 page, 3 LDA (2) + 2 STA (3) = 12 cycles
-  LDA #$fd
-  STA $00
-  LDA #$ff
-  STA $01
-  LDX #0
+  ; Store reset vector's high address at 0 page, 3 lda (2) + 2 sta (3) = 12 cycles
+  lda #$fd
+  sta $00
+  lda #$ff
+  sta $01
+  ldx #0
   /*
     PEEK(
       {PEEK(arg + X + 1), PEEK(arg + X)}
     )
   */
   ; Expect $8000 in A, 6 cycles
-  LDA ($00, X)
+  lda ($00, X)
 
   ; Test indirect indexed (d),y
-  LDA #00
-  LDY #00
+  lda #00
+  ldy #00
   /*
     PEEK(
       PEEK({arg + 1, arg}) + Y
     )
   */
   ; Expect $80, 5 cycles
-  LDA ($00), Y
+  lda ($00), Y
   ; New index, 4 cycles
-  LDA #00
-  LDY #03
+  lda #00
+  ldy #03
   ; Expect $fd, 6 cycles (page cross)
-  LDA ($00), Y
+  lda ($00), Y
 
 trap:
-  JMP trap
+  jmp trap
 
 zero:
   .byte $00

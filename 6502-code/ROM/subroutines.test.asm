@@ -6,15 +6,15 @@ start_program_ROM:
 ; Tests JSR on its own
 ; Expects jump over trap (+6) and return, 6 cycles for JSR
 ; Should have stack state pushed as well
-JSR subroutine
+jsr subroutine
 
 trap:
-  JMP trap
+  jmp trap
 
 subroutine:
   ; Expects return from subroutine, 6 cycles
   ; Stack state popped, return to JSR location + 3
-  RTS
+  rts
 
 end_program_ROM:
   .dsb    $fffa - end_program_ROM

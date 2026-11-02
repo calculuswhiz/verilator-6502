@@ -5,15 +5,15 @@ start_program_ROM:
 
 ; Test jump absolute
 ; Expect PC skips over trap (+6 bytes); 3 cycles
-JMP safe 
+jmp safe 
 
 trap:
-  JMP trap
+  jmp trap
 
 safe:
 ; Test jump indirect
 ; Expect PC jumps to trap address (-3 bytes); 5 cycles
-  JMP (trap_addr)
+  jmp (trap_addr)
 
 trap_addr:
   .word trap
