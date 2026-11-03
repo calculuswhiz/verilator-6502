@@ -606,7 +606,27 @@ int testStack(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int counter = resetResult;
 
-  // TODO write tests
+  const int LD_any_IMM_cycles = 2;
+  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  const int transfer_cycles = 2;
+  run_n_cycles(transfer_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_S_out);
+
+  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  const int push_cycles = 3;
+  run_n_cycles(push_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, TestMap::read(top.dbg_S_out + 0x100 + 1));
+  run_n_cycles(push_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xa0, TestMap::read(top.dbg_S_out + 0x100 + 1));
+  run_n_cycles(transfer_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xfd, top.dbg_X_out);
+
+  const int pull_cycles = 4;
+  run_n_cycles(pull_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xa0, top.dbg_A_out);
+  run_n_cycles(pull_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_P_out);
+  ERR_IF_NEQ(0xff, top.dbg_S_out);
 
   // Pad output
   for (int i = 0; i < 3; i++)
@@ -658,7 +678,7 @@ int main(int argc, char **argv, char **env) {
        .programFile = "./obj_dir/transfer.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
-       {.testFunction = testStack,
+      {.testFunction = testStack,
        .vcdFile = "./vcd_out/stack_test.vcd",
        .programFile = "./obj_dir/stack.test.o65",
        .romStartAddress = StandardProgramRomAddr,
@@ -672,6 +692,7 @@ int main(int argc, char **argv, char **env) {
       continue;
     }
 
+    // I think we can odin this...?
     VerilatedContext context;
     Verilated::traceEverOn(true);
 

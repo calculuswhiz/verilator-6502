@@ -4,6 +4,12 @@
 
 ; 8000-fff9
 start_program_ROM:
+  ; Initialize SP
+  ; 2 cycles
+  ldx #$ff
+  ; 2 cycles
+  txs 
+
   ; 2 cyc
   lda #$ff
   ; Pushes
@@ -15,10 +21,8 @@ start_program_ROM:
   
   ; Pulls
   ; 4 cyc each
-  plp
   pla
-  ; 2 cyc
-  txs
+  plp
 
 trap: jmp trap
 

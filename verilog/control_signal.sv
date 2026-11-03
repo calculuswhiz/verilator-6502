@@ -521,7 +521,6 @@ module control_signal (
 				// M[S|$0100] = A, S-=1
 				setWriteMem();
 				addressWith(s);
-				PCL_inc = 1;
 				A_en = 1;
 				S_dec = 1;
 				next_state_path = IR_in;
@@ -530,7 +529,6 @@ module control_signal (
 				// M[S|$0100] = P, S-=1
 				setWriteMem();
 				addressWith(s);
-				PCL_inc = 1;
 				Pd_en = 1;
 				S_dec = 1;
 				next_state_path = IR_in;
@@ -538,14 +536,12 @@ module control_signal (
 			PLA_IMP: begin
 				setReadMem();
 				addressWith(s);
-				PCL_inc = 1;
 				A_ld = 1;
 				next_state_path = IR_in;
 			end
 			PLP_IMP: begin
 				setReadMem();
 				addressWith(s);
-				PCL_inc = 1;
 				Pmux_sel = pSel_data_bus;
 				P_ld = 1;
 				next_state_path = IR_in;
