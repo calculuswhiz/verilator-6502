@@ -5,7 +5,7 @@
 ; Flag instructions:
 ;  CLC, SEC, CLI, SEI, (CLD), (SED), CLV
 ; BIT
-; SED, CLD not supported
+; SED, CLD not supported (yet)
 
 ; 8000-fff9
 start_program_ROM:
@@ -101,4 +101,3 @@ RESET_vector:
 ; fffe-ffff
 IRQ_vector:
   .word $0000
-

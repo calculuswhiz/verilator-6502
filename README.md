@@ -26,3 +26,13 @@ The I have not figured out how the real 6502 reads the data from 0xfffc into the
 - SystemVerilog files go in the `verilog` folder.
 - All compiled objects go in the `obj_dir` folder (run `make` first)
 - Test 6502 programs go in the `6502-code` folder
+
+## Left to test
+
+- Arithmetic 	ADC 	SBC 	INC 	DEC
+- Shift 	ASL 	LSR 	ROL 	ROR 				
+- Bitwise 	AND 	ORA 	EOR
+- Compare 	CMP 	CPX 	CPY 					
+- Jump 	BRK 	RTI 			
+
+Any unofficial opcodes too

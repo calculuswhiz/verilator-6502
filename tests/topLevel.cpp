@@ -437,7 +437,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
 #pragma endregion
 
   // Pad output
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 2; i++)
     run_n_cycles(3, top, vcdOut, counter, true);
 
   return 0;
@@ -534,7 +534,7 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
   ERR_IF_NEQ(fetch2, top.dbg_state_out);
 
   // Pad output
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 2; i++)
     run_n_cycles(3, top, vcdOut, counter, true);
 
   return 0;
@@ -593,7 +593,7 @@ int testTransfer(VtopLevel &top, VerilatedVcdC &vcdOut) {
   ERR_IF_NEQ(0x00, top.dbg_A_out);
 
   // Pad output
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 2; i++)
     run_n_cycles(3, top, vcdOut, counter, true);
 
   return 0;
@@ -629,7 +629,57 @@ int testStack(VtopLevel &top, VerilatedVcdC &vcdOut) {
   ERR_IF_NEQ(0xff, top.dbg_S_out);
 
   // Pad output
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 2; i++)
+    run_n_cycles(3, top, vcdOut, counter, true);
+
+  return 0;
+}
+
+int testIncDec(VtopLevel &top, VerilatedVcdC &vcdOut) {
+  int resetResult = reset(top, vcdOut, false);
+  if (resetResult == -1)
+    return log_error(), -1;
+
+  int counter = resetResult;
+  
+  const int INX_DEX_LDA_cycles = 2;
+
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(1, top.dbg_X_out);
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_X_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_X_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_X_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  // LDA
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80, top.dbg_X_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(1, top.dbg_Y_out);
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_Y_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_Y_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_Y_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  // LDA
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80, top.dbg_Y_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  // Pad output
+  for (int i = 0; i < 2; i++)
     run_n_cycles(3, top, vcdOut, counter, true);
 
   return 0;
@@ -683,6 +733,11 @@ int main(int argc, char **argv, char **env) {
        .programFile = "./obj_dir/stack.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
+       {.testFunction = testIncDec,
+       .vcdFile = "./vcd_out/inc_dec_x_y_test.vcd",
+       .programFile = "./obj_dir/inc_dec_x_y.test.o65",
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = false},
   };
 
   size_t numTests = sizeof(tests) / sizeof(tests[0]);
@@ -692,7 +747,6 @@ int main(int argc, char **argv, char **env) {
       continue;
     }
 
-    // I think we can odin this...?
     VerilatedContext context;
     Verilated::traceEverOn(true);
 
