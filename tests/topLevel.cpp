@@ -8,10 +8,10 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "../lib/TestMap.cpp"
 #include "../lib/helpAssert.cpp"
 #include "../lib/opcodes.h"
-#include "../lib/testbenchHelpers.h"
+
+import TestMap;
 
 using std::printf;
 
@@ -54,6 +54,42 @@ size_t readBinaryFile(const char *fileName, uint8_t *&outBuffer) {
   fclose(file);
   outBuffer = buffer;
   return size;
+}
+
+// Update the memory bus (should be called every cycle)
+template <typename TModule> void updateMemory(TModule &module) {
+  if (module.mem_rW == 1) {
+    module.mem_rData = read(module.mem_address);
+    module.eval();
+  } else
+    write(module.mem_address, module.mem_wData);
+}
+
+template <typename TModule>
+inline void toggle_clock(TModule &module, VerilatedVcdC &dumpFile, int &count,
+                         bool dump) {
+  updateMemory(module);
+  module.clk = !module.clk;
+  module.eval();
+  if (dump)
+    dumpFile.dump(count++);
+}
+
+// Cycle a module's test signal. Takes 2 time units.
+template <typename TModule>
+inline void cycle_clock(TModule &module, VerilatedVcdC &dumpFile, int &count,
+                        bool dump) {
+  toggle_clock(module, dumpFile, count, dump);
+  toggle_clock(module, dumpFile, count, dump);
+}
+
+template <typename TModule>
+inline void run_n_cycles(int n, TModule &module, VerilatedVcdC &dumpFile,
+                         int &count, bool dump) {
+  for (int i = 0; i < n; i++) {
+    toggle_clock(module, dumpFile, count, dump);
+    toggle_clock(module, dumpFile, count, dump);
+  }
 }
 
 constexpr int StandardProgramRomAddr = 0x8000;
@@ -285,15 +321,15 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   // STA
   run_n_cycles(ST_any_ZP_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(1, TestMap::read(0));
+  ERR_IF_NEQ(1, read(0));
 
   // STX
   run_n_cycles(ST_any_ZP_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(2, TestMap::read(1));
+  ERR_IF_NEQ(2, read(1));
 
   // STY
   run_n_cycles(ST_any_ZP_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(3, TestMap::read(2));
+  ERR_IF_NEQ(3, read(2));
 
 #pragma endregion
 
@@ -325,15 +361,15 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   // STA
   run_n_cycles(ST_any_ABS_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(0x2, TestMap::read(0x200));
+  ERR_IF_NEQ(0x2, read(0x200));
 
   // STX
   run_n_cycles(ST_any_ABS_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(0x3, TestMap::read(0x201));
+  ERR_IF_NEQ(0x3, read(0x201));
 
   // STY
   run_n_cycles(ST_any_ABS_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(0x1, TestMap::read(0x202));
+  ERR_IF_NEQ(0x1, read(0x202));
 
 #pragma endregion
 
@@ -453,48 +489,48 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
   const int noBranch_cycles = 2;
   int noBranchOps[] = {BCS_REL, BEQ_REL, BMI_REL, BVS_REL};
   for (int i = 0; i < 4; i++) {
-    ERR_IF_NEQ(noBranchOps[i], TestMap::read(top.dbg_PC_out));
+    ERR_IF_NEQ(noBranchOps[i], read(top.dbg_PC_out));
     run_n_cycles(noBranch_cycles, top, vcdOut, counter, true);
   }
 
   const int setClear_cycles = 2;
 
-  ERR_IF_NEQ(SEI_IMP, TestMap::read(top.dbg_PC_out));
+  ERR_IF_NEQ(SEI_IMP, read(top.dbg_PC_out));
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::I, top.dbg_P_out);
 
-  ERR_IF_NEQ(SEC_IMP, TestMap::read(top.dbg_PC_out));
+  ERR_IF_NEQ(SEC_IMP, read(top.dbg_PC_out));
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::C | P_Flags::I, top.dbg_P_out);
 
   const int BIT_ABS_Cycles = 4;
-  ERR_IF_NEQ(BIT_ABS, TestMap::read(top.dbg_PC_out));
+  ERR_IF_NEQ(BIT_ABS, read(top.dbg_PC_out));
   run_n_cycles(BIT_ABS_Cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::C | P_Flags::I | P_Flags::N | P_Flags::V | P_Flags::Z,
              top.dbg_P_out);
 
   int noBranchOps2[] = {BCC_REL, BNE_REL, BPL_REL, BVC_REL};
   for (int i = 0; i < 4; i++) {
-    ERR_IF_NEQ(noBranchOps2[i], TestMap::read(top.dbg_PC_out));
+    ERR_IF_NEQ(noBranchOps2[i], read(top.dbg_PC_out));
     run_n_cycles(noBranch_cycles, top, vcdOut, counter, true);
   }
 
   const int branch_cycles = 3;
   int branchOps1[] = {BCS_REL, BEQ_REL, BMI_REL, BVS_REL};
   for (int i = 0; i < 4; i++) {
-    ERR_IF_NEQ(branchOps1[i], TestMap::read(top.dbg_PC_out));
+    ERR_IF_NEQ(branchOps1[i], read(top.dbg_PC_out));
     run_n_cycles(branch_cycles, top, vcdOut, counter, true);
   }
 
-  ERR_IF_NEQ(CLC_IMP, TestMap::read(top.dbg_PC_out));
+  ERR_IF_NEQ(CLC_IMP, read(top.dbg_PC_out));
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::I | P_Flags::N | P_Flags::V | P_Flags::Z, top.dbg_P_out);
 
-  ERR_IF_NEQ(CLI_IMP, TestMap::read(top.dbg_PC_out));
+  ERR_IF_NEQ(CLI_IMP, read(top.dbg_PC_out));
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::N | P_Flags::V | P_Flags::Z, top.dbg_P_out);
 
-  ERR_IF_NEQ(CLV_IMP, TestMap::read(top.dbg_PC_out));
+  ERR_IF_NEQ(CLV_IMP, read(top.dbg_PC_out));
   run_n_cycles(setClear_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::N | P_Flags::Z, top.dbg_P_out);
 
@@ -504,7 +540,7 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int branchOps2[] = {BCC_REL, BNE_REL, BPL_REL, BVC_REL};
   for (int i = 0; i < 4; i++) {
-    ERR_IF_NEQ(branchOps2[i], TestMap::read(top.dbg_PC_out));
+    ERR_IF_NEQ(branchOps2[i], read(top.dbg_PC_out));
     run_n_cycles(branch_cycles, top, vcdOut, counter, true);
   }
 
@@ -515,7 +551,7 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int branchPageFixOps1[] = {BCC_REL, BNE_REL, BPL_REL, BVC_REL};
   for (int i = 0; i < 4; i++) {
-    ERR_IF_NEQ(branchPageFixOps1[i], TestMap::read(top.dbg_PC_out));
+    ERR_IF_NEQ(branchPageFixOps1[i], read(top.dbg_PC_out));
     run_n_cycles(branch_cycles + 1, top, vcdOut, counter, true);
     run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter, true);
   }
@@ -527,7 +563,7 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int branchPageFixOps2[] = {BCS_REL, BEQ_REL, BMI_REL, BVS_REL};
   for (int i = 0; i < 4; i++) {
-    ERR_IF_NEQ(branchPageFixOps2[i], TestMap::read(top.dbg_PC_out));
+    ERR_IF_NEQ(branchPageFixOps2[i], read(top.dbg_PC_out));
     run_n_cycles(branch_cycles + 1, top, vcdOut, counter, true);
     run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter, true);
   }
@@ -615,9 +651,9 @@ int testStack(VtopLevel &top, VerilatedVcdC &vcdOut) {
   run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
   const int push_cycles = 3;
   run_n_cycles(push_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(0xff, TestMap::read(top.dbg_S_out + 0x100 + 1));
+  ERR_IF_NEQ(0xff, read(top.dbg_S_out + 0x100 + 1));
   run_n_cycles(push_cycles, top, vcdOut, counter, true);
-  ERR_IF_NEQ(0xa0, TestMap::read(top.dbg_S_out + 0x100 + 1));
+  ERR_IF_NEQ(0xa0, read(top.dbg_S_out + 0x100 + 1));
   run_n_cycles(transfer_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xfd, top.dbg_X_out);
 
@@ -760,7 +796,7 @@ int main(int argc, char **argv, char **env) {
     if (memory == NULL)
       return log_error("Could not read test memory\n"), -1;
 
-    TestMap::initMap(memory, tests[i].romStartAddress);
+    initMap(memory, tests[i].romStartAddress);
 
     printf("BEGIN TEST: %s\n", tests[i].programFile);
     int result = tests[i].testFunction(top, vcdOut);

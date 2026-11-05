@@ -1,2 +1,6 @@
 CompileFlags:
-  Add: [-I/opt/homebrew/Cellar/verilator/5.052/share/verilator/include]
+  Add: [
+    -I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include,
+    -std=c++23,
+    -fmodule-file=TestMap=../obj_dir/TestMap.pcm
+  ]
