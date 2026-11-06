@@ -1,4 +1,4 @@
-#pragma once
+module;
 
 #include <cstdint>
 #include <cstdio>
@@ -7,8 +7,10 @@
 
 // Wrapper to the xa command-line compiler in case we need to generate code on
 // the fly
-namespace DynamicAssemble {
+export module DynamicAssemble;
+
 using std::string;
+export namespace DynamicAssemble {
 int assemble(string assemblyText, uint8_t *buffer, size_t bufferSize) {
   using std::fread;
   using std::perror;
@@ -35,13 +37,14 @@ int assemble(string assemblyText, uint8_t *buffer, size_t bufferSize) {
 
 /*
 To test it:
-#include "../lib/DynamicAssemble.cpp"
 #include <cstdint>
 #include <cstdio>
 
+import DynamicAssemble;
+
 int main() {
   uint8_t buffer[256];
-  int bytes = DynamicAssemble::assemble("nop", buffer, 256);
+  int bytes = assemble("nop", buffer, 256);
 
   std::printf("%d bytes in assembly:\n", bytes);
   for (int i = 0; i < bytes; i++) {
