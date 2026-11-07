@@ -188,7 +188,7 @@ int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut) {
     return log_error(), -1;
 
   int counter = resetResult;
-  
+
   run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(StandardProgramRomAddr + 6, top.dbg_PC_out);
 
@@ -699,6 +699,7 @@ int testArithmetic(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int counter = resetResult;
 
+  // Immediate
   run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
@@ -717,6 +718,70 @@ int testArithmetic(VtopLevel &top, VerilatedVcdC &vcdOut) {
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
   run_n_cycles(SBC_IMM_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  // ZP
+  run_n_cycles(ADC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(ADC_ZP_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ADC_ZP_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ADC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_ZP_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(SBC_ZP_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(SBC_ZP_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(INC_DEC_ZP_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, TestMap::read(1));
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ZP_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, TestMap::read(1));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ZP_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, TestMap::read(7));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ZP_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x0, TestMap::read(7));
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+
+  // ZP,X
+  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  
+  run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(SBC_ZPX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(SBC_ZPX_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
@@ -780,7 +845,7 @@ int main(int argc, char **argv, char **env) {
        .programFile = "./obj_dir/inc_dec_x_y.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
-       {.testFunction = testArithmetic,
+      {.testFunction = testArithmetic,
        .vcdFile = "./vcd_out/arithmetic_test.vcd",
        .programFile = "./obj_dir/arithmetic.test.o65",
        .romStartAddress = StandardProgramRomAddr,

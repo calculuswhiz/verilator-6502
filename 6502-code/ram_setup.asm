@@ -6,7 +6,7 @@ zero_page:
 
 ; 100-1ff
 stack:
-  .dsb    $100
+  .dsb    $200 - stack
 
 ; 0200-3fff
 program_RAM:
