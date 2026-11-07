@@ -42,13 +42,15 @@ module ALU (
 			alu_adc: begin
 				result = a + b + {7'b0, carryIn};
 				carry = result[8];
-				overflow = (a[7] ^ result[7]) && ~(a[7] ^ b[7]);
+				// From NESDEV: (result ^ A) & (result ^ memory) & $80
+				overflow = (result[7] ^ a[7]) & (result[7] ^ b[7]);
 			end
 			alu_sbc: begin
 				result = a - b - {7'b0, ~carryIn};
-				// If f>=0 set P.C flag
+				// If f>=0 set P.C flag (i.e. no borrow required)
 				carry = ~result[8];
-				overflow = ~((a[7] ^ result[7]) && (b[7] ^ result[7]));
+				// From NESDEV: (result ^ A) & (result ^ ~memory) & $80
+				overflow = (result[7] ^ a[7]) & (result[7] ^ ~b[7]);
 			end
 			alu_eor: begin
 				result = a ^ b;

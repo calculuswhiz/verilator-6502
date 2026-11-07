@@ -8,7 +8,9 @@ module topLevel (
 
     input [7:0] mem_rData,
     output mem_rW,
+    /* verilator lint_off UNOPTFLAT */
     output [7:0] mem_wData,
+    /* verilator lint_on UNOPTFLAT */
     output [15:0] mem_address,
 
     output [7:0] dbg_IR_out,

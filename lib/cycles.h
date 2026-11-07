@@ -20,3 +20,5 @@ const int transfer_cycles = 2;
 const int pull_cycles = 4;
 const int push_cycles = 3;
 const int INX_DEX_LDA_cycles = 2;
+const int ADC_IMM_cycles = 2;
+const int SBC_IMM_cycles = 2;

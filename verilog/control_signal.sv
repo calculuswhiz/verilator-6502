@@ -558,7 +558,6 @@ module control_signal (
 			ADC_IMM: begin
 				fetchAddressOpcode();
 				A_ld = 1;
-				// A+M+C
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				C_ctl = P_in[0];
 				Amux_sel = aSel_ALU_out;
@@ -567,7 +566,6 @@ module control_signal (
 			AND_IMM: begin
 				fetchAddressOpcode();
 				A_ld = 1;
-				// A & M
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
 				maskNvzcFromALU(1, 0, 1, 0);
@@ -625,7 +623,6 @@ module control_signal (
 			ORA_IMM: begin
 				fetchAddressOpcode();
 				A_ld = 1;
-				// A&M
 				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
 				maskNvzcFromALU(1, 0, 1, 0);
@@ -633,8 +630,7 @@ module control_signal (
 			SBC_IMM: begin
 				fetchAddressOpcode();
 				A_ld = 1;
-				// A+M+C
-				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
+				doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
 				C_ctl = P_in[0];
 				Amux_sel = aSel_ALU_out;
 				maskNvzcFromALU(1, 1, 1, 1);
@@ -642,7 +638,6 @@ module control_signal (
 			// #endregion IMM
 			// #region IMP/ACC
 			ASL_ACC: begin
-				// A<<1
 				doAlu(alu_asl, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;

@@ -95,6 +95,7 @@ inline void run_n_cycles(int n, TModule &module, VerilatedVcdC &dumpFile,
 
 constexpr int StandardProgramRomAddr = 0x8000;
 
+// NV1BDIZC
 namespace P_Flags {
 enum Flags {
   NONE = 0 | 1 << 5,
@@ -691,6 +692,41 @@ int testIncDec(VtopLevel &top, VerilatedVcdC &vcdOut) {
   return 0;
 }
 
+int testArithmetic(VtopLevel &top, VerilatedVcdC &vcdOut) {
+  int resetResult = reset(top, vcdOut, false);
+  if (resetResult == -1)
+    return log_error(), -1;
+
+  int counter = resetResult;
+
+  run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(SBC_IMM_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(SBC_IMM_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  // Pad output
+  for (int i = 0; i < 2; i++)
+    run_n_cycles(3, top, vcdOut, counter, true);
+
+  return 0;
+}
+
 // Configure test information with this
 typedef struct {
   int (*testFunction)(VtopLevel &, VerilatedVcdC &);
@@ -742,6 +778,11 @@ int main(int argc, char **argv, char **env) {
       {.testFunction = testIncDec,
        .vcdFile = "./vcd_out/inc_dec_x_y_test.vcd",
        .programFile = "./obj_dir/inc_dec_x_y.test.o65",
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = false},
+       {.testFunction = testArithmetic,
+       .vcdFile = "./vcd_out/arithmetic_test.vcd",
+       .programFile = "./obj_dir/arithmetic.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
   };
