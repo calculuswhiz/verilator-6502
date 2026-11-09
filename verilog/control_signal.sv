@@ -761,6 +761,7 @@ module control_signal (
 			end
 			ADC_ZPG, ADC_ZPX,
 			ADC_ABS, ADC_ABX_PG, ADC_ABY_PG: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith(d);
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
@@ -780,6 +781,7 @@ module control_signal (
 			end
 			AND_ZPG, AND_ZPX,
 			AND_ABS, AND_ABX_PG, AND_ABY_PG: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith(d);
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
@@ -809,6 +811,7 @@ module control_signal (
 			end
 			CMP_ZPG, CMP_ZPX,
 			CMP_ABS, CMP_ABX_PG, CMP_ABY_PG: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith(d);
 				doAlu(alu_sbc, aluSel_A, aluSel_data_bus);
@@ -827,6 +830,7 @@ module control_signal (
 			end
 			EOR_ZPG, EOR_ZPX,
 			EOR_ABS, EOR_ABX_PG, EOR_ABY_PG: begin
+				page_invalid_state = page_normal;
 				setReadMem();
 				addressWith(d);
 				doAlu(alu_eor, aluSel_A, aluSel_data_bus);

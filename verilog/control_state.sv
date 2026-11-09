@@ -41,7 +41,7 @@ module control_state (
 			LDA_XID, ORA_XID, EOR_XID, AND_XID, ADC_XID, CMP_XID, SBC_XID, STA_XID:
 				next_state <= fetch2;
 			ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
-			LDA_ABX, LDY_ABX, EOR_ABX, AND_ABX, ORA_ABX, ADC_ABX, SBC_ABX, CMP_ABX: begin
+			ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX : begin
 				next_state <= page_invalid_state != page_normal
 					// Transition to ___PG state
 					? (cpu_state)'({4'h2, state[7:0]})

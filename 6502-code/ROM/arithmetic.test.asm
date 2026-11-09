@@ -58,12 +58,12 @@ start_program_ROM:
   ; Zero-page
   adc adc_zp_args + 0 ; Set ZC
   clc
-  adc adc_zp_args + 1 ; Rest should match adc section above
+  adc adc_zp_args + 1 ; Rest should match adc section
   adc adc_zp_args + 2
   adc adc_zp_args + 3
   adc adc_zp_args + 4
 
-  sbc sbc_zp_args + 0 ; Should match sbc section above
+  sbc sbc_zp_args + 0 ; Should match sbc section
   sbc sbc_zp_args + 1
 
   inc adc_zp_args + 1 ; Set Z, M[1] = 0
@@ -83,7 +83,7 @@ start_program_ROM:
   adc $2,X 
   adc $3,X 
 
-  sbc sbc_zp_args - 1,X ; Should match sbc section above
+  sbc sbc_zp_args - 1,X ; Should match sbc section
   sbc sbc_zp_args + 0,X
 
   inc adc_zp_args, X ; Set Z, M[1] = 0
@@ -96,18 +96,61 @@ start_program_ROM:
 
   adc adc_abs_args + 1 ; Set ZC
   clc
-  adc adc_abs_args + 1 ; Rest should match adc section above
+  adc adc_abs_args + 1 ; Rest should match adc section
   adc adc_abs_args + 2
   adc adc_abs_args + 3
   adc adc_abs_args + 4
 
-  sbc sbc_abs_args + 0 ; Should match sbc section above
+  sbc sbc_abs_args + 0 ; Should match sbc section
   sbc sbc_abs_args + 1
 
   inc adc_abs_args + 1 ; Set Z, M[1] = 0
   dec adc_abs_args + 1 ; Set N, M[1] = 0xff
   dec abs_zero ; Set N
   inc abs_zero ; Set Z
+
+  ; Absolute, X
+  ldx #$00 ; Make sure X is 0 before going in
+  lda #$01 ; Clear Z
+
+  adc adc_abs_args + 1,X ; Set ZC
+  clc
+  inx
+  adc adc_abs_args + 0,X ; Rest should match adc section
+  adc adc_abs_args + 1,X
+  adc adc_abs_args + 2,X 
+  adc adc_abs_args + 3,X 
+
+  sbc sbc_abs_args - 1,X ; Should match sbc section
+  sbc sbc_abs_args + 0,X
+
+  inc adc_abs_args, X ; Set Z, M[1] = 0
+  dec adc_abs_args, X ; Set N, M[1] = 0xff
+  dec abs_zero - 1, X ; Set N
+  inc abs_zero - 1, X ; Set Z
+
+  ; Page cross
+  adc adc_abs_args - 1, X
+  sbc adc_abs_args - 1, X
+
+  ; Absolute, Y
+  ldy #$00 ; Make sure Y is 0 before going in
+  lda #$01 ; Clear Z
+
+  adc adc_abs_args + 1,Y ; Set ZC
+  clc
+  iny
+  adc adc_abs_args + 0,Y ; Rest should match adc section
+  adc adc_abs_args + 1,Y
+  adc adc_abs_args + 2,Y 
+  adc adc_abs_args + 3,Y 
+
+  sbc sbc_abs_args - 1,Y ; Should match sbc section
+  sbc sbc_abs_args + 0,Y
+
+  ; Page cross
+  adc adc_abs_args - 1,Y
+  sbc adc_abs_args - 1,Y
 
 trap:
   jmp trap

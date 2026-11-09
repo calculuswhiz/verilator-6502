@@ -427,7 +427,7 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   // [](../6502-code/ROM/loadStore.test.asm:96)
 
   // Setup
-  run_n_cycles(12, top, vcdOut, counter, true);
+  run_n_cycles(indirect_indexted_setup_cycles, top, vcdOut, counter, true);
 
   // LDA
   run_n_cycles(LDA_IDX_IND_cycles, top, vcdOut, counter, true);
@@ -836,6 +836,127 @@ int testArithmetic(VtopLevel &top, VerilatedVcdC &vcdOut) {
   ERR_IF_NEQ(0x0, TestMap::read(0x207));
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
+  // Absolute, X
+  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+
+  run_n_cycles(ADC_ABSX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_ABSX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ADC_ABSX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ADC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_ABSX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(SBC_ABSX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(SBC_ABSX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(INC_DEC_ABSX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, TestMap::read(0x201));
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ABSX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, TestMap::read(0x201));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ABSX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, TestMap::read(0x207));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ABSX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x0, TestMap::read(0x207));
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(ADC_ABSX_cycles + 1, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  run_n_cycles(SBC_ABSX_cycles + 1, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+
+  ERR_IF_NEQ(fetch2, top.dbg_state_out);
+
+  // Absolute, Y
+  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+
+  run_n_cycles(ADC_ABSY_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INY_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_ABSY_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ADC_ABSY_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ADC_ABSY_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_ABSY_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
+  ERR_IF_NEQ(fetch2, top.dbg_state_out);
+
+  run_n_cycles(SBC_ABSY_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(SBC_ABSY_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(ADC_ABSY_cycles + 1, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  run_n_cycles(SBC_ABSY_cycles + 1, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(fetch2, top.dbg_state_out);
+
+  // Pad output
+  for (int i = 0; i < 2; i++)
+    run_n_cycles(3, top, vcdOut, counter, true);
+
+  return 0;
+}
+
+int testArithmeticIndirects(VtopLevel &top, VerilatedVcdC &vcdOut) {
+  int resetResult = reset(top, vcdOut, false);
+  if (resetResult == -1)
+    return log_error(), -1;
+
+  int counter = resetResult;
+
+  run_n_cycles(DEX_cycles, top, vcdOut, counter, true);
+
+  run_n_cycles(ADC_IND_X_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
+
+  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_cycles, top, vcdOut, counter, true);
+
+  run_n_cycles(ADC_IND_X_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ADC_IND_X_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ADC_IND_X_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_IND_X_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(SBC_IND_X_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(SBC_IND_X_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
   // Pad output
   for (int i = 0; i < 2; i++)
     run_n_cycles(3, top, vcdOut, counter, true);
@@ -899,6 +1020,11 @@ int main(int argc, char **argv, char **env) {
       {.testFunction = testArithmetic,
        .vcdFile = "./vcd_out/arithmetic_test.vcd",
        .programFile = "./obj_dir/arithmetic.test.o65",
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = false},
+      {.testFunction = testArithmeticIndirects,
+       .vcdFile = "./vcd_out/arithmetic_indirect_test.vcd",
+       .programFile = "./obj_dir/arithmetic_indirect.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
   };
