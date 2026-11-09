@@ -761,7 +761,7 @@ int testArithmetic(VtopLevel &top, VerilatedVcdC &vcdOut) {
   // ZP,X
   run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
   run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
-  
+
   run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
@@ -784,6 +784,57 @@ int testArithmetic(VtopLevel &top, VerilatedVcdC &vcdOut) {
   run_n_cycles(SBC_ZPX_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(INC_DEC_ZPX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, TestMap::read(1));
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ZPX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, TestMap::read(1));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ZPX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, TestMap::read(7));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ZPX_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x0, TestMap::read(7));
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+
+  // Absolute
+  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+
+  run_n_cycles(ADC_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ADC_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ADC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(SBC_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(SBC_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(INC_DEC_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, TestMap::read(0x201));
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, TestMap::read(0x201));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, TestMap::read(0x207));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(INC_DEC_ABS_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x0, TestMap::read(0x207));
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // Pad output
   for (int i = 0; i < 2; i++)

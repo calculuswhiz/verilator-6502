@@ -22,6 +22,17 @@ stack:
 
 ; 0200-3fff
 program_RAM:
+adc_abs_args:
+  .byte $01
+  .byte $ff
+  .byte $01
+  .byte $01
+  .byte $7e
+sbc_abs_args:
+  .byte $7f
+  .byte $01
+abs_zero:
+  .byte $00  ; $0207
   .dsb    $4000 - program_RAM
 
 ; 4000-7fff
@@ -74,6 +85,29 @@ start_program_ROM:
 
   sbc sbc_zp_args - 1,X ; Should match sbc section above
   sbc sbc_zp_args + 0,X
+
+  inc adc_zp_args, X ; Set Z, M[1] = 0
+  dec adc_zp_args, X ; Set N, M[1] = 0xff
+  dec zp_zero - 1, X ; Set N
+  inc zp_zero - 1, X ; Set Z
+
+  ; Absolute
+  lda #$01 ; Clear Z
+
+  adc adc_abs_args + 1 ; Set ZC
+  clc
+  adc adc_abs_args + 1 ; Rest should match adc section above
+  adc adc_abs_args + 2
+  adc adc_abs_args + 3
+  adc adc_abs_args + 4
+
+  sbc sbc_abs_args + 0 ; Should match sbc section above
+  sbc sbc_abs_args + 1
+
+  inc adc_abs_args + 1 ; Set Z, M[1] = 0
+  dec adc_abs_args + 1 ; Set N, M[1] = 0xff
+  dec abs_zero ; Set N
+  inc abs_zero ; Set Z
 
 trap:
   jmp trap
