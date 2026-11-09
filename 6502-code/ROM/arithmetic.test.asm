@@ -41,6 +41,7 @@ end_mmio:
   .dsb    $8000 - end_mmio
 
 ; Test ADC 	SBC 	INC 	DEC
+; Indirect tests are in a separate file
 
 ; 8000-fff9
 start_program_ROM:

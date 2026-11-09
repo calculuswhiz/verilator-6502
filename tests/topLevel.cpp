@@ -957,6 +957,39 @@ int testArithmeticIndirects(VtopLevel &top, VerilatedVcdC &vcdOut) {
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
+  // Indirect, Y
+  run_n_cycles(ADC_IND_Y_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
+
+  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+
+  run_n_cycles(ADC_IND_Y_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ADC_IND_Y_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ADC_IND_Y_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_IND_Y_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x80, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(SBC_IND_Y_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
+  run_n_cycles(SBC_IND_Y_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  // Page cross
+  run_n_cycles(ADC_IND_Y_cycles + 1, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  run_n_cycles(SBC_IND_Y_cycles + 1, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(fetch2, top.dbg_state_out);
+
   // Pad output
   for (int i = 0; i < 2; i++)
     run_n_cycles(3, top, vcdOut, counter, true);

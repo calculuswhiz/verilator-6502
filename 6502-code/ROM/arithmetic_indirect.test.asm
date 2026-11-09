@@ -20,6 +20,8 @@ sbc_zp_arg_ptrs:
   .word $020d
   .word $020e
   .word $020f
+page_cross_ptrs:
+  .word $01ff
 ; 100-1ff
 stack:
   .dsb    $200 - stack
@@ -56,7 +58,7 @@ start_program_ROM:
   */
   lda #$ff ; A = 0xff
   
-  adc (0, X) ; Set ZC
+  adc (0,X) ; Set ZC
   clc
   inx
   adc (1,X) ; Rest should match adc section (from arithmetic tests)
@@ -66,6 +68,28 @@ start_program_ROM:
 
   sbc (sbc_zp_arg_ptrs - 1,X) ; Should match sbc section
   sbc (sbc_zp_arg_ptrs + 1,X)
+
+  ; Indirect, Y
+  /*
+    PEEK(
+      PEEK({arg + 1, arg}) + Y
+    )
+    e.g. adc (zp_idx),Y
+  */
+  adc ($0),Y
+  clc
+  ldy #$01
+  adc ($0),Y ;  Rest should match adc section
+  adc ($2),Y
+  adc ($4),Y
+  adc ($6),Y
+
+  sbc (sbc_zp_arg_ptrs - 2),Y ; Should match sbc section
+  sbc (sbc_zp_arg_ptrs),Y
+
+  ; Page cross
+  adc (page_cross_ptrs),Y
+  sbc (page_cross_ptrs),Y
 
 trap:
   jmp trap
