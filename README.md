@@ -29,7 +29,6 @@ The I have not figured out how the real 6502 reads the data from 0xfffc into the
 
 ## Left to test
 
-- Shift 	ASL 	LSR 	ROL 	ROR 				
 - Bitwise 	AND 	ORA 	EOR
 - Compare 	CMP 	CPX 	CPY 					
 - Jump 	BRK 	RTI 			

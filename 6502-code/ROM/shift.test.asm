@@ -6,10 +6,12 @@ zero_page:
   .byte %01000000
   .byte %1
 zp_idx_args:
+  .byte $ff ; Dummy
   .byte %01000000
   .byte %1
   .byte %01000000
   .byte %1
+
   .dsb    $100
 
 ; 100-1ff
@@ -23,6 +25,7 @@ program_RAM:
   .byte %01000000
   .byte %1
 abs_idx_args:
+  .byte $ff ; Dummy
   .byte %01000000
   .byte %1
   .byte %01000000
@@ -71,6 +74,52 @@ start_program_ROM:
 
   ror 3
   ror 3
+
+  ; ZP,X
+  clc
+  inx
+  asl zp_idx_args,X
+  asl zp_idx_args,X
+
+  lsr zp_idx_args + 1,X
+  
+  clc
+  rol zp_idx_args + 2,X
+  rol zp_idx_args + 2,X
+  rol zp_idx_args + 2,X
+
+  ror zp_idx_args + 3,X
+  ror zp_idx_args + 3,X
+
+  ; Absolute
+  clc
+  asl program_RAM
+  asl program_RAM
+
+  lsr program_RAM + 1
+  
+  clc
+  rol program_RAM + 2
+  rol program_RAM + 2
+  rol program_RAM + 2
+
+  ror program_RAM + 3
+  ror program_RAM + 3
+
+  ; Absolute,X
+  clc
+  asl abs_idx_args,X
+  asl abs_idx_args,X
+
+  lsr abs_idx_args + 1,X
+  
+  clc
+  rol abs_idx_args + 2,X
+  rol abs_idx_args + 2,X
+  rol abs_idx_args + 2,X
+
+  ror abs_idx_args + 3,X
+  ror abs_idx_args + 3,X
 
 trap:
   jmp trap
