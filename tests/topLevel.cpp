@@ -1000,6 +1000,86 @@ int testArithmeticIndirects(VtopLevel &top, VerilatedVcdC &vcdOut) {
   return 0;
 }
 
+int testShifts(VtopLevel &top, VerilatedVcdC &vcdOut) {
+  int resetResult = reset(top, vcdOut, false);
+  if (resetResult == -1)
+    return log_error(), -1;
+
+  int counter = resetResult;
+
+  // Acc
+
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ASL_imp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0b1000'0000, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ASL_imp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LSR_imp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(CLC_imp_cycles + LDA_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ROL_imp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0b1000'0000, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ROL_imp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ROL_imp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(1, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
+
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ROR_imp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ROR_imp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0b1000'0000, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  // ZP
+  run_n_cycles(CLC_imp_cycles, top, vcdOut, counter, true);
+
+  run_n_cycles(ASL_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0b1000'0000, TestMap::read(0));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ASL_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, TestMap::read(0));
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(LSR_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, TestMap::read(1));
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(CLC_imp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ROL_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0b1000'0000, TestMap::read(2));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(ROL_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, TestMap::read(2));
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ROL_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(1, TestMap::read(2));
+  ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
+
+  run_n_cycles(ROR_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, TestMap::read(3));
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ROR_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0b1000'0000, TestMap::read(3));
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  // Pad output
+  for (int i = 0; i < 2; i++)
+    run_n_cycles(3, top, vcdOut, counter, true);
+
+  return 0;
+}
+
 // Configure test information with this
 typedef struct {
   int (*testFunction)(VtopLevel &, VerilatedVcdC &);
@@ -1061,6 +1141,11 @@ int main(int argc, char **argv, char **env) {
       {.testFunction = testArithmeticIndirects,
        .vcdFile = "./vcd_out/arithmetic_indirect_test.vcd",
        .programFile = "./obj_dir/arithmetic_indirect.test.o65",
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = false},
+      {.testFunction = testShifts,
+       .vcdFile = "./vcd_out/shift_test.vcd",
+       .programFile = "./obj_dir/shift.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
   };

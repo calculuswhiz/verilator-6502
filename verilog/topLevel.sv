@@ -111,7 +111,8 @@ module topLevel (
 
     // Mulitplexed data:
     /* verilator lint_off UNOPTFLAT */
-    wire [7:0] Smux_out, ALU_Amux_out, ALU_Bmux_out, Amux_out;
+    wire [7:0] Smux_out, Amux_out;
+    reg [7:0] ALU_Amux_out, ALU_Bmux_out;
     /* verilator lint_on UNOPTFLAT */
     wire [7:0] PCLmux_out, PCHmux_out;
     wire [7:0] DLmux_out, DHmux_out;
@@ -187,25 +188,47 @@ module topLevel (
 
     // #region ALU
 
-    assign ALU_Amux_out = 
-        ALU_Amux_sel == aluSel_A ? A_out
-        : ALU_Amux_sel == aluSel_X ? X_out
-        : ALU_Amux_sel == aluSel_Y ? Y_out
-        : ALU_Amux_sel == aluSel_DL ? DL_out
-        : ALU_Amux_sel == aluSel_data_bus ? data_bus
-        : ALU_Amux_sel == aluSel_PCL ? PCL_out
-        : ALU_Amux_sel == aluSel_memory_bus_l ? memory_bus_l
-        : TL_out;
+    always @(*) begin
+        case (ALU_Amux_sel)
+            aluSel_A: 
+                ALU_Amux_out = A_out;
+            aluSel_X: 
+                ALU_Amux_out = X_out;
+            aluSel_Y: 
+                ALU_Amux_out = Y_out;
+            aluSel_DL: 
+                ALU_Amux_out = DL_out;
+            aluSel_data_bus: 
+                ALU_Amux_out = data_bus;
+            aluSel_PCL: 
+                ALU_Amux_out = PCL_out;
+            aluSel_memory_bus_l: 
+                ALU_Amux_out = memory_bus_l;
+            default: 
+                ALU_Amux_out = TL_out;
+        endcase
+    end
 
-    assign ALU_Bmux_out = 
-        ALU_Bmux_sel == aluSel_A ? A_out
-        : ALU_Bmux_sel == aluSel_X ? X_out
-        : ALU_Bmux_sel == aluSel_Y ? Y_out
-        : ALU_Bmux_sel == aluSel_DL ? DL_out
-        : ALU_Bmux_sel == aluSel_data_bus ? data_bus
-        : ALU_Bmux_sel == aluSel_PCL ? PCL_out
-        : ALU_Bmux_sel == aluSel_memory_bus_l ? memory_bus_l
-        : TL_out;
+    always @(*) begin
+        case (ALU_Bmux_sel)
+            aluSel_A: 
+                ALU_Bmux_out = A_out;
+            aluSel_X: 
+                ALU_Bmux_out = X_out;
+            aluSel_Y: 
+                ALU_Bmux_out = Y_out;
+            aluSel_DL: 
+                ALU_Bmux_out = DL_out;
+            aluSel_data_bus: 
+                ALU_Bmux_out = data_bus;
+            aluSel_PCL: 
+                ALU_Bmux_out = PCL_out;
+            aluSel_memory_bus_l: 
+                ALU_Bmux_out = memory_bus_l;
+            default: 
+                ALU_Bmux_out = TL_out;
+        endcase
+    end
 
     ALU ALU_6502(
         .a(ALU_Amux_out),

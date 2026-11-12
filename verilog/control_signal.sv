@@ -932,11 +932,12 @@ module control_signal (
 			/* rmw/zpg-abs */
 			ASL_ZPG, ASL_ZPX,
 			ASL_ABS, ASL_ABX: begin
+				setReadMem();
+				addressWith(d);
 				PCLm_en = 0;
 				PCHm_en = 0;
-				TLm_en = 1;
 				doAlu(alu_asl, aluSel_A, aluSel_data_bus);
-				ALUd_en = 1;
+				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
@@ -962,32 +963,35 @@ module control_signal (
 			end
 			LSR_ZPG, LSR_ZPX,
 			LSR_ABS, LSR_ABX: begin
+				setReadMem();
+				addressWith(d);
 				PCLm_en = 0;
 				PCHm_en = 0;
-				TLm_en = 1;
-				doAlu(alu_lsr, aluSel_A, aluSel_memory_bus_l);
-				ALUd_en = 1;
+				doAlu(alu_lsr, aluSel_A, aluSel_data_bus);
+				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			ROL_ZPG, ROL_ZPX,
 			ROL_ABS, ROL_ABX: begin
+				setReadMem();
+				addressWith(d);
 				PCLm_en = 0;
 				PCHm_en = 0;
-				TLm_en = 1;
-				doAlu(alu_rol, aluSel_A, aluSel_memory_bus_l);
-				ALUd_en = 1;
+				doAlu(alu_rol, aluSel_A, aluSel_data_bus);
+				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 				C_ctl = P_in[0];
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			ROR_ZPG, ROR_ZPX,
 			ROR_ABS, ROR_ABX: begin
+				setReadMem();
+				addressWith(d);
 				PCLm_en = 0;
 				PCHm_en = 0;
-				TLm_en = 1;
-				doAlu(alu_ror, aluSel_A, aluSel_memory_bus_l);
-				ALUd_en = 1;
+				doAlu(alu_ror, aluSel_A, aluSel_data_bus);
+				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 				C_ctl = P_in[0];
 				maskNvzcFromALU(1, 0, 1, 1);
