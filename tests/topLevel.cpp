@@ -189,10 +189,10 @@ int testJmp(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int counter = resetResult;
 
-  run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(JMP_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(StandardProgramRomAddr + 6, top.dbg_PC_out);
 
-  run_n_cycles(JMP_IND_cycles, top, vcdOut, counter, true);
+  run_n_cycles(JMP_ind_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(StandardProgramRomAddr + 3, top.dbg_PC_out);
 
   // Pad output
@@ -213,10 +213,10 @@ int testSubroutines(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int counter = resetResult;
 
-  run_n_cycles(JSR_cycles, top, vcdOut, counter, true);
+  run_n_cycles(JSR_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(StandardProgramRomAddr + 6, top.dbg_PC_out);
 
-  run_n_cycles(RTS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(RTS_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(StandardProgramRomAddr + 3, top.dbg_PC_out);
 
   // Pad output
@@ -240,33 +240,32 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
 #pragma region Absolute loads
   // [](../6502-code/ROM/loadStore.test.asm:9)
 
-  // LDA (zero flag)
-  run_n_cycles(LD_AXY_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
-  // LDA (negative flag)
-  run_n_cycles(LD_AXY_ABS_cycles, top, vcdOut, counter, true);
+  // (negative flag)
+  run_n_cycles(LDA_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
-  // LDX (zero flag)
-  run_n_cycles(LD_AXY_ABS_cycles, top, vcdOut, counter, true);
+  // (zero flag)
+  run_n_cycles(LDX_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_X_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
-  // LDX (negative flag)
-  run_n_cycles(LD_AXY_ABS_cycles, top, vcdOut, counter, true);
+  // (negative flag)
+  run_n_cycles(LDX_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_X_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
-  // LDY (zero flag)
-  run_n_cycles(LD_AXY_ABS_cycles, top, vcdOut, counter, true);
+  // (zero flag)
+  run_n_cycles(LDY_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_Y_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
-  // LDY (negative flag)
-  run_n_cycles(LD_AXY_ABS_cycles, top, vcdOut, counter, true);
+  // (negative flag)
+  run_n_cycles(LDY_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_Y_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
@@ -276,32 +275,32 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   // [](../6502-code/ROM/loadStore.test.asm:21)
   // LDA (zero)
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x00, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDA (negative)
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
   // LDX (zero)
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x00, top.dbg_X_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDX (negative)
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_X_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
   // LDY (zero)
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDY_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x00, top.dbg_Y_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDY (negative)
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDY_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_Y_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
@@ -315,15 +314,15 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   run_n_cycles(6, top, vcdOut, counter, true);
 
   // STA
-  run_n_cycles(ST_any_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(STA_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(1, TestMap::read(0));
 
   // STX
-  run_n_cycles(ST_any_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(STX_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(2, TestMap::read(1));
 
   // STY
-  run_n_cycles(ST_any_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(STY_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(3, TestMap::read(2));
 
 #pragma endregion
@@ -333,15 +332,15 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   // [](../6502-code/ROM/loadStore.test.asm:41)
 
   // LDA
-  run_n_cycles(LD_any_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(2, top.dbg_A_out);
 
   // LDX
-  run_n_cycles(LD_any_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDX_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(3, top.dbg_X_out);
 
   // LDY
-  run_n_cycles(LD_any_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDY_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(1, top.dbg_Y_out);
 
 #pragma endregion
@@ -350,15 +349,15 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   // [](../6502-code/ROM/loadStore.test.asm:48)
   // STA
-  run_n_cycles(ST_any_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(STA_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x2, TestMap::read(0x200));
 
   // STX
-  run_n_cycles(ST_any_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(STX_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x3, TestMap::read(0x201));
 
   // STY
-  run_n_cycles(ST_any_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(STY_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x1, TestMap::read(0x202));
 
 #pragma endregion
@@ -370,35 +369,35 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   // [](../6502-code/ROM/loadStore.test.asm:59)
   // LDA
-  run_n_cycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x01, top.dbg_A_out);
 
   // LDY
-  run_n_cycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDY_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x01, top.dbg_Y_out);
 
   // New index => X
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
 
   // Again, LDA
-  run_n_cycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // Again, LDY
-  run_n_cycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDY_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_Y_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // LDX
-  run_n_cycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDX_zpy_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(1, top.dbg_X_out);
   ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
 
   // New index => X
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDY_imm_cycles, top, vcdOut, counter, true);
   // LDX
-  run_n_cycles(LD_any_ZP_IDX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDX_zpy_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_X_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
@@ -409,13 +408,13 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   // [](../6502-code/ROM/loadStore.test.asm:79)
 
   // Setup
-  run_n_cycles(2, top, vcdOut, counter, true);
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
 
-  run_n_cycles(LDA_ABS_IDX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x1, top.dbg_A_out);
 
   // Page cross
-  run_n_cycles(LDA_ABS_IDX_cycles + 1, top, vcdOut, counter, true);
+  run_n_cycles(LDA_abx_cycles + 1, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x3, top.dbg_A_out);
   // Page cross should incur 1 extra cycle
   ERR_IF_NEQ(fetch2, top.dbg_state_out);
@@ -427,10 +426,12 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   // [](../6502-code/ROM/loadStore.test.asm:96)
 
   // Setup
-  run_n_cycles(indirect_indexted_setup_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles + STA_zp_cycles + LDA_imm_cycles + STA_zp_cycles +
+                   LDX_imm_cycles,
+               top, vcdOut, counter, true);
 
   // LDA
-  run_n_cycles(LDA_IDX_IND_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_izx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
 
 #pragma endregion
@@ -440,16 +441,16 @@ int testLoadStore(VtopLevel &top, VerilatedVcdC &vcdOut) {
   // [](../6502-code/ROM/loadStore.test.asm:108)
 
   // Setup
-  run_n_cycles(4, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles + LDY_imm_cycles, top, vcdOut, counter, true);
 
   // LDA
-  run_n_cycles(LDA_IND_IDX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_izy_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
 
   // New index
-  run_n_cycles(4, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles + LDY_imm_cycles, top, vcdOut, counter, true);
 
-  run_n_cycles(LDA_IND_IDX_cycles + 1, top, vcdOut, counter, true);
+  run_n_cycles(LDA_izy_cycles + 1, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xfd, top.dbg_A_out);
   // Page cross should incur 1 extra cycle
   ERR_IF_NEQ(fetch2, top.dbg_state_out);
@@ -473,64 +474,67 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int noBranchOps[] = {BCS_REL, BEQ_REL, BMI_REL, BVS_REL};
   for (int i = 0; i < 4; i++) {
     ERR_IF_NEQ(noBranchOps[i], TestMap::read(top.dbg_PC_out));
-    run_n_cycles(noBranch_cycles, top, vcdOut, counter, true);
+    run_n_cycles(BCS_rel_cycles, top, vcdOut, counter, true);
   }
 
   ERR_IF_NEQ(SEI_IMP, TestMap::read(top.dbg_PC_out));
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SEI_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::I, top.dbg_P_out);
 
   ERR_IF_NEQ(SEC_IMP, TestMap::read(top.dbg_PC_out));
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SEC_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::C | P_Flags::I, top.dbg_P_out);
 
   ERR_IF_NEQ(BIT_ABS, TestMap::read(top.dbg_PC_out));
-  run_n_cycles(BIT_ABS_Cycles, top, vcdOut, counter, true);
+  run_n_cycles(BIT_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::C | P_Flags::I | P_Flags::N | P_Flags::V | P_Flags::Z,
              top.dbg_P_out);
 
   int noBranchOps2[] = {BCC_REL, BNE_REL, BPL_REL, BVC_REL};
   for (int i = 0; i < 4; i++) {
     ERR_IF_NEQ(noBranchOps2[i], TestMap::read(top.dbg_PC_out));
-    run_n_cycles(noBranch_cycles, top, vcdOut, counter, true);
+    run_n_cycles(BCS_rel_cycles, top, vcdOut, counter, true);
   }
 
   int branchOps1[] = {BCS_REL, BEQ_REL, BMI_REL, BVS_REL};
   for (int i = 0; i < 4; i++) {
     ERR_IF_NEQ(branchOps1[i], TestMap::read(top.dbg_PC_out));
-    run_n_cycles(branch_cycles, top, vcdOut, counter, true);
+    run_n_cycles(BCS_rel_cycles + branch_taken_cycles, top, vcdOut, counter,
+                 true);
   }
 
   ERR_IF_NEQ(CLC_IMP, TestMap::read(top.dbg_PC_out));
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CLC_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::I | P_Flags::N | P_Flags::V | P_Flags::Z, top.dbg_P_out);
 
   ERR_IF_NEQ(CLI_IMP, TestMap::read(top.dbg_PC_out));
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CLI_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::N | P_Flags::V | P_Flags::Z, top.dbg_P_out);
 
   ERR_IF_NEQ(CLV_IMP, TestMap::read(top.dbg_PC_out));
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CLV_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::N | P_Flags::Z, top.dbg_P_out);
 
-  run_n_cycles(LDA_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::NONE, top.dbg_P_out);
 
   int branchOps2[] = {BCC_REL, BNE_REL, BPL_REL, BVC_REL};
   for (int i = 0; i < 4; i++) {
     ERR_IF_NEQ(branchOps2[i], TestMap::read(top.dbg_PC_out));
-    run_n_cycles(branch_cycles, top, vcdOut, counter, true);
+    run_n_cycles(BCC_rel_cycles + branch_taken_cycles, top, vcdOut, counter,
+                 true);
   }
 
   // Jumps to close-enough spot to test page crossing branch
-  run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(JMP_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80a0, top.dbg_PC_out);
 
   int branchPageFixOps1[] = {BCC_REL, BNE_REL, BPL_REL, BVC_REL};
   for (int i = 0; i < 4; i++) {
     ERR_IF_NEQ(branchPageFixOps1[i], TestMap::read(top.dbg_PC_out));
-    run_n_cycles(branch_cycles + 1, top, vcdOut, counter, true);
-    run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter, true);
+    run_n_cycles(BCC_rel_cycles + branch_taken_cycles + page_cycles, top,
+                 vcdOut, counter, true);
+    run_n_cycles(JMP_abs_cycles, top, vcdOut, counter, true);
   }
   ERR_IF_NEQ(fetch2, top.dbg_state_out);
 
@@ -541,8 +545,9 @@ int testFlagsBranch(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int branchPageFixOps2[] = {BCS_REL, BEQ_REL, BMI_REL, BVS_REL};
   for (int i = 0; i < 4; i++) {
     ERR_IF_NEQ(branchPageFixOps2[i], TestMap::read(top.dbg_PC_out));
-    run_n_cycles(branch_cycles + 1, top, vcdOut, counter, true);
-    run_n_cycles(JMP_ABS_cycles, top, vcdOut, counter, true);
+    run_n_cycles(BCC_rel_cycles + branch_taken_cycles + page_cycles, top,
+                 vcdOut, counter, true);
+    run_n_cycles(JMP_abs_cycles, top, vcdOut, counter, true);
   }
   ERR_IF_NEQ(fetch2, top.dbg_state_out);
 
@@ -619,21 +624,21 @@ int testStack(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int counter = resetResult;
 
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
-  run_n_cycles(transfer_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(TXS_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_S_out);
 
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
-  run_n_cycles(push_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(PHA_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, TestMap::read(top.dbg_S_out + 0x100 + 1));
-  run_n_cycles(push_cycles, top, vcdOut, counter, true);
+  run_n_cycles(PHP_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xa0, TestMap::read(top.dbg_S_out + 0x100 + 1));
-  run_n_cycles(transfer_cycles, top, vcdOut, counter, true);
+  run_n_cycles(TSX_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xfd, top.dbg_X_out);
 
-  run_n_cycles(pull_cycles, top, vcdOut, counter, true);
+  run_n_cycles(PLA_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xa0, top.dbg_A_out);
-  run_n_cycles(pull_cycles, top, vcdOut, counter, true);
+  run_n_cycles(PLP_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_P_out);
   ERR_IF_NEQ(0xff, top.dbg_S_out);
 
@@ -651,37 +656,37 @@ int testIncDec(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int counter = resetResult;
 
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(1, top.dbg_X_out);
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEX_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_X_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEX_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_X_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_X_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
   // LDA
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_X_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INY_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(1, top.dbg_Y_out);
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEY_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_Y_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEY_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_Y_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INY_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_Y_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
   // LDA
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
-  run_n_cycles(INX_DEX_LDA_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDY_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INY_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_Y_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
@@ -700,219 +705,218 @@ int testArithmetic(VtopLevel &top, VerilatedVcdC &vcdOut) {
   int counter = resetResult;
 
   // Immediate
-  run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(SBC_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(SBC_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
   // ZP
-  run_n_cycles(ADC_ZP_cycles, top, vcdOut, counter, true);
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_zp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CLC_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
-  run_n_cycles(ADC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(ADC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(ADC_ZP_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_zp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(SBC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(SBC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(INC_DEC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INC_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, TestMap::read(1));
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEC_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, TestMap::read(1));
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEC_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, TestMap::read(7));
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ZP_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INC_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x0, TestMap::read(7));
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // ZP,X
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
 
-  run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
-  run_n_cycles(INX_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CLC_imp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_imp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_zpx_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(SBC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(SBC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(INC_DEC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INC_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, TestMap::read(1));
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEC_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, TestMap::read(1));
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEC_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, TestMap::read(7));
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ZPX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INC_zpx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x0, TestMap::read(7));
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // Absolute
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
 
-  run_n_cycles(ADC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CLC_imp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(ADC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(ADC_ABS_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abs_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(SBC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(SBC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(INC_DEC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INC_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, TestMap::read(0x201));
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEC_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, TestMap::read(0x201));
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEC_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, TestMap::read(0x207));
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ABS_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INC_abs_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x0, TestMap::read(0x207));
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
   // Absolute, X
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
 
-  run_n_cycles(ADC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
-  run_n_cycles(INX_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CLC_imp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_imp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(ADC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(ADC_ABSX_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abx_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(SBC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(SBC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(INC_DEC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INC_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, TestMap::read(0x201));
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEC_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, TestMap::read(0x201));
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEC_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, TestMap::read(0x207));
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(INC_DEC_ABSX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INC_abx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x0, TestMap::read(0x207));
   ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
 
-  run_n_cycles(ADC_ABSX_cycles + 1, top, vcdOut, counter, true);
+  run_n_cycles(ADC_abx_cycles + page_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
-  run_n_cycles(SBC_ABSX_cycles + 1, top, vcdOut, counter, true);
+  run_n_cycles(SBC_abx_cycles + page_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
 
   ERR_IF_NEQ(fetch2, top.dbg_state_out);
 
   // Absolute, Y
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(LDY_imm_cycles + LDA_imm_cycles, top, vcdOut, counter, true);
 
-  run_n_cycles(ADC_ABSY_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_aby_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
-  run_n_cycles(INY_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_ABSY_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CLC_imp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INY_imp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_aby_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(ADC_ABSY_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_aby_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(ADC_ABSY_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_ABSY_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_aby_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_aby_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
   ERR_IF_NEQ(fetch2, top.dbg_state_out);
 
-  run_n_cycles(SBC_ABSY_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_aby_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(SBC_ABSY_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_aby_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(ADC_ABSY_cycles + 1, top, vcdOut, counter, true);
+  run_n_cycles(ADC_aby_cycles + page_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
-  run_n_cycles(SBC_ABSY_cycles + 1, top, vcdOut, counter, true);
+  run_n_cycles(SBC_aby_cycles + page_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(fetch2, top.dbg_state_out);
 
@@ -930,63 +934,62 @@ int testArithmeticIndirects(VtopLevel &top, VerilatedVcdC &vcdOut) {
 
   int counter = resetResult;
 
-  run_n_cycles(DEX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(DEX_imp_cycles, top, vcdOut, counter, true);
 
-  run_n_cycles(ADC_IND_X_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
 
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
-  run_n_cycles(INX_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CLC_imp_cycles, top, vcdOut, counter, true);
+  run_n_cycles(INX_imp_cycles, top, vcdOut, counter, true);
 
-  run_n_cycles(ADC_IND_X_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(ADC_IND_X_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(ADC_IND_X_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_IND_X_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izx_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(SBC_IND_X_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_izx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(SBC_IND_X_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_izx_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
   // Indirect, Y
-  run_n_cycles(ADC_IND_Y_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izy_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::C, top.dbg_P_out);
 
-  run_n_cycles(setClearFlag_cycles, top, vcdOut, counter, true);
-  run_n_cycles(LD_any_IMM_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CLC_imp_cycles + LDY_imm_cycles, top, vcdOut, counter, true);
 
-  run_n_cycles(ADC_IND_Y_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izy_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
-  run_n_cycles(ADC_IND_Y_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izy_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
-  run_n_cycles(ADC_IND_Y_cycles, top, vcdOut, counter, true);
-  run_n_cycles(ADC_IND_Y_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izy_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izy_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0x80, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::V | P_Flags::N, top.dbg_P_out);
 
-  run_n_cycles(SBC_IND_Y_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_izy_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::Z | P_Flags::V | P_Flags::C, top.dbg_P_out);
-  run_n_cycles(SBC_IND_Y_cycles, top, vcdOut, counter, true);
+  run_n_cycles(SBC_izy_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
   // Page cross
-  run_n_cycles(ADC_IND_Y_cycles + 1, top, vcdOut, counter, true);
+  run_n_cycles(ADC_izy_cycles + page_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0, top.dbg_A_out);
-  run_n_cycles(SBC_IND_Y_cycles + 1, top, vcdOut, counter, true);
+  run_n_cycles(SBC_izy_cycles + page_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(fetch2, top.dbg_state_out);
 

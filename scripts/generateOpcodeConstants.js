@@ -3,7 +3,7 @@ import * as fs from 'fs/promises';
 import path from 'path';
 
 const opcodeLines = (await fs.readFile(
-  path.join(import.meta.dirname, "../lib/opcodes.cfg"),
+  path.join(import.meta.dirname, "./cpu_states.cfg"),
   "utf-8"
 )).split("\n").map(x => x.trim());
 
