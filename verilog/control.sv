@@ -1,5 +1,5 @@
-`include "muxSignals.sv"
-`include "page_invalid_state_t.sv"
+`include "./svh/muxSignals.svh"
+`include "./svh/page_invalid_state_t.svh"
 
 // This is what issues the control signals necessary for the processor to run.
 // Also, determines next state

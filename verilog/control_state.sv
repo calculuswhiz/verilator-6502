@@ -1,4 +1,4 @@
-`include "page_invalid_state_t.sv"
+`include "./svh/page_invalid_state_t.svh"
 
 module control_state (
 	input forceReset_n,

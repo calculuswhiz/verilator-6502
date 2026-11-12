@@ -1,4 +1,4 @@
-`include "aluops.sv"    // alu operations enum.
+`include "./svh/aluops.svh"    // alu operations enum.
 // Simple ALU. Doesn't do a whole lot. Doesn't really have to.
 module ALU (
 	input [7:0] a,
@@ -6,7 +6,6 @@ module ALU (
 	input carryIn,
 	input overflowIn,
 
-	/** Defined in aluops.sv */
 	input aluop_t operation,
 
 	// Arithmetic flags:

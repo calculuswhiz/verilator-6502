@@ -1,6 +1,6 @@
-`include "aluops.sv"
-`include "opCodeHex.sv"
-`include "muxSignals.sv"
+`include "./svh/aluops.svh"
+`include "./svh/opCodeHex.svh"
+`include "./svh/muxSignals.svh"
 
 module topLevel (
     input clk,
@@ -74,10 +74,10 @@ module topLevel (
     wire V_out, C_in, C_out, N_out, Z_out;
 
     // GP-Buses:
-    wire [7:0] xfer_bus;
+    reg [7:0] xfer_bus;
     /* verilator lint_off UNOPTFLAT */
-    wire [7:0] data_bus;
-    wire [7:0] memory_bus_h, memory_bus_l;
+    reg [7:0] data_bus;
+    reg [7:0] memory_bus_h, memory_bus_l;
     /* verilator lint_on UNOPTFLAT */
 
     // Output data:
@@ -116,7 +116,7 @@ module topLevel (
     /* verilator lint_on UNOPTFLAT */
     wire [7:0] PCLmux_out, PCHmux_out;
     wire [7:0] DLmux_out, DHmux_out;
-    wire [7:0] TLmux_out;
+    reg [7:0] TLmux_out;
     wire [7:0] Pmux_out;
     wire [7:0] IRmux_out;
     wire [7:0] IRQLmux_out;
@@ -332,11 +332,14 @@ module topLevel (
 
     // #region T (transfers data from memory)
 
-    assign TLmux_out = 
-        TLmux_sel == tlSel_data_bus ? data_bus
-        : TLmux_sel == tlSel_memory_bus_l ? memory_bus_l
-        : TLmux_sel == tlSel_ALU_out ? ALU_out
-        : 0;
+    always @(*) begin
+        case (TLmux_sel)
+            tlSel_data_bus : TLmux_out = data_bus;
+            tlSel_memory_bus_l : TLmux_out = memory_bus_l;
+            tlSel_ALU_out : TLmux_out = ALU_out;
+            default: TLmux_out = 0;
+        endcase
+    end
 
     CountReg T_reg(
         .clk(clkDiv[divFactor]),
