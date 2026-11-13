@@ -14,7 +14,14 @@ MODULEFLAGS = -fmodule-file=TestMap=../obj_dir/TestMap.pcm -fmodule-file=TestMap
 # IMPORTANT: If on mac, make sure you are using llvm's clang.
 CXX := clang++
 
-all: clean modules verilate_exe testProgs assemble verilate_no_exe bindings
+all:
+	rm -f ./vcd_out/*.vcd
+	make modules
+	make verilate_exe
+	make testProgs
+	make assemble
+	make verilate_no_exe
+	make bindings
 
 modules:
 	$(CXX) $(CFLAGS) ./lib/module/TestMap.cppm \
@@ -26,6 +33,9 @@ verilate_no_exe:
 	verilator --cc -Wall --trace --build -I"./verilog" \
 		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
 		./verilog/ALU.sv $(VERILATOR_FLAGS)
+	verilator --cc -Wall --trace --build -I"./verilog" \
+		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
+		./verilog/CountReg.sv $(VERILATOR_FLAGS)
 
 bindings:
 	clang++ -fPIC -c ./tests/bindings/ALU.binding.cpp \
@@ -33,10 +43,13 @@ bindings:
 		-I./obj_dir \
 		-o ./obj_dir/VALU.binding.o
 	ar rcs ./obj_dir/VALU.binding.a ./obj_dir/VALU.binding.o
+	clang++ -fPIC -c ./tests/bindings/CountReg.binding.cpp \
+		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
+		-I./obj_dir \
+		-o ./obj_dir/VCountReg.binding.o
+	ar rcs ./obj_dir/VCountReg.binding.a ./obj_dir/VCountReg.binding.o
 
 verilate_exe:
-	verilator --cc -Wall --trace -I"./verilog" \
-		./verilog/CountReg.sv --exe ./tests/CountReg.cpp $(VERILATOR_FLAGS)
 	verilator --cc -Wall --trace -I"./verilog" \
 		./verilog/GpReg.sv --exe ./tests/GpReg.cpp $(VERILATOR_FLAGS)
 	verilator --cc -Wall --trace -I"./verilog" \
@@ -47,8 +60,6 @@ verilate_exe:
 		./verilog/topLevel.sv --exe ./tests/topLevel.cpp $(VERILATOR_FLAGS)
 
 testProgs:
-	$(MAKE) -C obj_dir -j -f VCountReg.mk VCountReg CXX=$(CXX) LINK=$(CXX) \
-		CXXFLAGS="$(CFLAGS)"
 	$(MAKE) -C obj_dir -j -f VGpReg.mk VGpReg CXX=$(CXX) LINK=$(CXX) \
 		CXXFLAGS="$(CFLAGS)"
 	$(MAKE) -C obj_dir -j -f VPC.mk VPC CXX=$(CXX) LINK=$(CXX) \
@@ -65,5 +76,4 @@ assemble: $(ASM_PROGS)
 	xa ./6502-code/ROM/$@.asm -o ./obj_dir/$@.o65
 
 clean:
-	rm -f ./vcd_out/*.vcd
-	rm obj_dir/*
+	rm -f obj_dir/*

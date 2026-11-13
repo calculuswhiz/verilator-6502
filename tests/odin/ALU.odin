@@ -2,7 +2,7 @@ package main
 
 import "core:fmt"
 import "core:c"
-import "base:runtime"
+import "core:testing"
 
 foreign import MyVALU {
   "system:c++",
@@ -41,16 +41,18 @@ AluOp :: enum {
 @(default_calling_convention="c")
 foreign MyVALU {
   VALU_create :: proc() -> VALU ---
+  VALU_eval :: proc(instance: VALU) ---
+  VALU_destroy :: proc(instance: VALU) ---
+  
   VALU_get_state :: proc(instance: VALU) -> Alu_State  ---
   VALU_set_inputs :: proc(instance: VALU, 
     a: c.int, b: c.int, carryIn: c.int = 0, overflowIn: c.int = 0
   ) ---
   VALU_set_operation :: proc(instance: VALU, operation: AluOp) ---
-  VALU_eval :: proc(instance: VALU) ---
-  VALU_destroy :: proc(instance: VALU) ---
 }
 
-test_adc :: proc() {
+@(test)
+test_adc :: proc(t: ^testing.T) {
   fmt.print("Testing adc...")
 
   alu_inst := VALU_create()
@@ -107,7 +109,8 @@ test_adc :: proc() {
   fmt.println("passed")
 }
 
-test_sbc :: proc() {
+@(test)
+test_sbc :: proc(t: ^testing.T) {
   fmt.print("Testing sbc... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
@@ -154,7 +157,8 @@ test_sbc :: proc() {
   fmt.println("passed")
 }
 
-test_eor :: proc() {
+@(test)
+test_eor :: proc(t: ^testing.T) {
   fmt.print("Testing eor... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
@@ -183,7 +187,8 @@ test_eor :: proc() {
   fmt.println("passed")
 }
 
-test_ora :: proc() {
+@(test)
+test_ora :: proc(t: ^testing.T) {
   fmt.print("Testing ora... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
@@ -212,7 +217,8 @@ test_ora :: proc() {
   fmt.println("passed")
 }
 
-test_and :: proc() {
+@(test)
+test_and :: proc(t: ^testing.T) {
   fmt.print("Testing and... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
@@ -241,7 +247,8 @@ test_and :: proc() {
   fmt.println("passed")
 }
 
-test_inc :: proc() {
+@(test)
+test_inc :: proc(t: ^testing.T) {
   fmt.print("Testing inc... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
@@ -270,7 +277,8 @@ test_inc :: proc() {
   fmt.println("passed")
 }
 
-test_dec :: proc() {
+@(test)
+test_dec :: proc(t: ^testing.T) {
   fmt.print("Testing dec... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
@@ -299,7 +307,8 @@ test_dec :: proc() {
   fmt.println("passed")
 }
 
-test_ror :: proc() {
+@(test)
+test_ror :: proc(t: ^testing.T) {
   fmt.print("Testing ror... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
@@ -346,7 +355,8 @@ test_ror :: proc() {
   fmt.println("passed")
 }
 
-test_rol :: proc() {
+@(test)
+test_rol :: proc(t: ^testing.T) {
   fmt.print("Testing rol... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
@@ -393,7 +403,8 @@ test_rol :: proc() {
   fmt.println("passed")
 }
 
-test_asl :: proc() {
+@(test)
+test_asl :: proc(t: ^testing.T) {
   fmt.print("Testing asl... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
@@ -422,7 +433,8 @@ test_asl :: proc() {
   fmt.println("passed")
 }
 
-test_lsr :: proc() {
+@(test)
+test_lsr :: proc(t: ^testing.T) {
   fmt.print("Testing lsr... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
@@ -449,20 +461,4 @@ test_lsr :: proc() {
   assert(alu_state.overflow == 0)
 
   fmt.println("passed")
-}
-
-main :: proc() {
-  test_adc()
-  test_sbc()
-  test_eor()
-  test_ora()
-  test_and()
-  test_inc()
-  test_dec()
-  test_ror()
-  test_rol()
-  test_asl()
-  test_lsr()
-
-  fmt.printfln("Tests passed for %s\n", #file)
 }
