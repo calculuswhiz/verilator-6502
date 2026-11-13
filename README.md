@@ -29,7 +29,6 @@ The I have not figured out how the real 6502 reads the data from 0xfffc into the
 
 ## Left to test
 
-- Compare 	CMP 	CPX 	CPY 					
 - Jump 	BRK 	RTI 			
 
 Any unofficial opcodes too
