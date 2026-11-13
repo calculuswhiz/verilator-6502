@@ -1374,6 +1374,71 @@ int testBitwise(VtopLevel &top, VerilatedVcdC &vcdOut) {
   return 0;
 }
 
+int testCompare(VtopLevel &top, VerilatedVcdC &vcdOut) {
+  int resetResult = reset(top, vcdOut, false);
+  if (resetResult == -1)
+    return log_error(), -1;
+
+  int counter = resetResult;
+
+  // Immediate
+
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CMP_imm_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(CMP_imm_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(CMP_imm_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
+
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CPX_imm_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(CPX_imm_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(CPX_imm_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
+
+  run_n_cycles(LDY_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CPY_imm_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(CPY_imm_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(CPY_imm_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
+  
+  // ZP
+
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CMP_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(CMP_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(CMP_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
+
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CPX_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(CPX_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(CPX_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
+
+  run_n_cycles(LDY_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CPY_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(CPY_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(CPY_zp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
+
+  // Pad output
+  run_n_cycles(6, top, vcdOut, counter, true);
+
+  return 0;
+}
+
 // Configure test information with this
 typedef struct {
   int (*testFunction)(VtopLevel &, VerilatedVcdC &);
@@ -1445,6 +1510,11 @@ int main(int argc, char **argv, char **env) {
       {.testFunction = testBitwise,
        .vcdFile = "./vcd_out/bitwise_test.vcd",
        .programFile = "./obj_dir/bitwise.test.o65",
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = false},
+       {.testFunction = testCompare,
+       .vcdFile = "./vcd_out/compare_test.vcd",
+       .programFile = "./obj_dir/compare.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
   };

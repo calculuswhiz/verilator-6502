@@ -15,7 +15,7 @@ The I have not figured out how the real 6502 reads the data from 0xfffc into the
 ## Requirements
 
 - Verilator
-- clang++
+- clang++ **From LLVM**. In particular, don't use the MacOS one.
   - Yes, I don't like C++ either, but I promise I will use as little OOP as I can think to use.
 - xa assembler
 
