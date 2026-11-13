@@ -1,4 +1,4 @@
-#include "VALU.h"
+#include "../obj_dir/VALU.h"
 
 #include "../lib/helpAssert.cpp"
 #include <cassert>

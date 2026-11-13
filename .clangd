@@ -1,0 +1,7 @@
+CompileFlags:
+  Add: [
+    -I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include,
+    -std=c++23,
+    -fmodule-file=TestMap=../obj_dir/TestMap.pcm,
+    -fmodule-file=DynamicAssemble=../obj_dir/DynamicAssemble.pcm
+  ]

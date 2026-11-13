@@ -1,28 +1,65 @@
-all:
-	make build
-	make assemble
-	ls -l 6502-sim.vcd
+TEST_SRCS = $(wildcard ./tests/*.cpp)
+TEST_PROGS = $(patsubst ./tests/%.cpp,%,$(TEST_SRCS))
 
-# Find all .cpp files in test directory
-SRCS = $(wildcard ./tests/*.cpp)
+ASM_SRCS = $(wildcard ./6502-code/ROM/*.asm)
+ASM_PROGS = $(patsubst ./6502-code/ROM/%.asm,%,$(ASM_SRCS))
 
-# Strip the .cpp extension from the source files to create target names
-PROGS = $(patsubst ./tests/%.cpp,%,$(SRCS))
+CFLAGS = -std=c++23
+ifdef DEBUG
+  CFLAGS += -glldb -O0 -DDEBUG
+	VERILATOR_FLAGS += -CFLAGS $(CFLAGS)
+endif
+MODULEFLAGS = -fmodule-file=TestMap=../obj_dir/TestMap.pcm -fmodule-file=TestMap=../obj_dir/TestMap.pcm
 
-build: $(PROGS)
+# IMPORTANT: If on mac, make sure you are using llvm's clang.
+CXX := clang++
 
-%: ./tests/%.cpp
-# Generates the Verilator Makefile(s) and C++ source files for the specified Verilog module
-# Pass the testbench to verilator with --exe (don't use -I"$<" which is a .cpp file)
-	verilator --cc -Wall --trace -I"./verilog" ./verilog/$@.sv --exe $< --CFLAGS "-std=c++20"
-# Build the generated makefile in obj_dir (use $(MAKE) for portability)
-	$(MAKE) -C obj_dir -j -f V$@.mk V$@ CXX=clang++ LINK=clang++ CXXFLAGS="-std=c++20"
+all: modules testProgs assemble
 
-assemble:
-	sh bytedump_asm.sh
+modules:
+	$(CXX) $(CFLAGS) ./lib/module/TestMap.cppm \
+		--precompile -o ./obj_dir/TestMap.pcm
+	$(CXX) $(CFLAGS) ./lib/module/DynamicAssemble.cppm \
+		--precompile -o ./obj_dir/DynamicAssemble.pcm
 
-run:
-	obj_dir/VtopLevel
+testProgs:
+	rm -f ./vcd_out/*.vcd
+
+	verilator --cc -Wall --trace -I"./verilog" \
+		./verilog/ALU.sv --exe ./tests/ALU.cpp $(VERILATOR_FLAGS)
+	$(MAKE) -C obj_dir -j -f VALU.mk VALU CXX=$(CXX) LINK=$(CXX) \
+		CXXFLAGS="$(CFLAGS)"
+
+	verilator --cc -Wall --trace -I"./verilog" \
+		./verilog/CountReg.sv --exe ./tests/CountReg.cpp $(VERILATOR_FLAGS)
+	$(MAKE) -C obj_dir -j -f VCountReg.mk VCountReg CXX=$(CXX) LINK=$(CXX) \
+		CXXFLAGS="$(CFLAGS)"
+
+	verilator --cc -Wall --trace -I"./verilog" \
+		./verilog/GpReg.sv --exe ./tests/GpReg.cpp $(VERILATOR_FLAGS)
+	$(MAKE) -C obj_dir -j -f VGpReg.mk VGpReg CXX=$(CXX) LINK=$(CXX) \
+		CXXFLAGS="$(CFLAGS)"
+
+	verilator --cc -Wall --trace -I"./verilog" \
+		./verilog/PC.sv --exe ./tests/PC.cpp $(VERILATOR_FLAGS)
+	$(MAKE) -C obj_dir -j -f VPC.mk VPC CXX=$(CXX) LINK=$(CXX) \
+		CXXFLAGS="$(CFLAGS)"
+
+	verilator --cc -Wall --trace -I"./verilog" \
+		./verilog/SPReg.sv --exe ./tests/SPReg.cpp $(VERILATOR_FLAGS)
+	$(MAKE) -C obj_dir -j -f VSPReg.mk VSPReg CXX=$(CXX) LINK=$(CXX) \
+		CXXFLAGS="$(CFLAGS)"
+
+	verilator --cc -Wall --trace -I"./verilog" \
+		./verilog/topLevel.sv --exe ./tests/topLevel.cpp $(VERILATOR_FLAGS)
+	$(MAKE) -C obj_dir -j -f VtopLevel.mk VtopLevel CXX=$(CXX) LINK=$(CXX) \
+		CXXFLAGS="$(CFLAGS) $(MODULEFLAGS)" \
+		LDFLAGS="-Wl,-U,__Z15vl_time_stamp64v,-U,__Z13sc_time_stampv,-U,_vlog_startup_routines ../obj_dir/TestMap.pcm"
+
+assemble: $(ASM_PROGS)
+
+%: ./6502-code/ROM/%.asm
+	xa ./6502-code/ROM/$@.asm -o ./obj_dir/$@.o65
 
 clean:
 	rm obj_dir/*
