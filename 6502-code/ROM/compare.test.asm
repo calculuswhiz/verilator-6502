@@ -13,11 +13,9 @@ stack:
 
 ; 0200-3fff
 program_RAM:
-  .byte $77
-ram_ff:
-  .byte $ff
-ram_00:
   .byte $00
+  .byte $01
+  .byte $02
   
   .dsb    $4000 - program_RAM
 
@@ -64,6 +62,23 @@ start_program_ROM:
   cpy $01 ; CZ
   cpy $02 ; N
   cpy $00 ; C
+
+  ; Absolute (After this, we're done with cpx/cpy)
+
+  lda #$01
+  cmp $0201 ; CZ
+  cmp $0202 ; N
+  cmp $0200 ; C
+
+  ldx #$01
+  cpx $0201 ; CZ
+  cpx $0202 ; N
+  cpx $0200 ; C
+
+  ldy #$01
+  cpy $0201 ; CZ
+  cpy $0202 ; N
+  cpy $0200 ; C
 
 trap:
   jmp trap

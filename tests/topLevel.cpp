@@ -1433,6 +1433,32 @@ int testCompare(VtopLevel &top, VerilatedVcdC &vcdOut) {
   run_n_cycles(CPY_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
 
+  // Absolute
+
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CMP_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(CMP_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(CMP_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
+
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CPX_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(CPX_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(CPX_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
+
+  run_n_cycles(LDY_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(CPY_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C | P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(CPY_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(CPY_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
+
   // Pad output
   run_n_cycles(6, top, vcdOut, counter, true);
 

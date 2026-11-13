@@ -832,7 +832,7 @@ module control_signal (
 			end
 			CMP_ZPG, CMP_ZPX,
 			CMP_ABS, CMP_ABX_PG, CMP_ABY_PG,
-			CPX_ZPG, CPY_ZPG: begin
+			CPX_ZPG, CPX_ABS, CPY_ZPG, CPY_ABS: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(DHm, DLm);
