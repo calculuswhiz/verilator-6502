@@ -1538,7 +1538,7 @@ int testSoftInterrupt(VtopLevel &top, VerilatedVcdC &vcdOut) {
   ERR_IF_NEQ(retOffset, TestMap::read(0x100 + top.dbg_S_out + 2));
   ERR_IF_NEQ(0x80, TestMap::read(0x100 + top.dbg_S_out + 3));
 
-  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::I | P_Flags::N | P_Flags::B, top.dbg_P_out);
 
   run_n_cycles(RTI_imp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);

@@ -372,9 +372,11 @@ module control_signal (
 				setMemBusSource(Spagem, Sm);
 				S_dec = 1;
 				setDataBusSource(db_src_Pd);
+				ctl_pvect[2] = 1;
+				ctl_pvect[4] = 1;
+				P_ld = 1;
 			end
 			BRK_IMP_5: begin
-				// PCL=M[$FFFE]
 				setReadMem();
 				setMemBusSource(IRQH, IRQL);
 				PCL_ld = 1;

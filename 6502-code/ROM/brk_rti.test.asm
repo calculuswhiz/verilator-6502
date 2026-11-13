@@ -22,7 +22,6 @@ bounds:
   .dsb $9000 - bounds
 
 interrupt_routine:
-  lda #0
   rti
 
 end_program_ROM:
