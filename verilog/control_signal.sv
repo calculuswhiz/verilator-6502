@@ -368,11 +368,10 @@ module control_signal (
 				setDataBusSource(db_src_PCLd);
 			end
 			BRK_IMP_4: begin
-				// TODO P or PCL?
 				setWriteMem();
 				setMemBusSource(Spagem, Sm);
 				S_dec = 1;
-				setDataBusSource(db_src_PCLd);
+				setDataBusSource(db_src_Pd);
 			end
 			BRK_IMP_5: begin
 				// PCL=M[$FFFE]

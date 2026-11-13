@@ -1406,7 +1406,7 @@ int testCompare(VtopLevel &top, VerilatedVcdC &vcdOut) {
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
   run_n_cycles(CPY_imm_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(P_Flags::C, top.dbg_P_out);
-  
+
   // ZP
 
   run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
@@ -1522,6 +1522,34 @@ int testCompare(VtopLevel &top, VerilatedVcdC &vcdOut) {
   return 0;
 }
 
+int testSoftInterrupt(VtopLevel &top, VerilatedVcdC &vcdOut) {
+  int resetResult = reset(top, vcdOut, false);
+  if (resetResult == -1)
+    return log_error(), -1;
+
+  int counter = resetResult;
+
+  run_n_cycles(LDX_imm_cycles + TXS_imp_cycles, top, vcdOut, counter, true);
+
+  run_n_cycles(BRK_imp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0x9000, top.dbg_PC_out);
+  ERR_IF_NEQ(P_Flags::N, TestMap::read(0x100 + top.dbg_S_out + 1));
+  constexpr int retOffset = 2 + 1 + 2;
+  ERR_IF_NEQ(retOffset, TestMap::read(0x100 + top.dbg_S_out + 2));
+  ERR_IF_NEQ(0x80, TestMap::read(0x100 + top.dbg_S_out + 3));
+
+  run_n_cycles(LDA_imm_cycles, top, vcdOut, counter, true);
+
+  run_n_cycles(RTI_imp_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  ERR_IF_NEQ(0x8000 + retOffset, top.dbg_PC_out);
+
+  // Pad output
+  run_n_cycles(6, top, vcdOut, counter, true);
+
+  return 0;
+}
+
 // Configure test information with this
 typedef struct {
   int (*testFunction)(VtopLevel &, VerilatedVcdC &);
@@ -1595,9 +1623,14 @@ int main(int argc, char **argv, char **env) {
        .programFile = "./obj_dir/bitwise.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
-       {.testFunction = testCompare,
+      {.testFunction = testCompare,
        .vcdFile = "./vcd_out/compare_test.vcd",
        .programFile = "./obj_dir/compare.test.o65",
+       .romStartAddress = StandardProgramRomAddr,
+       .skip = false},
+      {.testFunction = testSoftInterrupt,
+       .vcdFile = "./vcd_out/brk_rti_test.vcd",
+       .programFile = "./obj_dir/brk_rti.test.o65",
        .romStartAddress = StandardProgramRomAddr,
        .skip = false},
   };
