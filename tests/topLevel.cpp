@@ -1171,7 +1171,7 @@ int testBitwise(VtopLevel &top, VerilatedVcdC &vcdOut) {
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
   // ZP
-  
+
   run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
   run_n_cycles(AND_zp_cycles, top, vcdOut, counter, true);
   ERR_IF_NEQ(0xff, top.dbg_A_out);
@@ -1195,6 +1195,178 @@ int testBitwise(VtopLevel &top, VerilatedVcdC &vcdOut) {
   ERR_IF_NEQ(0xff, top.dbg_A_out);
   ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
 
+  // ZP,X
+
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(AND_zpx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(AND_zpx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(LDA_imm_cycles + LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ORA_zpx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ORA_zpx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(EOR_zpx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(EOR_zpx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  // Absolute
+
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(AND_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(AND_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(LDA_imm_cycles + LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ORA_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ORA_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(EOR_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(EOR_abs_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  // Absolute, X
+
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(AND_abx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(AND_abx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(LDA_imm_cycles + LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ORA_abx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ORA_abx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(EOR_abx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(EOR_abx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(AND_abx_cycles + page_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  run_n_cycles(ORA_abx_cycles + page_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  run_n_cycles(EOR_abx_cycles + page_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+
+  // Absolute, Y
+  run_n_cycles(LDA_imm_cycles + LDY_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(AND_aby_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(AND_aby_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(LDA_imm_cycles + LDY_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ORA_aby_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ORA_aby_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(EOR_aby_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(EOR_aby_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(LDY_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(AND_aby_cycles + page_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  run_n_cycles(ORA_aby_cycles + page_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  run_n_cycles(EOR_aby_cycles + page_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+
+  // (Indirect, X)
+
+  run_n_cycles(LDA_imm_cycles + LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(AND_izx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(AND_izx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(LDA_imm_cycles + LDX_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ORA_izx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ORA_izx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(EOR_izx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(EOR_izx_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  // (Indirect), Y
+
+  run_n_cycles(LDA_imm_cycles + LDY_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(AND_izy_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+  run_n_cycles(AND_izy_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+
+  run_n_cycles(LDA_imm_cycles + LDY_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(ORA_izy_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(ORA_izy_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(EOR_izy_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::Z, top.dbg_P_out);
+  run_n_cycles(EOR_izy_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  ERR_IF_NEQ(P_Flags::N, top.dbg_P_out);
+
+  run_n_cycles(LDY_imm_cycles, top, vcdOut, counter, true);
+  run_n_cycles(AND_izy_cycles + page_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
+  run_n_cycles(ORA_izy_cycles + page_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0xff, top.dbg_A_out);
+  run_n_cycles(EOR_izy_cycles + page_cycles, top, vcdOut, counter, true);
+  ERR_IF_NEQ(0, top.dbg_A_out);
 
   // Pad output
   run_n_cycles(6, top, vcdOut, counter, true);
