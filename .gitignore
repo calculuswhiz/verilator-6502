@@ -4,3 +4,4 @@ obj_dir
 *.o65
 .vscode
 .DS_Store
+tests/odin/ALU_test

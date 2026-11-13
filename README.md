@@ -16,12 +16,14 @@ The I have not figured out how the real 6502 reads the data from 0xfffc into the
 
 - Verilator
 - clang++ **From LLVM**. In particular, don't use the MacOS one.
-  - Yes, I don't like C++ either, but I promise I will use as little OOP as I can think to use.
+  - This is being used to generate C bindings and c++ executables (moving away from this now) for use with better languages
+- odin. The tests are currently under a porting effort to transition from C++ testing to oding testing. If you don't like odin, the C bindings should make it easier to bind to whatever language you want that supports C interfacing.
 - xa assembler
 
 ## Structure
-- CPP testbenches go in the `tests` folder.
+- CPP testbenches go in the `tests` folder. They are currently being deprecated in favor of making bindings for Odin.
   - There is also a sample memory map interface in there
+- odin testbenches are in `tests/odin`.
 - An old datapath I drew in 2016 is in the pictures folder.
 - SystemVerilog files go in the `verilog` folder.
 - All compiled objects go in the `obj_dir` folder (run `make` first)
