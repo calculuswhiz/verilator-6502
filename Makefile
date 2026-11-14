@@ -39,6 +39,9 @@ verilate_no_exe:
 	verilator --cc -Wall --trace -I"./verilog" \
 		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
 		./verilog/GpReg.sv $(VERILATOR_FLAGS)
+	verilator --cc -Wall --trace -I"./verilog" \
+		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
+		./verilog/PC.sv $(VERILATOR_FLAGS)
 
 bindings:
 	clang++ -fPIC -c ./tests/bindings/ALU.binding.cpp \
@@ -56,18 +59,19 @@ bindings:
 		-I./obj_dir \
 		-o ./obj_dir/VGpReg.binding.o
 	ar rcs ./obj_dir/VGpReg.binding.a ./obj_dir/VGpReg.binding.o
+	clang++ -fPIC -c ./tests/bindings/PC.binding.cpp \
+		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
+		-I./obj_dir \
+		-o ./obj_dir/VPC.binding.o
+	ar rcs ./obj_dir/VPC.binding.a ./obj_dir/VPC.binding.o
 
 verilate_exe:
-	verilator --cc -Wall --trace -I"./verilog" \
-		./verilog/PC.sv --exe ./tests/PC.cpp $(VERILATOR_FLAGS)
 	verilator --cc -Wall --trace -I"./verilog" \
 		./verilog/SPReg.sv --exe ./tests/SPReg.cpp $(VERILATOR_FLAGS)
 	verilator --cc -Wall --trace -I"./verilog" \
 		./verilog/topLevel.sv --exe ./tests/topLevel.cpp $(VERILATOR_FLAGS)
 
 testProgs:
-	$(MAKE) -C obj_dir -j -f VPC.mk VPC CXX=$(CXX) LINK=$(CXX) \
-		CXXFLAGS="$(CFLAGS)"
 	$(MAKE) -C obj_dir -j -f VSPReg.mk VSPReg CXX=$(CXX) LINK=$(CXX) \
 		CXXFLAGS="$(CFLAGS)"
 	$(MAKE) -C obj_dir -j -f VtopLevel.mk VtopLevel CXX=$(CXX) LINK=$(CXX) \
