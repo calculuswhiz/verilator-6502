@@ -1,5 +1,4 @@
 #include "../../obj_dir/VPC.h"
-
 #include <cstdint>
 
 extern "C" {
