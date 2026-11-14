@@ -1,6 +1,5 @@
 package main
 
-import "core:fmt"
 import "core:c"
 import "core:testing"
 
@@ -49,7 +48,6 @@ cycle_clock :: proc(reg: VCountReg) {
 
 @(test)
 test :: proc(t: ^testing.T) {
-  fmt.println("Testing CountReg...")
   reg := VCountReg_create()
   defer VCountReg_destroy(reg)
 
@@ -126,6 +124,4 @@ test :: proc(t: ^testing.T) {
 
   testing.expect_value(t, regState.low_byte_out, 0x78)
   testing.expect_value(t, regState.high_byte_out, 0x00)
-
-  fmt.printfln("Tests passed for %s\n", #file)
 }

@@ -1,6 +1,5 @@
 package main
 
-import "core:fmt"
 import "core:c"
 import "core:testing"
 
@@ -53,8 +52,6 @@ foreign MyVALU {
 
 @(test)
 test_adc :: proc(t: ^testing.T) {
-  fmt.print("Testing adc...")
-
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -105,13 +102,10 @@ test_adc :: proc(t: ^testing.T) {
   assert(alu_state.zero == 0)
   assert(alu_state.carry == 0)
   assert(alu_state.overflow == 0)
-
-  fmt.println("passed")
 }
 
 @(test)
 test_sbc :: proc(t: ^testing.T) {
-  fmt.print("Testing sbc... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -153,13 +147,10 @@ test_sbc :: proc(t: ^testing.T) {
   assert(alu_state.zero == 0)
   assert(alu_state.carry == 1)
   assert(alu_state.overflow == 1)
-
-  fmt.println("passed")
 }
 
 @(test)
 test_eor :: proc(t: ^testing.T) {
-  fmt.print("Testing eor... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -183,13 +174,10 @@ test_eor :: proc(t: ^testing.T) {
   assert(alu_state.zero == 0)
   assert(alu_state.carry == 0)
   assert(alu_state.overflow == 0)
-
-  fmt.println("passed")
 }
 
 @(test)
 test_ora :: proc(t: ^testing.T) {
-  fmt.print("Testing ora... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -213,13 +201,10 @@ test_ora :: proc(t: ^testing.T) {
   assert(alu_state.zero == 1)
   assert(alu_state.carry == 0)
   assert(alu_state.overflow == 0)
-
-  fmt.println("passed")
 }
 
 @(test)
 test_and :: proc(t: ^testing.T) {
-  fmt.print("Testing and... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -243,13 +228,10 @@ test_and :: proc(t: ^testing.T) {
   assert(alu_state.zero == 0)
   assert(alu_state.carry == 0)
   assert(alu_state.overflow == 0)
-
-  fmt.println("passed")
 }
 
 @(test)
 test_inc :: proc(t: ^testing.T) {
-  fmt.print("Testing inc... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -273,13 +255,10 @@ test_inc :: proc(t: ^testing.T) {
   assert(alu_state.zero == 1)
   assert(alu_state.carry == 0)
   assert(alu_state.overflow == 0)
-
-  fmt.println("passed")
 }
 
 @(test)
 test_dec :: proc(t: ^testing.T) {
-  fmt.print("Testing dec... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -303,13 +282,10 @@ test_dec :: proc(t: ^testing.T) {
   assert(alu_state.zero == 0)
   assert(alu_state.carry == 0)
   assert(alu_state.overflow == 0)
-
-  fmt.println("passed")
 }
 
 @(test)
 test_ror :: proc(t: ^testing.T) {
-  fmt.print("Testing ror... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -351,13 +327,10 @@ test_ror :: proc(t: ^testing.T) {
   assert(alu_state.zero == 0)
   assert(alu_state.carry == 0)
   assert(alu_state.overflow == 0)
-
-  fmt.println("passed")
 }
 
 @(test)
 test_rol :: proc(t: ^testing.T) {
-  fmt.print("Testing rol... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -399,13 +372,11 @@ test_rol :: proc(t: ^testing.T) {
   assert(alu_state.zero == 0)
   assert(alu_state.carry == 0)
   assert(alu_state.overflow == 0)
-  
-  fmt.println("passed")
+
 }
 
 @(test)
 test_asl :: proc(t: ^testing.T) {
-  fmt.print("Testing asl... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -429,13 +400,10 @@ test_asl :: proc(t: ^testing.T) {
   assert(alu_state.zero == 0)
   assert(alu_state.carry == 0)
   assert(alu_state.overflow == 0)
-
-  fmt.println("passed")
 }
 
 @(test)
 test_lsr :: proc(t: ^testing.T) {
-  fmt.print("Testing lsr... ")
   alu_inst := VALU_create()
   defer VALU_destroy(alu_inst)
   alu_state: Alu_State
@@ -459,6 +427,4 @@ test_lsr :: proc(t: ^testing.T) {
   assert(alu_state.zero == 0)
   assert(alu_state.carry == 0)
   assert(alu_state.overflow == 0)
-
-  fmt.println("passed")
 }
