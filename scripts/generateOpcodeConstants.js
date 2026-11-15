@@ -31,15 +31,6 @@ typedef enum logic [11:0] {
 );
 
 await fs.writeFile(
-  path.join(import.meta.dirname, "../lib/opcodes.h"),
-  `#pragma once
-/* GENERATED - DO NOT EDIT */
-
-constexpr int ${parsed.map(([name, value]) => `${name} = 0x${value}`).join(",\n\t")};
-`, "utf-8"
-);
-
-await fs.writeFile(
   path.join(import.meta.dirname, "../tests/odin/PcState/PcState.odin"),
   `package PcState
 /* GENERATED - DO NOT EDIT */

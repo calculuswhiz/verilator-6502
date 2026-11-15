@@ -45,24 +45,27 @@ for (let rowIdx = 0; rowIdx <= 0xf; rowIdx++) {
   }
 }
 
-const emittedAlready = new Set();
+{
+  const emittedAlready = new Set();
 
-await fs.writeFile(
-  path.join(import.meta.dirname, "../lib/cycles.h"),
-  `/* GENERATED - DO NOT EDIT */
-  
-constexpr int branch_taken_cycles = 1;
-constexpr int page_cycles = 1;
+  await fs.writeFile(
+    path.join(import.meta.dirname, "../tests/odin/CycleTimes/CycleTimes.odin"),
+    `package CycleTimes
+/* GENERATED - DO NOT EDIT */
+
+branch_taken_cycles :: 1
+page_cycles :: 1
 
 ${parsed
-    .map(row => {
-      const varName = `${row.mnemonic}_${row.mode}_cycles`;
-      if (emittedAlready.has(varName))
-        return `// Skipped duplicate: ${varName} (0x${row.opcode.toString(16)})`;
-      emittedAlready.add(varName);
-      return `constexpr int ${`${row.mnemonic}_${row.mode}_cycles = ${row.cycles};`}`;
+      .map(row => {
+        const varName = `${row.mnemonic}_${row.mode}_cycles`;
+        if (emittedAlready.has(varName))
+          return `// Skipped duplicate: ${varName} (0x${row.opcode.toString(16)})`;
+        emittedAlready.add(varName);
+        return `${`${row.mnemonic}_${row.mode}_cycles :: ${row.cycles}`}`;
+      }
+      ).join("\n")
     }
-    ).join("\n")
-  }
 `, "utf-8"
-);
+  );
+}

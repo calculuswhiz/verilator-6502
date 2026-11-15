@@ -1,6 +1,3 @@
-TEST_SRCS = $(wildcard ./tests/*.cpp)
-TEST_PROGS = $(patsubst ./tests/%.cpp,%,$(TEST_SRCS))
-
 ASM_SRCS = $(wildcard ./6502-code/ROM/*.asm)
 ASM_PROGS = $(patsubst ./6502-code/ROM/%.asm,%,$(ASM_SRCS))
 
@@ -16,18 +13,9 @@ CXX := clang++
 
 all:
 	rm -f ./vcd_out/*.vcd
-	make modules
-	make verilate_exe
-	make testProgs
 	make assemble
 	make verilate_no_exe
 	make bindings
-
-modules:
-	$(CXX) $(CFLAGS) ./lib/module/TestMap.cppm \
-		--precompile -o ./obj_dir/TestMap.pcm
-	$(CXX) $(CFLAGS) ./lib/module/DynamicAssemble.cppm \
-		--precompile -o ./obj_dir/DynamicAssemble.pcm
 
 verilate_no_exe:
 	verilator --cc -Wall --trace --build -I"./verilog" \
@@ -96,15 +84,6 @@ bindings:
 		-I./obj_dir \
 		-o ./obj_dir/VtopLevel.binding.o
 	ar rcs ./obj_dir/VtopLevel.binding.a ./obj_dir/VtopLevel.binding.o
-
-verilate_exe:
-	verilator --cc -Wall --trace -I"./verilog" \
-		./verilog/topLevel.sv --exe ./tests/topLevel.cpp $(VERILATOR_FLAGS)
-
-testProgs:
-	$(MAKE) -C obj_dir -j -f VtopLevel.mk VtopLevel CXX=$(CXX) LINK=$(CXX) \
-		CXXFLAGS="$(CFLAGS) $(MODULEFLAGS)" \
-		LDFLAGS="-Wl,-U,__Z15vl_time_stamp64v,-U,__Z13sc_time_stampv,-U,_vlog_startup_routines ../obj_dir/TestMap.pcm"
 
 assemble: $(ASM_PROGS)
 
