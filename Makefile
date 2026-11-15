@@ -36,17 +36,36 @@ verilate_no_exe:
 	verilator --cc -Wall --trace --build -I"./verilog" \
 		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
 		./verilog/CountReg.sv $(VERILATOR_FLAGS)
-	verilator --cc -Wall --trace -I"./verilog" \
+	verilator --cc -Wall --trace --build -I"./verilog" \
 		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
 		./verilog/GpReg.sv $(VERILATOR_FLAGS)
-	verilator --cc -Wall --trace -I"./verilog" \
+	verilator --cc -Wall --trace --build -I"./verilog" \
 		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
 		./verilog/PC.sv $(VERILATOR_FLAGS)
-	verilator --cc -Wall --trace -I"./verilog" \
+	verilator --cc -Wall --trace --build -I"./verilog" \
 		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
 		./verilog/SPReg.sv $(VERILATOR_FLAGS)
+	verilator --cc -Wall --trace --build -I"./verilog" \
+		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
+		./verilog/topLevel.sv $(VERILATOR_FLAGS)
 
 bindings:
+	clang++ -fPIC -c ./tests/bindings/VerilatedContext.binding.cpp \
+		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
+		-I./obj_dir \
+		-o ./obj_dir/VerilatedContext.binding.o
+	ar rcs ./obj_dir/VerilatedContext.binding.a ./obj_dir/VerilatedContext.binding.o
+	clang++ -fPIC -c ./tests/bindings/VerilatedVcdC.binding.cpp \
+		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
+		-I./obj_dir \
+		-o ./obj_dir/VerilatedVcdC.binding.o
+	ar rcs ./obj_dir/VerilatedVcdC.binding.a ./obj_dir/VerilatedVcdC.binding.o
+	clang++ -fPIC -c ./tests/bindings/VerilatorStatic.binding.cpp \
+		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
+		-I./obj_dir \
+		-o ./obj_dir/VerilatorStatic.binding.o
+	ar rcs ./obj_dir/VerilatorStatic.binding.a ./obj_dir/VerilatorStatic.binding.o
+
 	clang++ -fPIC -c ./tests/bindings/ALU.binding.cpp \
 		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
 		-I./obj_dir \
@@ -72,6 +91,11 @@ bindings:
 		-I./obj_dir \
 		-o ./obj_dir/VSPReg.binding.o
 	ar rcs ./obj_dir/VSPReg.binding.a ./obj_dir/VSPReg.binding.o
+	clang++ -fPIC -c ./tests/bindings/topLevel.binding.cpp \
+		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
+		-I./obj_dir \
+		-o ./obj_dir/VtopLevel.binding.o
+	ar rcs ./obj_dir/VtopLevel.binding.a ./obj_dir/VtopLevel.binding.o
 
 verilate_exe:
 	verilator --cc -Wall --trace -I"./verilog" \

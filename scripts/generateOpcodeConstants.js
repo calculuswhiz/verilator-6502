@@ -37,7 +37,15 @@ await fs.writeFile(
 
 constexpr int ${parsed.map(([name, value]) => `${name} = 0x${value}`).join(",\n\t")};
 `, "utf-8"
-)
+);
+
+await fs.writeFile(
+  path.join(import.meta.dirname, "../tests/odin/PcState/PcState.odin"),
+  `package PcState
+/* GENERATED - DO NOT EDIT */
+${parsed.map(([name, value]) => `${name} :: 0x${value}`).join("\n")}
+`, "utf-8"
+);
 
 await fs.writeFile(
   path.join(import.meta.dirname, "../filters/6502-state.toml"),
