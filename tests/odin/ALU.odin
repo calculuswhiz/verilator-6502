@@ -3,7 +3,7 @@ package main
 import "core:c"
 import "core:testing"
 
-foreign import MyVALU {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VALU.binding.a", "../../obj_dir/VALU__ALL.a"}
+foreign import MyVALU {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VALU.binding.a", "../../obj_dir/libVALU.a"}
 
 VALU :: distinct rawptr
 

@@ -3,7 +3,7 @@ package main
 import "core:c"
 import "core:testing"
 
-foreign import MyGpReg {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VGpReg.binding.a", "../../obj_dir/VGpReg__ALL.o"}
+foreign import MyGpReg {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VGpReg.binding.a", "../../obj_dir/libVGpReg.a"}
 
 VGpReg :: distinct rawptr
 

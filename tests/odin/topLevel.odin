@@ -9,7 +9,7 @@ import "core:fmt"
 import "core:os"
 import "core:testing"
 
-foreign import MytopLevel {"system:c++", "../../obj_dir/VerilatedContext.binding.a", "../../obj_dir/VerilatorStatic.binding.a", "../../obj_dir/libverilated.a", "../../obj_dir/VtopLevel.binding.a", "../../obj_dir/VtopLevel__ALL.a"}
+foreign import MytopLevel {"system:c++", "../../obj_dir/VerilatedContext.binding.a", "../../obj_dir/VerilatorStatic.binding.a", "../../obj_dir/libverilated.a", "../../obj_dir/VtopLevel.binding.a", "../../obj_dir/libVtopLevel.a"}
 
 VtopLevel :: distinct rawptr
 VerilatedContext :: distinct rawptr

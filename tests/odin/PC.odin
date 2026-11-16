@@ -3,7 +3,7 @@ package main
 import "core:c"
 import "core:testing"
 
-foreign import MyVPC {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VPC.binding.a", "../../obj_dir/VPC__ALL.o"}
+foreign import MyVPC {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VPC.binding.a", "../../obj_dir/libVPC.a"}
 
 VPC :: distinct rawptr
 

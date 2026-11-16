@@ -3,7 +3,7 @@ package main
 import "core:c"
 import "core:testing"
 
-foreign import MyVCountReg {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VCountReg.binding.a", "../../obj_dir/VCountReg__ALL.o"}
+foreign import MyVCountReg {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VCountReg.binding.a", "../../obj_dir/libVCountReg.a"}
 
 VCountReg :: distinct rawptr
 

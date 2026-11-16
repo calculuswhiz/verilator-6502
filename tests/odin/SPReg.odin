@@ -3,7 +3,7 @@ package main
 import "core:c"
 import "core:testing"
 
-foreign import MySPReg {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VSPReg.binding.a", "../../obj_dir/VSPReg__ALL.o"}
+foreign import MySPReg {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VSPReg.binding.a", "../../obj_dir/libVSPReg.a"}
 
 VSPReg :: distinct rawptr
 
