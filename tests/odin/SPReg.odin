@@ -1,9 +1,10 @@
 package main
 
+import "VerilatedContext"
 import "core:c"
 import "core:testing"
 
-foreign import MySPReg {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VSPReg.binding.a", "../../obj_dir/libVSPReg.a"}
+foreign import MySPReg {"../../obj_dir/VSPReg.binding.a", "../../obj_dir/libVSPReg.a"}
 
 VSPReg :: distinct rawptr
 
@@ -33,6 +34,9 @@ cycle_clock :: proc(reg: VSPReg) {
 
 @(test)
 test_SPReg :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+
 	reg: VSPReg = VSPReg_create()
 	defer VSPReg_destroy(reg)
 

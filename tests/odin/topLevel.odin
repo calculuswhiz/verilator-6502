@@ -3,24 +3,20 @@ package main
 import "CycleTimes"
 import "PcState"
 import "TestMap"
+import "Verilated"
+import "VerilatedContext"
 import "VerilatedVcdC"
 import "core:c"
 import "core:fmt"
 import "core:os"
 import "core:testing"
 
-foreign import MytopLevel {"system:c++", "../../obj_dir/VerilatedContext.binding.a", "../../obj_dir/VerilatorStatic.binding.a", "../../obj_dir/libverilated.a", "../../obj_dir/VtopLevel.binding.a", "../../obj_dir/libVtopLevel.a"}
+foreign import MytopLevel {"../../obj_dir/VtopLevel.binding.a", "../../obj_dir/libVtopLevel.a"}
 
 VtopLevel :: distinct rawptr
-VerilatedContext :: distinct rawptr
 
 @(default_calling_convention = "c")
 foreign MytopLevel {
-	Verilated_traceEverOn :: proc(flag: bool) ---
-
-	VerilatedContext_create :: proc() -> VerilatedContext ---
-	VerilatedContext_destroy :: proc(instance: VerilatedContext) ---
-
 	VtopLevel_create :: proc() -> VtopLevel ---
 	VtopLevel_eval :: proc(instance: VtopLevel) ---
 	VtopLevel_destroy :: proc(instance: VtopLevel) ---
@@ -85,10 +81,10 @@ read_binary_file :: proc(fileName: string, outBuffer: ^[0x10000]u8) -> int {
 updateMemory :: proc(module: VtopLevel, testMap: TestMap.TestMap) {
 	mem_address := VtopLevel_get_mem_address(module)
 	if VtopLevel_get_mem_rW(module) == 1 {
-		mem_value := TestMap.TestMap_read(testMap, mem_address)
+		mem_value := TestMap.readMap(testMap, mem_address)
 		VtopLevel_set_mem_rData(module, mem_value)
 	} else {
-		TestMap.TestMap_write(testMap, mem_address, VtopLevel_get_mem_wData(module))
+		TestMap.writeToMap(testMap, mem_address, VtopLevel_get_mem_wData(module))
 	}
 }
 
@@ -192,9 +188,9 @@ testReset :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/reset.test.o65"
 	vcdPath :: "./vcd_out/reset_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -205,7 +201,7 @@ testReset :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, true)
@@ -223,9 +219,9 @@ testJmp :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/jmp.test.o65"
 	vcdPath :: "./vcd_out/jmp_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -236,7 +232,7 @@ testJmp :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -262,9 +258,9 @@ testSubroutines :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/subroutines.test.o65"
 	vcdPath :: "./vcd_out/subroutines_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -275,7 +271,7 @@ testSubroutines :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -301,9 +297,9 @@ testLoadStore :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/loadStore.test.o65"
 	vcdPath :: "./vcd_out/loadStore_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -314,7 +310,7 @@ testLoadStore :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -383,13 +379,13 @@ testLoadStore :: proc(t: ^testing.T) {
 	)
 
 	run_n_cycles(CycleTimes.STA_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0), 1)
+	testing.expect_value(t, TestMap.readMap(testMap, 0), 1)
 
 	run_n_cycles(CycleTimes.STX_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 1), 2)
+	testing.expect_value(t, TestMap.readMap(testMap, 1), 2)
 
 	run_n_cycles(CycleTimes.STY_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 2), 3)
+	testing.expect_value(t, TestMap.readMap(testMap, 2), 3)
 
 
 	// [](../../6502-code/ROM/loadStore.test.asm:41)
@@ -406,13 +402,13 @@ testLoadStore :: proc(t: ^testing.T) {
 
 	// [](../../6502-code/ROM/loadStore.test.asm:48)
 	run_n_cycles(CycleTimes.STA_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x200), 0x2)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x200), 0x2)
 
 	run_n_cycles(CycleTimes.STX_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x201), 0x3)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x201), 0x3)
 
 	run_n_cycles(CycleTimes.STY_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x202), 0x1)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x202), 0x1)
 
 	run_n_cycles(
 		CycleTimes.LDA_imm_cycles + CycleTimes.LDX_imm_cycles + CycleTimes.LDY_imm_cycles,
@@ -532,9 +528,9 @@ testFlagsBranch :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/flags_branch.test.o65"
 	vcdPath :: "./vcd_out/flags_branch_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -545,7 +541,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -554,7 +550,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 	for i in 0 ..< 4 {
 		testing.expect_value(
 			t,
-			TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+			TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 			noBranchOps[i],
 		)
 		run_n_cycles(CycleTimes.BCS_rel_cycles, top, testMap, vcdOut, &counter, true)
@@ -562,7 +558,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+		TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 		PcState.SEI_IMP,
 	)
 	run_n_cycles(CycleTimes.SEI_imp_cycles, top, testMap, vcdOut, &counter, true)
@@ -570,7 +566,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+		TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 		PcState.SEC_IMP,
 	)
 	run_n_cycles(CycleTimes.SEC_imp_cycles, top, testMap, vcdOut, &counter, true)
@@ -578,7 +574,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+		TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 		PcState.BIT_ABS,
 	)
 	run_n_cycles(CycleTimes.BIT_abs_cycles, top, testMap, vcdOut, &counter, true)
@@ -592,7 +588,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 	for i in 0 ..< 4 {
 		testing.expect_value(
 			t,
-			TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+			TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 			noBranchOps2[i],
 		)
 		run_n_cycles(CycleTimes.BCS_rel_cycles, top, testMap, vcdOut, &counter, true)
@@ -602,7 +598,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 	for i in 0 ..< 4 {
 		testing.expect_value(
 			t,
-			TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+			TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 			branchOps1[i],
 		)
 		run_n_cycles(
@@ -617,7 +613,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+		TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 		PcState.CLC_IMP,
 	)
 	run_n_cycles(CycleTimes.CLC_imp_cycles, top, testMap, vcdOut, &counter, true)
@@ -629,7 +625,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+		TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 		PcState.CLI_IMP,
 	)
 	run_n_cycles(CycleTimes.CLI_imp_cycles, top, testMap, vcdOut, &counter, true)
@@ -637,7 +633,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+		TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 		PcState.CLV_IMP,
 	)
 	run_n_cycles(CycleTimes.CLV_imp_cycles, top, testMap, vcdOut, &counter, true)
@@ -650,7 +646,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 	for i in 0 ..< 4 {
 		testing.expect_value(
 			t,
-			TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+			TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 			branchOps2[i],
 		)
 		run_n_cycles(
@@ -671,7 +667,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 	for i in 0 ..< 4 {
 		testing.expect_value(
 			t,
-			TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+			TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 			branchPageFixOps1[i],
 		)
 		run_n_cycles(
@@ -694,7 +690,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 	for i in 0 ..< 4 {
 		testing.expect_value(
 			t,
-			TestMap.TestMap_read(testMap, VtopLevel_get_dbg_PC_out(top)),
+			TestMap.readMap(testMap, VtopLevel_get_dbg_PC_out(top)),
 			branchPageFixOps2[i],
 		)
 		run_n_cycles(
@@ -719,9 +715,9 @@ testTransfer :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/transfer.test.o65"
 	vcdPath :: "./vcd_out/transfer_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -732,7 +728,7 @@ testTransfer :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -787,9 +783,9 @@ testStack :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/stack.test.o65"
 	vcdPath :: "./vcd_out/stack_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -800,7 +796,7 @@ testStack :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -813,13 +809,13 @@ testStack :: proc(t: ^testing.T) {
 	run_n_cycles(CycleTimes.PHA_imp_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, u16(VtopLevel_get_dbg_S_out(top)) + 0x100 + 1),
+		TestMap.readMap(testMap, u16(VtopLevel_get_dbg_S_out(top)) + 0x100 + 1),
 		0xff,
 	)
 	run_n_cycles(CycleTimes.PHP_imp_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, u16(VtopLevel_get_dbg_S_out(top)) + 0x100 + 1),
+		TestMap.readMap(testMap, u16(VtopLevel_get_dbg_S_out(top)) + 0x100 + 1),
 		0xa0,
 	)
 	run_n_cycles(CycleTimes.TSX_imp_cycles, top, testMap, vcdOut, &counter, true)
@@ -840,9 +836,9 @@ testIncDec :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/inc_dec_x_y.test.o65"
 	vcdPath :: "./vcd_out/inc_dec_x_y_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -853,7 +849,7 @@ testIncDec :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -902,9 +898,9 @@ testArithmetic :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/arithmetic.test.o65"
 	vcdPath :: "./vcd_out/arithmetic_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -915,7 +911,7 @@ testArithmetic :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -967,16 +963,16 @@ testArithmetic :: proc(t: ^testing.T) {
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 
 	run_n_cycles(CycleTimes.INC_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 1), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 1), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.Z))
 	run_n_cycles(CycleTimes.DEC_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 1), 0xff)
+	testing.expect_value(t, TestMap.readMap(testMap, 1), 0xff)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.DEC_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 7), 0xff)
+	testing.expect_value(t, TestMap.readMap(testMap, 7), 0xff)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.INC_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 7), 0x0)
+	testing.expect_value(t, TestMap.readMap(testMap, 7), 0x0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.Z))
 
 	// ZP,X
@@ -1007,16 +1003,16 @@ testArithmetic :: proc(t: ^testing.T) {
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 
 	run_n_cycles(CycleTimes.INC_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 1), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 1), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.Z))
 	run_n_cycles(CycleTimes.DEC_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 1), 0xff)
+	testing.expect_value(t, TestMap.readMap(testMap, 1), 0xff)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.DEC_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 7), 0xff)
+	testing.expect_value(t, TestMap.readMap(testMap, 7), 0xff)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.INC_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 7), 0x0)
+	testing.expect_value(t, TestMap.readMap(testMap, 7), 0x0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.Z))
 
 	// Absolute
@@ -1045,16 +1041,16 @@ testArithmetic :: proc(t: ^testing.T) {
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 
 	run_n_cycles(CycleTimes.INC_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x201), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x201), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.Z))
 	run_n_cycles(CycleTimes.DEC_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x201), 0xff)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x201), 0xff)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.DEC_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x207), 0xff)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x207), 0xff)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.INC_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x207), 0x0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x207), 0x0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.Z))
 
 	// Absolute, X
@@ -1085,16 +1081,16 @@ testArithmetic :: proc(t: ^testing.T) {
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 
 	run_n_cycles(CycleTimes.INC_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x201), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x201), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.Z))
 	run_n_cycles(CycleTimes.DEC_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x201), 0xff)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x201), 0xff)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.DEC_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x207), 0xff)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x207), 0xff)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.INC_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x207), 0x0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x207), 0x0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.Z))
 
 	run_n_cycles(
@@ -1181,9 +1177,9 @@ testArithmeticIndirects :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/arithmetic_indirect.test.o65"
 	vcdPath :: "./vcd_out/arithmetic_indirect_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -1194,7 +1190,7 @@ testArithmeticIndirects :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -1287,9 +1283,9 @@ testShifts :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/shift.test.o65"
 	vcdPath :: "./vcd_out/shift_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -1300,7 +1296,7 @@ testShifts :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -1350,32 +1346,32 @@ testShifts :: proc(t: ^testing.T) {
 	run_n_cycles(CycleTimes.CLC_imp_cycles, top, testMap, vcdOut, &counter, true)
 
 	run_n_cycles(CycleTimes.ASL_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0), 0b1000_0000) 	
+	testing.expect_value(t, TestMap.readMap(testMap, 0), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.ASL_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 
 	run_n_cycles(CycleTimes.LSR_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 1), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 1), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 
 	run_n_cycles(CycleTimes.CLC_imp_cycles, top, testMap, vcdOut, &counter, true)
 	run_n_cycles(CycleTimes.ROL_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 2), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 2), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.ROL_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 2), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 2), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 	run_n_cycles(CycleTimes.ROL_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 2), 1)
+	testing.expect_value(t, TestMap.readMap(testMap, 2), 1)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.NONE))
 
 	run_n_cycles(CycleTimes.ROR_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 3), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 3), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 	run_n_cycles(CycleTimes.ROR_zp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 3), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 3), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 
 	// ZP,X
@@ -1389,32 +1385,32 @@ testShifts :: proc(t: ^testing.T) {
 	)
 
 	run_n_cycles(CycleTimes.ASL_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 5), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 5), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.ASL_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 5), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 5), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 
 	run_n_cycles(CycleTimes.LSR_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 6), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 6), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 
 	run_n_cycles(CycleTimes.CLC_imp_cycles, top, testMap, vcdOut, &counter, true)
 	run_n_cycles(CycleTimes.ROL_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 7), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 7), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.ROL_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 7), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 7), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 	run_n_cycles(CycleTimes.ROL_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 7), 1)
+	testing.expect_value(t, TestMap.readMap(testMap, 7), 1)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.NONE))
 
 	run_n_cycles(CycleTimes.ROR_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 8), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 8), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 	run_n_cycles(CycleTimes.ROR_zpx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 8), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 8), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 
 	// Absolute
@@ -1422,64 +1418,64 @@ testShifts :: proc(t: ^testing.T) {
 	run_n_cycles(CycleTimes.CLC_imp_cycles, top, testMap, vcdOut, &counter, true)
 
 	run_n_cycles(CycleTimes.ASL_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x200), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x200), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.ASL_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x200), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x200), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 
 	run_n_cycles(CycleTimes.LSR_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x201), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x201), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 
 	run_n_cycles(CycleTimes.CLC_imp_cycles, top, testMap, vcdOut, &counter, true)
 	run_n_cycles(CycleTimes.ROL_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x202), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x202), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.ROL_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x202), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x202), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 	run_n_cycles(CycleTimes.ROL_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x202), 1)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x202), 1)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.NONE))
 
 	run_n_cycles(CycleTimes.ROR_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x203), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x203), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 	run_n_cycles(CycleTimes.ROR_abs_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x203), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x203), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 
 	// Absolute,X
 	run_n_cycles(CycleTimes.CLC_imp_cycles, top, testMap, vcdOut, &counter, true)
 
 	run_n_cycles(CycleTimes.ASL_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x205), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x205), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.ASL_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x205), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x205), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 
 	run_n_cycles(CycleTimes.LSR_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x206), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x206), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 
 	run_n_cycles(CycleTimes.CLC_imp_cycles, top, testMap, vcdOut, &counter, true)
 	run_n_cycles(CycleTimes.ROL_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x207), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x207), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.ROL_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x207), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x207), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 	run_n_cycles(CycleTimes.ROL_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x207), 1)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x207), 1)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.NONE))
 
 	run_n_cycles(CycleTimes.ROR_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x208), 0)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x208), 0)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
 	run_n_cycles(CycleTimes.ROR_abx_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, TestMap.TestMap_read(testMap, 0x208), 0b1000_0000)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x208), 0b1000_0000)
 	testing.expect_value(t, VtopLevel_get_dbg_P_out(top), u8(PFlags.N))
 
 	run_n_cycles(6, top, testMap, vcdOut, &counter, true)
@@ -1490,9 +1486,9 @@ testBitwise :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/bitwise.test.o65"
 	vcdPath :: "./vcd_out/bitwise_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -1503,7 +1499,7 @@ testBitwise :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -1886,9 +1882,9 @@ testCompare :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/compare.test.o65"
 	vcdPath :: "./vcd_out/compare_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -1899,7 +1895,7 @@ testCompare :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -2068,9 +2064,9 @@ testSoftInterrupt :: proc(t: ^testing.T) {
 	romFile :: "./obj_dir/brk_rti.test.o65"
 	vcdPath :: "./vcd_out/brk_rti_test.vcd"
 
-	verilatorContext := VerilatedContext_create()
-	defer VerilatedContext_destroy(verilatorContext)
-	Verilated_traceEverOn(true)
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	Verilated.traceEverOn(true)
 
 	top := VtopLevel_create()
 	defer VtopLevel_destroy(top)
@@ -2081,7 +2077,7 @@ testSoftInterrupt :: proc(t: ^testing.T) {
 	defer VerilatedVcdC.VerilatedVcd_destroy(vcdOut)
 
 	buffer: [0x1_0000]u8
-	testMap := TestMap.TestMap_init(&buffer, StandardProgramRomAddr)
+	testMap := TestMap.initMap(&buffer, StandardProgramRomAddr)
 	read_binary_file(romFile, &buffer)
 
 	counter := reset(t, top, testMap, vcdOut, false)
@@ -2099,18 +2095,18 @@ testSoftInterrupt :: proc(t: ^testing.T) {
 	testing.expect_value(t, VtopLevel_get_dbg_PC_out(top), 0x9000)
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, 0x100 + u16(VtopLevel_get_dbg_S_out(top)) + 1),
+		TestMap.readMap(testMap, 0x100 + u16(VtopLevel_get_dbg_S_out(top)) + 1),
 		u8(PFlags.N),
 	)
 	retOffset :: 2 + 1 + 2
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, 0x100 + u16(VtopLevel_get_dbg_S_out(top)) + 2),
+		TestMap.readMap(testMap, 0x100 + u16(VtopLevel_get_dbg_S_out(top)) + 2),
 		retOffset,
 	)
 	testing.expect_value(
 		t,
-		TestMap.TestMap_read(testMap, 0x100 + u16(VtopLevel_get_dbg_S_out(top)) + 3),
+		TestMap.readMap(testMap, 0x100 + u16(VtopLevel_get_dbg_S_out(top)) + 3),
 		0x80,
 	)
 

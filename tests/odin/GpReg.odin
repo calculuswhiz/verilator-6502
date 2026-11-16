@@ -1,9 +1,10 @@
 package main
 
+import "VerilatedContext"
 import "core:c"
 import "core:testing"
 
-foreign import MyGpReg {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VGpReg.binding.a", "../../obj_dir/libVGpReg.a"}
+foreign import MyGpReg {"../../obj_dir/VGpReg.binding.a", "../../obj_dir/libVGpReg.a"}
 
 VGpReg :: distinct rawptr
 
@@ -31,6 +32,9 @@ cycle_clock :: proc(reg: VGpReg) {
 
 @(test)
 test_gp_reg :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	reg: VGpReg = VGpReg_create()
 	defer VGpReg_destroy(reg)
 

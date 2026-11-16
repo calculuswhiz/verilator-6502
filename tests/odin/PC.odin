@@ -1,9 +1,10 @@
 package main
 
+import "VerilatedContext"
 import "core:c"
 import "core:testing"
 
-foreign import MyVPC {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VPC.binding.a", "../../obj_dir/libVPC.a"}
+foreign import MyVPC {"../../obj_dir/VPC.binding.a", "../../obj_dir/libVPC.a"}
 
 VPC :: distinct rawptr
 
@@ -41,6 +42,9 @@ cycle_clock :: proc(reg: VPC) {
 
 @(test)
 test :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+
 	reg := VPC_create()
 	defer VPC_destroy(reg)
 

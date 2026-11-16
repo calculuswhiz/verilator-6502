@@ -1,9 +1,10 @@
 package main
 
+import "VerilatedContext"
 import "core:c"
 import "core:testing"
 
-foreign import MyVALU {"system:c++", "../../obj_dir/libverilated.a", "../../obj_dir/VALU.binding.a", "../../obj_dir/libVALU.a"}
+foreign import MyVALU {"../../obj_dir/VALU.binding.a", "../../obj_dir/libVALU.a"}
 
 VALU :: distinct rawptr
 
@@ -43,6 +44,9 @@ foreign MyVALU {
 
 @(test)
 test_adc :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
@@ -97,6 +101,9 @@ test_adc :: proc(t: ^testing.T) {
 
 @(test)
 test_sbc :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
@@ -142,6 +149,9 @@ test_sbc :: proc(t: ^testing.T) {
 
 @(test)
 test_eor :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
@@ -169,6 +179,9 @@ test_eor :: proc(t: ^testing.T) {
 
 @(test)
 test_ora :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
@@ -196,6 +209,9 @@ test_ora :: proc(t: ^testing.T) {
 
 @(test)
 test_and :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
@@ -223,6 +239,9 @@ test_and :: proc(t: ^testing.T) {
 
 @(test)
 test_inc :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
@@ -250,6 +269,9 @@ test_inc :: proc(t: ^testing.T) {
 
 @(test)
 test_dec :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
@@ -277,6 +299,9 @@ test_dec :: proc(t: ^testing.T) {
 
 @(test)
 test_ror :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
@@ -322,6 +347,9 @@ test_ror :: proc(t: ^testing.T) {
 
 @(test)
 test_rol :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
@@ -368,6 +396,9 @@ test_rol :: proc(t: ^testing.T) {
 
 @(test)
 test_asl :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
@@ -395,6 +426,9 @@ test_asl :: proc(t: ^testing.T) {
 
 @(test)
 test_lsr :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+	
 	alu_inst := VALU_create()
 	defer VALU_destroy(alu_inst)
 	alu_state: Alu_State
