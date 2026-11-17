@@ -2,7 +2,7 @@ package VerilatedVcdC
 
 ptr :: distinct rawptr
 
-foreign import MyVerilatedVcdC {"system:c++", "../../../obj_dir/libverilated.a"}
+foreign import MyVerilatedVcdC {"system:c++", "../../../../obj_dir/libverilated.a"}
 
 @(default_calling_convention = "c")
 foreign MyVerilatedVcdC {
