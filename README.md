@@ -1,6 +1,12 @@
 # 6502 on verilator
 
-This project is a continuation on the work I did [here](https://github.com/calculuswhiz/xilinx-6502).
+This project is a continuation on the work I did [here](https://github.com/calculuswhiz/xilinx-6502). That project is very outdated and broken, but maybe you can use some of the xilinx stuff for easier setup.
+
+This is a purely digital SystemVerilog simulation. It is not a hardware copy of a 6502. It has different architecture, for example:
+- The data and memory buses are split (this one's on me as I didn't realize at the time that I could share a bus by making memory reads happen on alternating clock edges)
+- The ALU supports distinct instructions
+- Every CPU is distinct and in theory cannot interfere with others
+    - Unofficial opcodes will be implemented with dedicated hardware
 
 ## Requirements
 
@@ -21,6 +27,7 @@ For a single file, e.g., ALU:
     odin test -file ./tests/odin/ALU.odin
 
 ## Structure
+
 - odin testbenches are in `tests/odin`.
 - An old datapath I drew in 2016 is in the pictures folder.
 - SystemVerilog files go in the `verilog` folder.
@@ -29,4 +36,4 @@ For a single file, e.g., ALU:
 
 ## Left to test
 
-Any unofficial opcodes
+Any unofficial opcodes. Reference: https://www.oxyron.de/html/opcodes02.html

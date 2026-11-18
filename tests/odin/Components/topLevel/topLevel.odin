@@ -1,11 +1,11 @@
 package topLevel
 
 import "../../CycleTimes"
-import "../../PcState"
-import "../../TestMap"
 import "../../LibVerilator/Verilated"
 import "../../LibVerilator/VerilatedContext"
 import "../../LibVerilator/VerilatedVcdC"
+import "../../PcState"
+import "../../TestMap"
 import "core:c"
 import "core:fmt"
 import "core:os"
@@ -569,35 +569,19 @@ testFlagsBranch :: proc(t: ^testing.T) {
 
 	noBranchOps := [?]u8{PcState.BCS_REL, PcState.BEQ_REL, PcState.BMI_REL, PcState.BVS_REL}
 	for i in 0 ..< 4 {
-		testing.expect_value(
-			t,
-			TestMap.readMap(testMap, get_dbg_PC_out(top)),
-			noBranchOps[i],
-		)
+		testing.expect_value(t, TestMap.readMap(testMap, get_dbg_PC_out(top)), noBranchOps[i])
 		run_n_cycles(CycleTimes.BCS_rel_cycles, top, testMap, vcdOut, &counter, true)
 	}
 
-	testing.expect_value(
-		t,
-		TestMap.readMap(testMap, get_dbg_PC_out(top)),
-		PcState.SEI_IMP,
-	)
+	testing.expect_value(t, TestMap.readMap(testMap, get_dbg_PC_out(top)), PcState.SEI_IMP)
 	run_n_cycles(CycleTimes.SEI_imp_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.I))
 
-	testing.expect_value(
-		t,
-		TestMap.readMap(testMap, get_dbg_PC_out(top)),
-		PcState.SEC_IMP,
-	)
+	testing.expect_value(t, TestMap.readMap(testMap, get_dbg_PC_out(top)), PcState.SEC_IMP)
 	run_n_cycles(CycleTimes.SEC_imp_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.C | PFlags.I))
 
-	testing.expect_value(
-		t,
-		TestMap.readMap(testMap, get_dbg_PC_out(top)),
-		PcState.BIT_ABS,
-	)
+	testing.expect_value(t, TestMap.readMap(testMap, get_dbg_PC_out(top)), PcState.BIT_ABS)
 	run_n_cycles(CycleTimes.BIT_abs_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(
 		t,
@@ -607,21 +591,13 @@ testFlagsBranch :: proc(t: ^testing.T) {
 
 	noBranchOps2 := [?]u8{PcState.BCC_REL, PcState.BNE_REL, PcState.BPL_REL, PcState.BVC_REL}
 	for i in 0 ..< 4 {
-		testing.expect_value(
-			t,
-			TestMap.readMap(testMap, get_dbg_PC_out(top)),
-			noBranchOps2[i],
-		)
+		testing.expect_value(t, TestMap.readMap(testMap, get_dbg_PC_out(top)), noBranchOps2[i])
 		run_n_cycles(CycleTimes.BCS_rel_cycles, top, testMap, vcdOut, &counter, true)
 	}
 
 	branchOps1 := [?]u8{PcState.BCS_REL, PcState.BEQ_REL, PcState.BMI_REL, PcState.BVS_REL}
 	for i in 0 ..< 4 {
-		testing.expect_value(
-			t,
-			TestMap.readMap(testMap, get_dbg_PC_out(top)),
-			branchOps1[i],
-		)
+		testing.expect_value(t, TestMap.readMap(testMap, get_dbg_PC_out(top)), branchOps1[i])
 		run_n_cycles(
 			CycleTimes.BCS_rel_cycles + CycleTimes.branch_taken_cycles,
 			top,
@@ -632,31 +608,15 @@ testFlagsBranch :: proc(t: ^testing.T) {
 		)
 	}
 
-	testing.expect_value(
-		t,
-		TestMap.readMap(testMap, get_dbg_PC_out(top)),
-		PcState.CLC_IMP,
-	)
+	testing.expect_value(t, TestMap.readMap(testMap, get_dbg_PC_out(top)), PcState.CLC_IMP)
 	run_n_cycles(CycleTimes.CLC_imp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(
-		t,
-		get_dbg_P_out(top),
-		u8(PFlags.I | PFlags.N | PFlags.V | PFlags.Z),
-	)
+	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.I | PFlags.N | PFlags.V | PFlags.Z))
 
-	testing.expect_value(
-		t,
-		TestMap.readMap(testMap, get_dbg_PC_out(top)),
-		PcState.CLI_IMP,
-	)
+	testing.expect_value(t, TestMap.readMap(testMap, get_dbg_PC_out(top)), PcState.CLI_IMP)
 	run_n_cycles(CycleTimes.CLI_imp_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.N | PFlags.V | PFlags.Z))
 
-	testing.expect_value(
-		t,
-		TestMap.readMap(testMap, get_dbg_PC_out(top)),
-		PcState.CLV_IMP,
-	)
+	testing.expect_value(t, TestMap.readMap(testMap, get_dbg_PC_out(top)), PcState.CLV_IMP)
 	run_n_cycles(CycleTimes.CLV_imp_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.N | PFlags.Z))
 
@@ -665,11 +625,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 
 	branchOps2 := [?]u8{PcState.BCC_REL, PcState.BNE_REL, PcState.BPL_REL, PcState.BVC_REL}
 	for i in 0 ..< 4 {
-		testing.expect_value(
-			t,
-			TestMap.readMap(testMap, get_dbg_PC_out(top)),
-			branchOps2[i],
-		)
+		testing.expect_value(t, TestMap.readMap(testMap, get_dbg_PC_out(top)), branchOps2[i])
 		run_n_cycles(
 			CycleTimes.BCC_rel_cycles + CycleTimes.branch_taken_cycles,
 			top,
@@ -828,17 +784,9 @@ testStack :: proc(t: ^testing.T) {
 
 	run_n_cycles(CycleTimes.LDA_imm_cycles, top, testMap, vcdOut, &counter, true)
 	run_n_cycles(CycleTimes.PHA_imp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(
-		t,
-		TestMap.readMap(testMap, u16(get_dbg_S_out(top)) + 0x100 + 1),
-		0xff,
-	)
+	testing.expect_value(t, TestMap.readMap(testMap, u16(get_dbg_S_out(top)) + 0x100 + 1), 0xff)
 	run_n_cycles(CycleTimes.PHP_imp_cycles, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(
-		t,
-		TestMap.readMap(testMap, u16(get_dbg_S_out(top)) + 0x100 + 1),
-		0xa0,
-	)
+	testing.expect_value(t, TestMap.readMap(testMap, u16(get_dbg_S_out(top)) + 0x100 + 1), 0xa0)
 	run_n_cycles(CycleTimes.TSX_imp_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_X_out(top), 0xfd)
 
@@ -2125,11 +2073,7 @@ testSoftInterrupt :: proc(t: ^testing.T) {
 		TestMap.readMap(testMap, 0x100 + u16(get_dbg_S_out(top)) + 2),
 		retOffset,
 	)
-	testing.expect_value(
-		t,
-		TestMap.readMap(testMap, 0x100 + u16(get_dbg_S_out(top)) + 3),
-		0x80,
-	)
+	testing.expect_value(t, TestMap.readMap(testMap, 0x100 + u16(get_dbg_S_out(top)) + 3), 0x80)
 
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.I | PFlags.N | PFlags.B))
 

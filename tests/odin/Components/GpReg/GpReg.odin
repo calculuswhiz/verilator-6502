@@ -43,7 +43,7 @@ cycle_clock :: proc(reg: VGpReg) {
 test_gp_reg :: proc(t: ^testing.T) {
 	verilatorContext := VerilatedContext.create()
 	defer VerilatedContext.destroy(verilatorContext)
-	
+
 	reg: VGpReg = create()
 	defer destroy(reg)
 

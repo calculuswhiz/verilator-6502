@@ -30,10 +30,10 @@ module ALU (
 			2.    exclusive or:       EOR instruction
 			3.    or:                 ORA instruction
 			4.    and:                AND instruction, also unofficial SAX/LAX-type
-			56.   ++/--:              Increment/decrement. Maybe acutally use this for
-											the registers too.
-			78.   rotate:             ROR, ROL
-			910.  Shift:              ASL, LSR
+			5,6.  ++/--:              Increment/decrement. I did not merge these with
+																add/subtract because they set differnt flags
+			7,8.  rotate:             ROR, ROL
+			9,10. Shift:              ASL, LSR
 	*/
 	always @(a, b, carryIn, overflowIn, operation) begin
 		casez (operation)
