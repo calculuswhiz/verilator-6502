@@ -8,6 +8,7 @@ import "../../PcState"
 import "../../TestMap"
 import "core:c"
 import "core:fmt"
+import "core:log"
 import "core:os"
 import "core:testing"
 
@@ -1187,6 +1188,7 @@ testArithmeticIndirects :: proc(t: ^testing.T) {
 	run_n_cycles(CycleTimes.SBC_izx_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_A_out(top), 0)
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.Z | PFlags.V | PFlags.C))
+
 	run_n_cycles(CycleTimes.SBC_izx_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_A_out(top), 0xff)
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.N))
@@ -2000,6 +2002,7 @@ testCompare :: proc(t: ^testing.T) {
 	run_n_cycles(CycleTimes.LDX_imm_cycles, top, testMap, vcdOut, &counter, true)
 	run_n_cycles(CycleTimes.CMP_izx_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.C | PFlags.Z))
+
 	run_n_cycles(CycleTimes.CMP_izx_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.N))
 	run_n_cycles(CycleTimes.CMP_izx_cycles, top, testMap, vcdOut, &counter, true)

@@ -4,23 +4,18 @@
 typedef enum logic [3:0] { 
   /* Add carry */
   alu_adc = 4'h0,
-  /* Subtract borrow. Notes:
-    - Borrows if carry flag is set
-    - Sets carry flag if result is not negative
-   */
-  alu_sbc = 4'h1,
   /* Exclusive or */
-  alu_eor = 4'h2,
+  alu_eor = 4'h1,
   /* Bitwise or */
-  alu_ora = 4'h3,
+  alu_ora = 4'h2,
   /* Bitwise and */
-  alu_and = 4'h4,
+  alu_and = 4'h3,
   /* Rotate right */
-  alu_ror = 4'h5,
+  alu_ror = 4'h4,
   /* Rotate left */
-  alu_rol = 4'h6,
+  alu_rol = 4'h5,
   /* Shift right */
-  alu_lsr = 4'h7,
+  alu_lsr = 4'h6,
   /* Pass input A */
   alu_pas = 4'hf
 } aluop_t;

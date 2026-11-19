@@ -71,6 +71,7 @@ module topLevel (
 
     // Other ALU signals:
     aluop_t aluop;
+    wire b_invert;
     wire V_out, C_in, C_out, N_out, Z_out;
 
     // GP-Buses:
@@ -233,6 +234,7 @@ module topLevel (
     ALU ALU_6502(
         .a(ALU_Amux_out),
         .b(ALU_Bmux_out),
+        .b_invert(b_invert),
         .carryIn(C_in),
         .overflowIn(0),
         .operation(aluop),
@@ -447,6 +449,7 @@ module topLevel (
         .IRQLmux_sel(IRQLmux_sel),
         
         .aluop(aluop),
+        .b_invert(b_invert),
         .C_ctl(C_in),
         .mem_rW(mem_rW),
         .state_out(dbg_state_out)

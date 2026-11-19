@@ -23,12 +23,14 @@ Alu_State VALU_get_state(VALU_Handle *handle) {
   };
 }
 
-void VALU_set_inputs(VALU_Handle *handle, int a, int b, int carryIn = 0,
-                     int overflowIn = 0) {
+void VALU_set_inputs(VALU_Handle *handle, uint8_t a, uint8_t b,
+                     uint8_t carryIn = 0, uint8_t b_invert = 0,
+                     uint8_t overflowIn = 0) {
   VALU *cast = reinterpret_cast<VALU *>(handle);
   cast->a = a;
   cast->b = b;
   cast->carryIn = carryIn;
+  cast->b_invert = b_invert;
   cast->overflowIn = overflowIn;
 }
 

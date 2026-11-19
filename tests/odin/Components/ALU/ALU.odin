@@ -18,13 +18,12 @@ Alu_State :: struct {
 
 AluOp :: enum {
 	alu_adc = 0x0,
-	alu_sbc = 0x1,
-	alu_eor = 0x2,
-	alu_ora = 0x3,
-	alu_and = 0x4,
-	alu_ror = 0x5,
-	alu_rol = 0x6,
-	alu_lsr = 0x7,
+	alu_eor = 0x1,
+	alu_ora = 0x2,
+	alu_and = 0x3,
+	alu_ror = 0x4,
+	alu_rol = 0x5,
+	alu_lsr = 0x6,
 	alu_pas = 0xf,
 }
 
@@ -40,7 +39,7 @@ foreign MyVALU {
 	@(link_name = "VALU_get_state")
 	get_state :: proc(instance: VALU) -> Alu_State ---
 	@(link_name = "VALU_set_inputs")
-	set_inputs :: proc(instance: VALU, a: c.int, b: c.int, carryIn: c.int = 0, overflowIn: c.int = 0) ---
+	set_inputs :: proc(instance: VALU, a: c.char, b: c.char, carryIn: c.char = 0, b_invert: c.char = 0, overflowIn: c.char = 0) ---
 	@(link_name = "VALU_set_operation")
 	set_operation :: proc(instance: VALU, operation: AluOp) ---
 }
@@ -59,7 +58,7 @@ test_adc :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x1f, 0x01)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x20)
+	testing.expect_value(t, alu_state.f, 0x20)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -68,7 +67,7 @@ test_adc :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x7f, 0x01)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x80)
+	testing.expect_value(t, alu_state.f, 0x80)
 	testing.expect_value(t, alu_state.negative, 1)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -77,7 +76,7 @@ test_adc :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0xff, 0x01)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x00)
+	testing.expect_value(t, alu_state.f, 0x00)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 1)
 	testing.expect_value(t, alu_state.carry, 1)
@@ -86,7 +85,7 @@ test_adc :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0xff, 0x80)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x7f)
+	testing.expect_value(t, alu_state.f, 0x7f)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 1)
@@ -95,13 +94,14 @@ test_adc :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x00, 1)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x01)
+	testing.expect_value(t, alu_state.f, 0x01)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
 	testing.expect_value(t, alu_state.overflow, 0)
 }
 
+// NOTE: sbc consolidated with adc
 @(test)
 test_sbc :: proc(t: ^testing.T) {
 	verilatorContext := VerilatedContext.create()
@@ -111,39 +111,39 @@ test_sbc :: proc(t: ^testing.T) {
 	defer destroy(alu_inst)
 	alu_state: Alu_State
 
-	set_operation(alu_inst, AluOp.alu_sbc)
+	set_operation(alu_inst, AluOp.alu_adc)
 
-	set_inputs(alu_inst, 0x00, 0x01, 1)
+	set_inputs(alu_inst, 0x00, 0x01, 1, 1)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0xff)
+	testing.expect_value(t, alu_state.f, 0xff)
 	testing.expect_value(t, alu_state.negative, 1)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
 	testing.expect_value(t, alu_state.overflow, 0)
 
-	set_inputs(alu_inst, 0x80, 0x01, 1)
+	set_inputs(alu_inst, 0x80, 0x01, 1, 1)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x7f)
+	testing.expect_value(t, alu_state.f, 0x7f)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 1)
 	testing.expect_value(t, alu_state.overflow, 1)
 
-	set_inputs(alu_inst, 0x7f, 0xff, 1)
+	set_inputs(alu_inst, 0x7f, 0xff, 1, 1)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x80)
+	testing.expect_value(t, alu_state.f, 0x80)
 	testing.expect_value(t, alu_state.negative, 1)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
 	testing.expect_value(t, alu_state.overflow, 1)
 
-	set_inputs(alu_inst, 0xc0, 0x40, 0)
+	set_inputs(alu_inst, 0xc0, 0x40, 0, 1)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x7f)
+	testing.expect_value(t, alu_state.f, 0x7f)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 1)
@@ -164,7 +164,7 @@ test_eor :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0xaa, 0xaa)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x00)
+	testing.expect_value(t, alu_state.f, 0x00)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 1)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -173,7 +173,7 @@ test_eor :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0xff, 0xaa)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x55)
+	testing.expect_value(t, alu_state.f, 0x55)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -194,7 +194,7 @@ test_ora :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0xaa, 0x55)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0xff)
+	testing.expect_value(t, alu_state.f, 0xff)
 	testing.expect_value(t, alu_state.negative, 1)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -203,7 +203,7 @@ test_ora :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x00)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x00)
+	testing.expect_value(t, alu_state.f, 0x00)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 1)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -224,7 +224,7 @@ test_and :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0xaa, 0x55)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x00)
+	testing.expect_value(t, alu_state.f, 0x00)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 1)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -233,7 +233,7 @@ test_and :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0xff, 0x55)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x55)
+	testing.expect_value(t, alu_state.f, 0x55)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -254,7 +254,7 @@ test_ror :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x01)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x00)
+	testing.expect_value(t, alu_state.f, 0x00)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 1)
 	testing.expect_value(t, alu_state.carry, 1)
@@ -263,7 +263,7 @@ test_ror :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x02)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x01)
+	testing.expect_value(t, alu_state.f, 0x01)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -272,7 +272,7 @@ test_ror :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x03)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x01)
+	testing.expect_value(t, alu_state.f, 0x01)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 1)
@@ -281,7 +281,7 @@ test_ror :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x00, 1)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x80)
+	testing.expect_value(t, alu_state.f, 0x80)
 	testing.expect_value(t, alu_state.negative, 1)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -302,7 +302,7 @@ test_rol :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x80)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x00)
+	testing.expect_value(t, alu_state.f, 0x00)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 1)
 	testing.expect_value(t, alu_state.carry, 1)
@@ -311,7 +311,7 @@ test_rol :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x40)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x80)
+	testing.expect_value(t, alu_state.f, 0x80)
 	testing.expect_value(t, alu_state.negative, 1)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -320,7 +320,7 @@ test_rol :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0xc0)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x80)
+	testing.expect_value(t, alu_state.f, 0x80)
 	testing.expect_value(t, alu_state.negative, 1)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 1)
@@ -329,7 +329,7 @@ test_rol :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x00, 1)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x01)
+	testing.expect_value(t, alu_state.f, 0x01)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
@@ -351,7 +351,7 @@ test_lsr :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x01)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x00)
+	testing.expect_value(t, alu_state.f, 0x00)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 1)
 	testing.expect_value(t, alu_state.carry, 1)
@@ -360,7 +360,7 @@ test_lsr :: proc(t: ^testing.T) {
 	set_inputs(alu_inst, 0x00, 0x02)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
-	testing.expect_value(t, alu_state.f & 0xff, 0x01)
+	testing.expect_value(t, alu_state.f, 0x01)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)

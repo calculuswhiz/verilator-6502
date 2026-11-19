@@ -3,6 +3,7 @@
 module ALU (
 	input [7:0] a,
 	input [7:0] b,
+	input b_invert,
 	input carryIn,
 	input overflowIn,
 
@@ -35,21 +36,17 @@ module ALU (
 			7,8.  rotate:             ROR, ROL
 			9,10. Shift:              ASL, LSR
 	*/
-	always @(a, b, carryIn, overflowIn, operation) begin
+	always @(a, b, carryIn, b_invert, overflowIn, operation) begin
 		casez (operation)
 			/* verilator lint_off WIDTH */
 			alu_adc: begin
-				result = a + b + {7'b0, carryIn};
+				result = {1'b0, a} 
+					+ {1'b0, (b_invert ? ~b : b)} 
+					+ {8'b0, carryIn};
 				carry = result[8];
-				// From NESDEV: (result ^ A) & (result ^ memory) & $80
-				overflow = (result[7] ^ a[7]) & (result[7] ^ b[7]);
-			end
-			alu_sbc: begin
-				result = a - b - {7'b0, ~carryIn};
-				// If f>=0 set P.C flag (i.e. no borrow required)
-				carry = ~result[8];
-				// From NESDEV: (result ^ A) & (result ^ ~memory) & $80
-				overflow = (result[7] ^ a[7]) & (result[7] ^ ~b[7]);
+				// From NESDEV +: (result ^ A) & (result ^ memory) & $80
+				// From NESDEV -: (result ^ A) & (result ^ ~memory) & $80
+				overflow = (result[7] ^ a[7]) & (result[7] ^ b[7] ^ b_invert);
 			end
 			alu_eor: begin
 				result = a ^ b;

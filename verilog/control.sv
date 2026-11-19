@@ -59,6 +59,7 @@ module control (
 	// Other ALU signals:
 	/* verilator lint_off UNOPTFLAT */
 	output aluop_t aluop,
+	output logic b_invert,
 	/* verilator lint_on UNOPTFLAT */
 	// Selectively decide whether to send these flags to the ALU
 	output logic C_ctl,
@@ -124,6 +125,7 @@ module control (
 		.IRQLmux_sel(IRQLmux_sel),
 
 		.aluop(aluop),
+		.b_invert(b_invert),
 		.C_ctl(C_ctl),
 		.mem_rW(mem_rW),
 		
