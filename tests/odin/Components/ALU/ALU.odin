@@ -38,7 +38,7 @@ foreign MyVALU {
 	@(link_name = "VALU_get_state")
 	get_state :: proc(instance: VALU) -> Alu_State ---
 	@(link_name = "VALU_set_inputs")
-	set_inputs :: proc(instance: VALU, a: c.char, b: c.char, carryIn: c.char = 0, b_invert: c.char = 0, overflowIn: c.char = 0) ---
+	set_inputs :: proc(instance: VALU, a: c.char, b: c.char, carryIn: c.char = 0, b_invert: c.char = 0) ---
 	@(link_name = "VALU_set_operation")
 	set_operation :: proc(instance: VALU, operation: AluOp) ---
 }

@@ -236,7 +236,6 @@ module topLevel (
         .b(ALU_Bmux_out),
         .b_invert(b_invert),
         .carryIn(C_in),
-        .overflowIn(0),
         .operation(aluop),
         .negative(N_out),
         .overflow(V_out),

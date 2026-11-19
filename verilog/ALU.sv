@@ -5,7 +5,6 @@ module ALU (
 	input [7:0] b,
 	input b_invert,
 	input carryIn,
-	input overflowIn,
 
 	input aluop_t operation,
 
@@ -27,15 +26,15 @@ module ALU (
 		Only needs to support basic operations:
 		(The control unit will handle when to use each one.)
 			0.    carry-addition:     Anything that requires addition/subtraction.
-																Includes INC/DEC/ASL
+																Includes INC/DEC/ASL/ROL
 			1.    exclusive or:       EOR instruction
 			2.    or:                 ORA instruction
 			3.    and:                AND instruction, also unofficial SAX/LAX-type
-			4,5.  rotate:             ROR, ROL
-			6.    shift:              LSR
+			4.    rotate:             ROR
+			5.    shift:              LSR
 			f.    pass A              Default
 	*/
-	always @(a, b, carryIn, b_invert, overflowIn, operation) begin
+	always @(a, b, carryIn, b_invert, operation) begin
 		casez (operation)
 			/* verilator lint_off WIDTH */
 			alu_adc: begin
@@ -50,32 +49,32 @@ module ALU (
 			alu_eor: begin
 				result = a ^ b;
 				carry = carryIn;
-				overflow = overflowIn;
+				overflow = 0;
 			end
 			alu_ora: begin
 				result = a | b;
 				carry = carryIn;
-				overflow = overflowIn;
+				overflow = 0;
 			end
 			alu_and: begin
 				result = a & b;
 				carry = carryIn;
-				overflow = overflowIn;
+				overflow = 0;
 			end
 			alu_ror: begin
 				result = {b[0], carryIn, b[7:1]};
 				carry = b[0];
-				overflow = overflowIn;
+				overflow = 0;
 			end
 			alu_lsr: begin
 				result = {1'b0, b[7:1]};
 				carry = b[0];
-				overflow = overflowIn;
+				overflow = 0;
 			end
 			default: begin
 				result = a;
 				carry = carryIn;
-				overflow = overflowIn;
+				overflow = 0;
 			end
 			/* verilator lint_on WIDTH */
 		endcase
