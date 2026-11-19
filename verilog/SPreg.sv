@@ -2,19 +2,19 @@
     S, Stack pointer
 */
 
-module SPReg #(parameter width = 8) (
+module SPReg (
     input clk,
 
     input load,
     input inc,
     input dec,
     input rst_n,  // Asynchronous reset active low
-    input [width - 1:0] in,
+    input [7:0] in,
 
-    output [width - 1:0] out
+    output [7:0] out
 );
 
-logic [width - 1:0] data;
+logic [7:0] data;
 
 initial
     data = 8'h00;

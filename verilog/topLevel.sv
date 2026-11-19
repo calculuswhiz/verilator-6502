@@ -88,11 +88,14 @@ module topLevel (
     wire [7:0] Xbuf_out, Ybuf_out, Smbuf_out, Spagebuf_out, Sdbuf_out, Abuf_out;
     wire [7:0] ALUdbuf_out, ALUmbuf_out;
     wire word_t PC_out;
-    wire [7:0] PCLmbuf_out, PCLdbuf_out, PCHmbuf_out, PCHdbuf_out;
+    wire word_t PCmbuf_out;
+    wire word_t PCdbuf_out;
     wire word_t D_out;
-    wire [7:0] DLmbuf_out, DLdbuf_out, DHmbuf_out, DHdbuf_out;
+    wire word_t Dmbuf_out;
+    wire word_t Ddbuf_out;
     wire word_t T_out;
-    wire [7:0] TLmbuf_out, TLdbuf_out, THmbuf_out, THdbuf_out;
+    wire word_t Tmbuf_out;
+    wire word_t Tdbuf_out;
     wire PFlags ctl_pvect;
     wire [7:0] P_out;
     wire [7:0] Pbuf_out;
@@ -100,7 +103,7 @@ module topLevel (
     wire [7:0] IR_out;
     wire [7:0] IRbuf_out;
     wire [7:0] xferubuf_out, xferdbuf_out;
-    wire [7:0] IRQLbuf_out, IRQHbuf_out;
+    wire word_t IRQbuf_out;
 
     assign dbg_IR_out = IR_out;
     assign dbg_A_out = A_out;
@@ -291,11 +294,11 @@ module topLevel (
         .PC_out(PC_out)
     );
 
-    assign PCLdbuf_out = PCLd_en ? PC_out.l : 8'bz;
-    assign PCLmbuf_out = PCLm_en ? PC_out.l : 8'bz;
+    assign PCdbuf_out.l = PCLd_en ? PC_out.l : 8'bz;
+    assign PCmbuf_out.l = PCLm_en ? PC_out.l : 8'bz;
 
-    assign PCHdbuf_out = PCHd_en ? PC_out.h : 8'bz;
-    assign PCHmbuf_out = PCHm_en ? PC_out.h : 8'bz;
+    assign PCdbuf_out.h = PCHd_en ? PC_out.h : 8'bz;
+    assign PCmbuf_out.h = PCHm_en ? PC_out.h : 8'bz;
 
     // #endregion
 
@@ -321,11 +324,11 @@ module topLevel (
         .reg_out(D_out)
     );
 
-    assign DLdbuf_out = DLd_en ? D_out.l : 8'bz;
-    assign DLmbuf_out = DLm_en ? D_out.l : 8'bz;
+    assign Ddbuf_out.l = DLd_en ? D_out.l : 8'bz;
+    assign Dmbuf_out.l = DLm_en ? D_out.l : 8'bz;
 
-    assign DHdbuf_out = DHd_en ? D_out.h : 8'bz;
-    assign DHmbuf_out = DHm_en ? D_out.h : 8'bz;
+    assign Ddbuf_out.h = DHd_en ? D_out.h : 8'bz;
+    assign Dmbuf_out.h = DHm_en ? D_out.h : 8'bz;
 
     // #endregion
 
@@ -353,11 +356,11 @@ module topLevel (
         .reg_out(T_out)
     );
 
-    assign TLdbuf_out = TLd_en ? T_out.l : 8'bz;
-    assign TLmbuf_out = TLm_en ? T_out.l : 8'bz;
+    assign Tdbuf_out.l = TLd_en ? T_out.l : 8'bz;
+    assign Tmbuf_out.l = TLm_en ? T_out.l : 8'bz;
 
-    assign THdbuf_out = THd_en ? T_out.h : 8'bz;
-    assign THmbuf_out = THm_en ? T_out.h : 8'bz;
+    assign Tdbuf_out.h = THd_en ? T_out.h : 8'bz;
+    assign Tmbuf_out.h = THm_en ? T_out.h : 8'bz;
 
     // #endregion
 
@@ -454,10 +457,10 @@ module topLevel (
 
     // #region Interrupts
 
-    assign IRQHbuf_out = IRQH_en ? 8'hff : 8'bz;
+    assign IRQbuf_out.h = IRQH_en ? 8'hff : 8'bz;
 
     assign IRQLmux_out = IRQLmux_sel == irqlSel_fe ? 8'hfe : 8'hff;
-    assign IRQLbuf_out = IRQL_en ? IRQLmux_out : 8'bz;
+    assign IRQbuf_out.l = IRQL_en ? IRQLmux_out : 8'bz;
 
     // #endregion
 
@@ -469,28 +472,28 @@ module topLevel (
         | Sdbuf_out
         | ALUdbuf_out
         | Abuf_out
-        | PCLdbuf_out
-        | PCHdbuf_out
-        | DLdbuf_out
-        | DHdbuf_out
-        | TLdbuf_out
-        | THdbuf_out
+        | PCdbuf_out.l
+        | PCdbuf_out.h
+        | Ddbuf_out.l
+        | Ddbuf_out.h
+        | Tdbuf_out.l
+        | Tdbuf_out.h
         | Pbuf_out
         | xferdbuf_out;
     assign xfer_bus = membuf_out
         | IRbuf_out
         | xferubuf_out;
-    assign memory_bus.h = DHmbuf_out
-        | PCHmbuf_out
-        | THmbuf_out
+    assign memory_bus.h = Dmbuf_out.h
+        | PCmbuf_out.h
+        | Tmbuf_out.h
         | Spagebuf_out
-        | IRQHbuf_out;
+        | IRQbuf_out.h;
     assign memory_bus.l = ALUmbuf_out
         | Smbuf_out
-        | DLmbuf_out
-        | PCLmbuf_out
-        | TLmbuf_out
-        | IRQLbuf_out;
+        | Dmbuf_out.l
+        | PCmbuf_out.l
+        | Tmbuf_out.l
+        | IRQbuf_out.l;
 
     // #endregion
 

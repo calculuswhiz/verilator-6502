@@ -33,15 +33,15 @@ module PC (
     else if (L_inc)
       data <= data + 1'b1;
     else if (H_inc) begin
-      data.h <= data[15:8] + 1'b1;
-      data.l <= data[7:0];
+      data.h <= data.h + 1'b1;
+      data.l <= data.l;
     end else if (H_dec) begin 
-      data.h <= data[15:8] - 1'b1;
-      data.l <= data[7:0];
+      data.h <= data.h - 1'b1;
+      data.l <= data.l;
     end else begin
       data <= {
-        load_pc_h ? PC_in.h : data[15:8],
-        load_pc_l ? PC_in.l : data[7:0]
+        load_pc_h ? PC_in.h : data.h,
+        load_pc_l ? PC_in.l : data.l
       };
     end
   end

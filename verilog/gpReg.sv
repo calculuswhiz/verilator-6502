@@ -4,14 +4,14 @@
     - A, Accumulator
 */
 
-module GpReg #(parameter width = 8) (
+module GpReg (
     input clk,
     input load,
     // Asynchronous reset active low
     input rst_n,
-    input [width - 1:0] in,
+    input [7:0] in,
 
-    output logic [width - 1:0] out
+    output logic [7:0] out
 );
 
 always @ (posedge clk or negedge rst_n) begin 
