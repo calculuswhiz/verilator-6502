@@ -8,7 +8,7 @@ typedef enum logic [2:0] {
 	aluSel_DL = 3,
 	aluSel_data_bus = 4,
 	aluSel_PCL = 5,
-	aluSel_memory_bus_l = 6,
+	aluSel_1 = 6,
 	aluSel_TL = 7
 } alu_mux_src;
 

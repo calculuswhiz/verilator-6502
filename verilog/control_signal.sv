@@ -237,6 +237,7 @@ module control_signal (
 
 		// Other ALU signals:
 		aluop = alu_pas;
+		// Carry control
 		C_ctl = 0;
 
 		/* State actions: */
@@ -660,7 +661,7 @@ module control_signal (
 			// #endregion IMM
 			// #region IMP/ACC
 			ASL_ACC: begin
-				doAlu(alu_asl, aluSel_A, aluSel_A);
+				doAlu(alu_adc, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
@@ -682,25 +683,27 @@ module control_signal (
 				P_ld = 1;
 			end
 			DEX_IMP: begin
-				doAlu(alu_dec, aluSel_X, aluSel_A);
+				doAlu(alu_sbc, aluSel_X, aluSel_1);
+				C_ctl = 1'b1;
 				setDataBusSource(db_src_ALUd);
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			DEY_IMP: begin
-				doAlu(alu_dec, aluSel_Y, aluSel_A);
+				doAlu(alu_sbc, aluSel_Y, aluSel_1);
+				C_ctl = 1'b1;
 				setDataBusSource(db_src_ALUd);
 				Y_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			INX_IMP: begin
-				doAlu(alu_inc, aluSel_X, aluSel_A);
+				doAlu(alu_adc, aluSel_X, aluSel_1);
 				setDataBusSource(db_src_ALUd);
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			INY_IMP: begin
-				doAlu(alu_inc, aluSel_Y, aluSel_A);
+				doAlu(alu_adc, aluSel_Y, aluSel_1);
 				setDataBusSource(db_src_ALUd);
 				Y_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
@@ -957,14 +960,15 @@ module control_signal (
 			ASL_ABS, ASL_ABX: begin
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_asl, aluSel_A, aluSel_TL);
+				doAlu(alu_adc, aluSel_TL, aluSel_TL);
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			DEC_ZPG, DEC_ZPX,
 			DEC_ABS, DEC_ABX: begin
-				doAlu(alu_dec, aluSel_TL, aluSel_A);
+				doAlu(alu_sbc, aluSel_TL, aluSel_1);
+				C_ctl = 1'b1;
 				setDataBusSource(db_src_ALUd);
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
@@ -972,7 +976,7 @@ module control_signal (
 			end
 			INC_ZPG, INC_ZPX,
 			INC_ABS, INC_ABX: begin
-				doAlu(alu_inc, aluSel_TL, aluSel_A);
+				doAlu(alu_adc, aluSel_TL, aluSel_1);
 				setDataBusSource(db_src_ALUd);
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;

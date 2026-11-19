@@ -15,19 +15,13 @@ typedef enum logic [3:0] {
   alu_ora = 4'h3,
   /* Bitwise and */
   alu_and = 4'h4,
-  /* Increment */
-  alu_inc = 4'h5,
-  /* Decrement */
-  alu_dec = 4'h6,
   /* Rotate right */
-  alu_ror = 4'h7,
+  alu_ror = 4'h5,
   /* Rotate left */
-  alu_rol = 4'h8,
-  /* Shift left */
-  alu_asl = 4'h9,
+  alu_rol = 4'h6,
   /* Shift right */
-  alu_lsr = 4'ha,
-  /* NOP (Actually pass input a) */
+  alu_lsr = 4'h7,
+  /* Pass input A */
   alu_pas = 4'hf
 } aluop_t;
 

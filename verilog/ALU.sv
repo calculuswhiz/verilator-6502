@@ -66,16 +66,6 @@ module ALU (
 				carry = carryIn;
 				overflow = overflowIn;
 			end
-			alu_inc: begin
-				result = a + 1'b1;
-				carry = carryIn;
-				overflow = overflowIn;
-			end
-			alu_dec: begin
-				result = a - 1'b1;
-				carry = carryIn;
-				overflow = overflowIn;
-			end
 			alu_ror: begin
 				result = {b[0], carryIn, b[7:1]};
 				carry = b[0];
@@ -83,11 +73,6 @@ module ALU (
 			end
 			alu_rol: begin
 				result = {b[7:0], carryIn};
-				carry = b[7];
-				overflow = overflowIn;
-			end
-			alu_asl: begin
-				result = {b[7:0], 1'b0};
 				carry = b[7];
 				overflow = overflowIn;
 			end

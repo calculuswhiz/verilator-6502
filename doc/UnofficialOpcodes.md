@@ -42,7 +42,7 @@ Info taken from https://www.oxyron.de/html/opcodes02.html
   - AND then subract w/o borrow
 
 `SBC` A:=A-#{imm}
-  - Duplicate
+  - Duplicate of SBC
 
 `AHX` {adr}:=A&X&H (slightly unstable)
   - ??? What is H

@@ -202,8 +202,8 @@ module topLevel (
                 ALU_Amux_out = data_bus;
             aluSel_PCL: 
                 ALU_Amux_out = PCL_out;
-            aluSel_memory_bus_l: 
-                ALU_Amux_out = memory_bus_l;
+            aluSel_1: 
+                ALU_Amux_out = 8'h1;
             default: 
                 ALU_Amux_out = TL_out;
         endcase
@@ -223,8 +223,8 @@ module topLevel (
                 ALU_Bmux_out = data_bus;
             aluSel_PCL: 
                 ALU_Bmux_out = PCL_out;
-            aluSel_memory_bus_l: 
-                ALU_Bmux_out = memory_bus_l;
+            aluSel_1: 
+                ALU_Bmux_out = 8'h1;
             default: 
                 ALU_Bmux_out = TL_out;
         endcase
