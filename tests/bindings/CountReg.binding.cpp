@@ -48,25 +48,14 @@ void VCountReg_set_H_rst_n(VCountReg_Handle *handle, uint8_t value) {
   reinterpret_cast<VCountReg *>(handle)->H_rst_n = value;
 }
 
-void VCountReg_set_low_byte_in(VCountReg_Handle *handle, uint8_t value) {
-  reinterpret_cast<VCountReg *>(handle)->low_byte_in = value;
-}
-void VCountReg_set_high_byte_in(VCountReg_Handle *handle, uint8_t value) {
-  reinterpret_cast<VCountReg *>(handle)->high_byte_in = value;
+void VCountReg_set_reg_in(VCountReg_Handle *handle, uint16_t value) {
+  reinterpret_cast<VCountReg *>(handle)->reg_in = value;
 }
 
-struct VCountRegState {
-  uint8_t low_byte_out;
-  uint8_t high_byte_out;
-};
-
-VCountRegState VCountReg_get_state(VCountReg_Handle *handle) {
+uint16_t VCountReg_get_state(VCountReg_Handle *handle) {
   VCountReg *cast = reinterpret_cast<VCountReg *>(handle);
-  return {
-    cast->low_byte_out, cast->high_byte_out
-  };
+  return cast->reg_out;
 }
-
 }
 
 // Seems to be required for verilator or the runtime will error out

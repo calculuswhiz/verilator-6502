@@ -8,11 +8,6 @@ foreign import MyVCountReg {"../../../../obj_dir/VCountReg.binding.a", "../../..
 
 VCountReg :: distinct rawptr
 
-CountRegState :: struct {
-	low_byte_out:  c.char,
-	high_byte_out: c.char,
-}
-
 @(default_calling_convention = "c")
 foreign MyVCountReg {
 	@(link_name = "VCountReg_create")
@@ -23,28 +18,26 @@ foreign MyVCountReg {
 	eval :: proc(instance: VCountReg) ---
 
 	@(link_name = "VCountReg_get_state")
-	get_state :: proc(instance: VCountReg) -> CountRegState ---
+	get_state :: proc(instance: VCountReg) -> c.ushort ---
 
 	@(link_name = "VCountReg_get_clk")
-	get_clk :: proc(instance: VCountReg) -> c.char ---
+	get_clk :: proc(instance: VCountReg) -> c.uchar ---
 	@(link_name = "VCountReg_set_clk")
-	set_clk :: proc(instance: VCountReg, value: c.char) ---
+	set_clk :: proc(instance: VCountReg, value: c.uchar) ---
 	@(link_name = "VCountReg_set_load_l")
-	set_load_l :: proc(instance: VCountReg, value: c.char) ---
+	set_load_l :: proc(instance: VCountReg, value: c.uchar) ---
 	@(link_name = "VCountReg_set_load_h")
-	set_load_h :: proc(instance: VCountReg, value: c.char) ---
+	set_load_h :: proc(instance: VCountReg, value: c.uchar) ---
 	@(link_name = "VCountReg_set_L_inc")
-	set_L_inc :: proc(instance: VCountReg, value: c.char) ---
+	set_L_inc :: proc(instance: VCountReg, value: c.uchar) ---
 	@(link_name = "VCountReg_set_H_inc")
-	set_H_inc :: proc(instance: VCountReg, value: c.char) ---
+	set_H_inc :: proc(instance: VCountReg, value: c.uchar) ---
 	@(link_name = "VCountReg_set_H_dec")
-	set_H_dec :: proc(instance: VCountReg, value: c.char) ---
+	set_H_dec :: proc(instance: VCountReg, value: c.uchar) ---
 	@(link_name = "VCountReg_set_H_rst_n")
-	set_H_rst_n :: proc(instance: VCountReg, value: c.char) ---
-	@(link_name = "VCountReg_set_low_byte_in")
-	set_low_byte_in :: proc(instance: VCountReg, value: c.char) ---
-	@(link_name = "VCountReg_set_high_byte_in")
-	set_high_byte_in :: proc(instance: VCountReg, value: c.char) ---
+	set_H_rst_n :: proc(instance: VCountReg, value: c.uchar) ---
+	@(link_name = "VCountReg_set_reg_in")
+	set_reg_in :: proc(instance: VCountReg, value: c.ushort) ---
 }
 
 @(private = "file")
@@ -63,7 +56,7 @@ test_CountReg :: proc(t: ^testing.T) {
 	reg := create()
 	defer destroy(reg)
 
-	regState: CountRegState
+	regState: c.ushort
 
 	set_clk(reg, 0)
 	set_load_l(reg, 0)
@@ -73,26 +66,24 @@ test_CountReg :: proc(t: ^testing.T) {
 	set_H_rst_n(reg, 1)
 	eval(reg)
 	regState = get_state(reg)
-	testing.expect_value(t, regState.low_byte_out, 0)
-	testing.expect_value(t, regState.high_byte_out, 0)
+	testing.expect_value(t, regState, 0)
 
 	// Load L
 	set_load_l(reg, 1)
-	set_low_byte_in(reg, 0x34)
+	set_reg_in(reg, 0x34)
 	cycle_clock(reg)
 	regState = get_state(reg)
-	testing.expect_value(t, regState.low_byte_out, 0x34)
+	testing.expect_value(t, regState, 0x0034)
 	set_load_l(reg, 0)
-	set_low_byte_in(reg, 0)
+	set_reg_in(reg, 0)
 
 	// Load H
 	set_load_h(reg, 1)
-	set_high_byte_in(reg, 0x12)
+	set_reg_in(reg, 0x1200)
 	cycle_clock(reg)
 	regState = get_state(reg)
 
-	testing.expect_value(t, regState.high_byte_out, 0x12)
-	testing.expect_value(t, regState.low_byte_out, 0x34)
+	testing.expect_value(t, regState, 0x1234)
 	set_load_h(reg, 0)
 
 	// Increment L
@@ -100,7 +91,7 @@ test_CountReg :: proc(t: ^testing.T) {
 	cycle_clock(reg)
 	regState = get_state(reg)
 
-	testing.expect_value(t, regState.low_byte_out, 0x35)
+	testing.expect_value(t, regState, 0x1235)
 	set_L_inc(reg, 0)
 
 	// Increment H
@@ -108,7 +99,7 @@ test_CountReg :: proc(t: ^testing.T) {
 	cycle_clock(reg)
 	regState = get_state(reg)
 
-	testing.expect_value(t, regState.high_byte_out, 0x13)
+	testing.expect_value(t, regState, 0x1335)
 	set_H_inc(reg, 0)
 
 	// Decrement H
@@ -116,7 +107,7 @@ test_CountReg :: proc(t: ^testing.T) {
 	cycle_clock(reg)
 	regState = get_state(reg)
 
-	testing.expect_value(t, regState.high_byte_out, 0x12)
+	testing.expect_value(t, regState, 0x1235)
 	set_H_dec(reg, 0)
 
 	// Reset H
@@ -124,16 +115,14 @@ test_CountReg :: proc(t: ^testing.T) {
 	cycle_clock(reg)
 	regState = get_state(reg)
 
-	testing.expect_value(t, regState.high_byte_out, 0x00)
-	testing.expect_value(t, regState.low_byte_out, 0x35)
+	testing.expect_value(t, regState, 0x0035)
 
 	// Load L with reset
 	set_H_rst_n(reg, 0)
 	set_load_l(reg, 1)
-	set_low_byte_in(reg, 0x78)
+	set_reg_in(reg, 0x78)
 	cycle_clock(reg)
 	regState = get_state(reg)
 
-	testing.expect_value(t, regState.low_byte_out, 0x78)
-	testing.expect_value(t, regState.high_byte_out, 0x00)
+	testing.expect_value(t, regState, 0x0078)
 }

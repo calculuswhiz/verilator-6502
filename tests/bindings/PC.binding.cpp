@@ -4,17 +4,11 @@
 extern "C" {
 struct VPC_Handle;
 
-VPC_Handle *VPC_create() {
-  return reinterpret_cast<VPC_Handle *>(new VPC());
-}
+VPC_Handle *VPC_create() { return reinterpret_cast<VPC_Handle *>(new VPC()); }
 
-void VPC_destroy(VPC_Handle *handle) {
-  delete reinterpret_cast<VPC *>(handle);
-}
+void VPC_destroy(VPC_Handle *handle) { delete reinterpret_cast<VPC *>(handle); }
 
-void VPC_eval(VPC_Handle *handle) {
-  reinterpret_cast<VPC *>(handle)->eval();
-}
+void VPC_eval(VPC_Handle *handle) { reinterpret_cast<VPC *>(handle)->eval(); }
 
 uint8_t VPC_get_clk(VPC_Handle *handle) {
   return reinterpret_cast<VPC *>(handle)->clk;
@@ -48,25 +42,14 @@ void VPC_set_reset_n(VPC_Handle *handle, uint8_t value) {
   reinterpret_cast<VPC *>(handle)->reset_n = value;
 }
 
-void VPC_set_PCL_in(VPC_Handle *handle, uint8_t value) {
-  reinterpret_cast<VPC *>(handle)->PCL_in = value;
-}
-void VPC_set_PCH_in(VPC_Handle *handle, uint8_t value) {
-  reinterpret_cast<VPC *>(handle)->PCH_in = value;
+void VPC_set_PC_in(VPC_Handle *handle, uint16_t value) {
+  reinterpret_cast<VPC *>(handle)->PC_in = value;
 }
 
-struct VPCState {
-  uint8_t PCL_out;
-  uint8_t PCH_out;
-};
-
-VPCState VPC_get_state(VPC_Handle *handle) {
+uint16_t VPC_get_state(VPC_Handle *handle) {
   VPC *cast = reinterpret_cast<VPC *>(handle);
-  return {
-    cast->PCL_out, cast->PCH_out
-  };
+  return cast->PC_out;
 }
-
 }
 
 // Seems to be required for verilator or the runtime will error out

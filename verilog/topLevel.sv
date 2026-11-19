@@ -1,4 +1,5 @@
 `include "./svh/PFlags.svh"
+`include "./svh/word.svh"
 `include "./svh/aluops.svh"
 `include "./svh/opCodeHex.svh"
 `include "./svh/muxSignals.svh"
@@ -12,17 +13,17 @@ module topLevel (
     /* verilator lint_off UNOPTFLAT */
     output [7:0] mem_wData,
     /* verilator lint_on UNOPTFLAT */
-    output [15:0] mem_address,
+    output word_t mem_address,
 
     output [7:0] dbg_IR_out,
     output [7:0] dbg_A_out,
     output [7:0] dbg_X_out,
     output [7:0] dbg_Y_out,
     output [7:0] dbg_S_out,
-    output [7:0] dbg_P_out,
-    output [15:0] dbg_D_out,
-    output [15:0] dbg_T_out,
-    output [15:0] dbg_PC_out,
+    output PFlags dbg_P_out,
+    output word_t dbg_D_out,
+    output word_t dbg_T_out,
+    output word_t dbg_PC_out,
     output cpu_state dbg_state_out
 );
 
@@ -79,18 +80,18 @@ module topLevel (
     reg [7:0] xfer_bus;
     /* verilator lint_off UNOPTFLAT */
     reg [7:0] data_bus;
-    reg [7:0] memory_bus_h, memory_bus_l;
+    word_t memory_bus;
     /* verilator lint_on UNOPTFLAT */
 
     // Output data:
     wire [7:0] X_out, Y_out, S_out, A_out, ALU_out;
     wire [7:0] Xbuf_out, Ybuf_out, Smbuf_out, Spagebuf_out, Sdbuf_out, Abuf_out;
     wire [7:0] ALUdbuf_out, ALUmbuf_out;
-    wire [7:0] PCL_out, PCH_out;
+    wire word_t PC_out;
     wire [7:0] PCLmbuf_out, PCLdbuf_out, PCHmbuf_out, PCHdbuf_out;
-    wire [7:0] DL_out, DH_out;
+    wire word_t D_out;
     wire [7:0] DLmbuf_out, DLdbuf_out, DHmbuf_out, DHdbuf_out;
-    wire [7:0] TL_out, TH_out;
+    wire word_t T_out;
     wire [7:0] TLmbuf_out, TLdbuf_out, THmbuf_out, THdbuf_out;
     wire PFlags ctl_pvect;
     wire [7:0] P_out;
@@ -107,9 +108,9 @@ module topLevel (
     assign dbg_Y_out = Y_out;
     assign dbg_S_out = S_out;
     assign dbg_P_out = P_out;
-    assign dbg_PC_out = {PCH_out, PCL_out};
-    assign dbg_D_out = {DH_out, DL_out};
-    assign dbg_T_out = {TH_out, TL_out};
+    assign dbg_PC_out = PC_out;
+    assign dbg_D_out = D_out;
+    assign dbg_T_out = T_out;
 
     // Mulitplexed data:
     /* verilator lint_off UNOPTFLAT */
@@ -133,7 +134,7 @@ module topLevel (
     // #endregion Internal Signals
 
     assign mem_wData = xfer_bus;
-    assign mem_address = {memory_bus_h, memory_bus_l};
+    assign mem_address = memory_bus;
 
     // See the datapath diagram for more info
 
@@ -169,7 +170,7 @@ module topLevel (
 
     // #region S
 
-    assign Smux_out = Smux_sel == sSel_data_bus ? data_bus : memory_bus_l;
+    assign Smux_out = Smux_sel == sSel_data_bus ? data_bus : memory_bus.l;
 
     SPReg S_reg(
         .clk(clkDiv[divFactor]),
@@ -199,15 +200,15 @@ module topLevel (
             aluSel_Y: 
                 ALU_Amux_out = Y_out;
             aluSel_DL: 
-                ALU_Amux_out = DL_out;
+                ALU_Amux_out = D_out.l;
             aluSel_data_bus: 
                 ALU_Amux_out = data_bus;
             aluSel_PCL: 
-                ALU_Amux_out = PCL_out;
+                ALU_Amux_out = PC_out.l;
             aluSel_1: 
                 ALU_Amux_out = 8'h1;
             default: 
-                ALU_Amux_out = TL_out;
+                ALU_Amux_out = T_out.l;
         endcase
     end
 
@@ -220,15 +221,15 @@ module topLevel (
             aluSel_Y: 
                 ALU_Bmux_out = Y_out;
             aluSel_DL: 
-                ALU_Bmux_out = DL_out;
+                ALU_Bmux_out = D_out.l;
             aluSel_data_bus: 
                 ALU_Bmux_out = data_bus;
             aluSel_PCL: 
-                ALU_Bmux_out = PCL_out;
+                ALU_Bmux_out = PC_out.l;
             aluSel_1: 
                 ALU_Bmux_out = 8'h1;
             default: 
-                ALU_Bmux_out = TL_out;
+                ALU_Bmux_out = T_out.l;
         endcase
     end
 
@@ -270,11 +271,11 @@ module topLevel (
 
     assign PCLmux_out = 
         PCLmux_sel == pclSel_data_bus ? data_bus
-        : PCLmux_sel == pclSel_memory_bus_l ? memory_bus_l
-        : PCLmux_sel == pclSel_DL_out ? DL_out
-        : TL_out;
+        : PCLmux_sel == pclSel_memory_bus_l ? memory_bus.l
+        : PCLmux_sel == pclSel_DL_out ? D_out.l
+        : T_out.l;
 
-    assign PCHmux_out = PCHmux_sel == pchSel_data_bus ? data_bus : memory_bus_h;
+    assign PCHmux_out = PCHmux_sel == pchSel_data_bus ? data_bus : memory_bus.h;
 
     // 0xfffe is where the reset vector is
     PC PC_reg(
@@ -284,19 +285,17 @@ module topLevel (
         .L_inc(PCL_inc),
         .H_inc(PCH_inc),
         .H_dec(PCH_dec),
-        .PCL_in(PCLmux_out),
-        .PCH_in(PCHmux_out),
+        .PC_in({PCHmux_out, PCLmux_out}),
         // Reset (0) if either is 0
         .reset_n(PC_reset_n & forceReset_n),
-        .PCL_out(PCL_out),
-        .PCH_out(PCH_out)
+        .PC_out(PC_out)
     );
 
-    assign PCLdbuf_out = PCLd_en ? PCL_out : 8'bz;
-    assign PCLmbuf_out = PCLm_en ? PCL_out : 8'bz;
+    assign PCLdbuf_out = PCLd_en ? PC_out.l : 8'bz;
+    assign PCLmbuf_out = PCLm_en ? PC_out.l : 8'bz;
 
-    assign PCHdbuf_out = PCHd_en ? PCH_out : 8'bz;
-    assign PCHmbuf_out = PCHm_en ? PCH_out : 8'bz;
+    assign PCHdbuf_out = PCHd_en ? PC_out.h : 8'bz;
+    assign PCHmbuf_out = PCHm_en ? PC_out.h : 8'bz;
 
     // #endregion
 
@@ -304,7 +303,7 @@ module topLevel (
 
     assign DLmux_out = 
         DLmux_sel == dlSel_data_bus ? data_bus
-        : DLmux_sel == dlSel_memory_bus_l ? memory_bus_l
+        : DLmux_sel == dlSel_memory_bus_l ? memory_bus.l
         : DLmux_sel == dlSel_ALU_out ? ALU_out
         : 0;
 
@@ -317,18 +316,16 @@ module topLevel (
         .L_inc(DL_inc),
         .H_inc(DH_inc),
         .H_dec(DH_dec),
-        .low_byte_in(DLmux_out),
-        .high_byte_in(DHmux_out),
+        .reg_in({DHmux_out, DLmux_out}),
         .H_rst_n(DH_rst_n),
-        .low_byte_out(DL_out),
-        .high_byte_out(DH_out)
+        .reg_out(D_out)
     );
 
-    assign DLdbuf_out = DLd_en ? DL_out : 8'bz;
-    assign DLmbuf_out = DLm_en ? DL_out : 8'bz;
+    assign DLdbuf_out = DLd_en ? D_out.l : 8'bz;
+    assign DLmbuf_out = DLm_en ? D_out.l : 8'bz;
 
-    assign DHdbuf_out = DHd_en ? DH_out : 8'bz;
-    assign DHmbuf_out = DHm_en ? DH_out : 8'bz;
+    assign DHdbuf_out = DHd_en ? D_out.h : 8'bz;
+    assign DHmbuf_out = DHm_en ? D_out.h : 8'bz;
 
     // #endregion
 
@@ -337,7 +334,7 @@ module topLevel (
     always @(*) begin
         case (TLmux_sel)
             tlSel_data_bus : TLmux_out = data_bus;
-            tlSel_memory_bus_l : TLmux_out = memory_bus_l;
+            tlSel_memory_bus_l : TLmux_out = memory_bus.l;
             tlSel_ALU_out : TLmux_out = ALU_out;
             default: TLmux_out = 0;
         endcase
@@ -350,19 +347,17 @@ module topLevel (
         .L_inc(1'b0),
         .H_inc(TH_inc),
         .H_dec(1'b0),
-        .low_byte_in(TLmux_out),
         // Data bus is relevant for indirect modes
-        .high_byte_in(data_bus),
+        .reg_in({data_bus, TLmux_out}),
         .H_rst_n(1'b1),
-        .low_byte_out(TL_out),
-        .high_byte_out(TH_out)
+        .reg_out(T_out)
     );
 
-    assign TLdbuf_out = TLd_en ? TL_out : 8'bz;
-    assign TLmbuf_out = TLm_en ? TL_out : 8'bz;
+    assign TLdbuf_out = TLd_en ? T_out.l : 8'bz;
+    assign TLmbuf_out = TLm_en ? T_out.l : 8'bz;
 
-    assign THdbuf_out = THd_en ? TH_out : 8'bz;
-    assign THmbuf_out = THm_en ? TH_out : 8'bz;
+    assign THdbuf_out = THd_en ? T_out.h : 8'bz;
+    assign THmbuf_out = THm_en ? T_out.h : 8'bz;
 
     // #endregion
 
@@ -485,12 +480,12 @@ module topLevel (
     assign xfer_bus = membuf_out
         | IRbuf_out
         | xferubuf_out;
-    assign memory_bus_h = DHmbuf_out
+    assign memory_bus.h = DHmbuf_out
         | PCHmbuf_out
         | THmbuf_out
         | Spagebuf_out
         | IRQHbuf_out;
-    assign memory_bus_l = ALUmbuf_out
+    assign memory_bus.l = ALUmbuf_out
         | Smbuf_out
         | DLmbuf_out
         | PCLmbuf_out

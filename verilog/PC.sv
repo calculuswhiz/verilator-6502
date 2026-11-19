@@ -1,3 +1,5 @@
+`include "./svh/word.svh"
+
 // Program counter, which is a lot like the CountReg, except for its reset
 module PC (
 	input clk,
@@ -11,19 +13,16 @@ module PC (
   input H_inc,
   input H_dec,
     
-	input [7:0]    PCL_in,
-	input [7:0]    PCH_in,
-    
+	input word_t PC_in,    
   input reset_n,
     
-	output [7:0]   PCL_out,
-	output [7:0]   PCH_out
+	output word_t PC_out
 );
 
   localparam INITIAL_VALUE = 0;
   localparam RESET_VECTOR = 16'hfffc;
 
-  logic [15:0] data;
+  word_t data;
 
   initial
     data = INITIAL_VALUE;
@@ -34,18 +33,19 @@ module PC (
     else if (L_inc)
       data <= data + 1'b1;
     else if (H_inc) begin
-      data <= {data[15:8] + 1'b1, data[7:0]};
+      data.h <= data[15:8] + 1'b1;
+      data.l <= data[7:0];
     end else if (H_dec) begin 
-      data <= {data[15:8] - 1'b1, data[7:0]};
+      data.h <= data[15:8] - 1'b1;
+      data.l <= data[7:0];
     end else begin
       data <= {
-        load_pc_h ? PCH_in : data[15:8],
-        load_pc_l ? PCL_in : data[7:0]
+        load_pc_h ? PC_in.h : data[15:8],
+        load_pc_l ? PC_in.l : data[7:0]
       };
     end
   end
 
-  assign PCL_out = data[7:0];
-  assign PCH_out = data[15:8];
+  assign PC_out = data;
 
 endmodule
