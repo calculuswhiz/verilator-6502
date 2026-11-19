@@ -26,15 +26,14 @@ module ALU (
 	/*
 		Only needs to support basic operations:
 		(The control unit will handle when to use each one.)
-			0.    carry-addition:     for address calculations and the ADC instruction.
-			1.    borrow-subtract:    SBC instruction, CMP instruction
-			2.    exclusive or:       EOR instruction
-			3.    or:                 ORA instruction
-			4.    and:                AND instruction, also unofficial SAX/LAX-type
-			5,6.  ++/--:              Increment/decrement. I did not merge these with
-																add/subtract because they set differnt flags
-			7,8.  rotate:             ROR, ROL
-			9,10. Shift:              ASL, LSR
+			0.    carry-addition:     Anything that requires addition/subtraction.
+																Includes INC/DEC/ASL
+			1.    exclusive or:       EOR instruction
+			2.    or:                 ORA instruction
+			3.    and:                AND instruction, also unofficial SAX/LAX-type
+			4,5.  rotate:             ROR, ROL
+			6.    shift:              LSR
+			f.    pass A              Default
 	*/
 	always @(a, b, carryIn, b_invert, overflowIn, operation) begin
 		casez (operation)
@@ -66,11 +65,6 @@ module ALU (
 			alu_ror: begin
 				result = {b[0], carryIn, b[7:1]};
 				carry = b[0];
-				overflow = overflowIn;
-			end
-			alu_rol: begin
-				result = {b[7:0], carryIn};
-				carry = b[7];
 				overflow = overflowIn;
 			end
 			alu_lsr: begin

@@ -725,7 +725,7 @@ module control_signal (
 			NOP_IMP: begin
 			end
 			ROL_ACC: begin
-				doAlu(alu_rol, aluSel_A, aluSel_A);
+				doAlu(alu_adc, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
 				C_ctl = P_in[0];
@@ -1008,7 +1008,7 @@ module control_signal (
 			ROL_ABS, ROL_ABX: begin
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_rol, aluSel_A, aluSel_TL);
+				doAlu(alu_adc, aluSel_TL, aluSel_TL);
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 				C_ctl = P_in[0];

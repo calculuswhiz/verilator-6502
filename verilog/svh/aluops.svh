@@ -12,10 +12,8 @@ typedef enum logic [3:0] {
   alu_and = 4'h3,
   /* Rotate right */
   alu_ror = 4'h4,
-  /* Rotate left */
-  alu_rol = 4'h5,
   /* Shift right */
-  alu_lsr = 4'h6,
+  alu_lsr = 4'h5,
   /* Pass input A */
   alu_pas = 4'hf
 } aluop_t;
