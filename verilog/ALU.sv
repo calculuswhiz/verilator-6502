@@ -30,8 +30,7 @@ module ALU (
 			1.    exclusive or:       EOR instruction
 			2.    or:                 ORA instruction
 			3.    and:                AND instruction, also unofficial SAX/LAX-type
-			4.    rotate:             ROR
-			5.    shift:              LSR
+			4.    rotate right: 			ROR, LSR
 			f.    pass A              Default
 	*/
 	always @(a, b, carryIn, b_invert, operation) begin
@@ -63,11 +62,6 @@ module ALU (
 			end
 			alu_ror: begin
 				result = {b[0], carryIn, b[7:1]};
-				carry = b[0];
-				overflow = 0;
-			end
-			alu_lsr: begin
-				result = {1'b0, b[7:1]};
 				carry = b[0];
 				overflow = 0;
 			end

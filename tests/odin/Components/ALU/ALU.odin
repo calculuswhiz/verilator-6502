@@ -22,7 +22,6 @@ AluOp :: enum {
 	alu_ora = 0x2,
 	alu_and = 0x3,
 	alu_ror = 0x4,
-	alu_lsr = 0x5,
 	alu_pas = 0xf,
 }
 
@@ -341,9 +340,9 @@ test_lsr :: proc(t: ^testing.T) {
 	defer destroy(alu_inst)
 	alu_state: Alu_State
 
-	set_operation(alu_inst, AluOp.alu_lsr)
+	set_operation(alu_inst, AluOp.alu_ror)
 
-	set_inputs(alu_inst, 0x00, 0x01)
+	set_inputs(alu_inst, 0x00, 0x01, 0)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
 	testing.expect_value(t, alu_state.f, 0x00)
@@ -352,7 +351,7 @@ test_lsr :: proc(t: ^testing.T) {
 	testing.expect_value(t, alu_state.carry, 1)
 	testing.expect_value(t, alu_state.overflow, 0)
 
-	set_inputs(alu_inst, 0x00, 0x02)
+	set_inputs(alu_inst, 0x00, 0x02, 0)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
 	testing.expect_value(t, alu_state.f, 0x01)

@@ -717,7 +717,8 @@ module control_signal (
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			LSR_ACC: begin
-				doAlu(alu_lsr, aluSel_A, aluSel_A);
+				doAlu(alu_ror, aluSel_A, aluSel_A);
+				C_ctl = 0;
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
@@ -999,7 +1000,8 @@ module control_signal (
 			LSR_ABS, LSR_ABX: begin
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_lsr, aluSel_A, aluSel_TL);
+				doAlu(alu_ror, aluSel_A, aluSel_TL);
+				C_ctl = 0;
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
