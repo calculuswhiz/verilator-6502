@@ -1,3 +1,4 @@
+`include "./svh/PFlags.svh"
 `include "./svh/muxSignals.svh"
 `include "./svh/page_invalid_state_t.svh"
 
@@ -15,8 +16,8 @@ module control (
 	input ALUA_sign,
 	input [7:0] mem_data,
 
-	// The P register [7:0] is: NV1B_DIZC
-	output logic [7:0] ctl_pvect, ctl_irvect,
+	output logic [7:0] ctl_irvect,
+	output PFlags ctl_pvect,
 
 	// Control signals:
 	// Reset (neg. edge):

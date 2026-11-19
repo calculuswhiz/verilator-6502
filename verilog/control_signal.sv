@@ -1,3 +1,4 @@
+`include "./svh/PFlags.svh"
 `include "./svh/muxSignals.svh"
 `include "./svh/page_invalid_state_t.svh"
 `include "./svh/bus_sources.svh"
@@ -6,7 +7,7 @@ typedef enum { d, t, s, pc } addressor_t;
 
 /** Generates control signals */
 module control_signal (
-  input [7:0] P_in,
+  input PFlags P_in,
 	input [7:0] IR_in,
 	input alu_V, alu_C, alu_N, alu_Z,
   input ALUA_sign,
@@ -14,8 +15,9 @@ module control_signal (
 
   input cpu_state state,
 
+	output logic [7:0] ctl_irvect,
   // The P register [7:0] is: NV1B_DIZC
-	output logic [7:0] ctl_pvect, ctl_irvect,
+	output PFlags ctl_pvect,
 
 	// Control signals:
 	// Reset (neg. edge):
@@ -84,13 +86,13 @@ module control_signal (
 	// Flag setting functions:
 	function void maskNvzcFromALU(bit setN, bit setV, bit setZ, bit setC);
 		if (setN)
-			ctl_pvect[7] = alu_N;
+			ctl_pvect.N = alu_N;
 		if (setV)
-			ctl_pvect[6] = alu_V;
+			ctl_pvect.V = alu_V;
 		if (setZ)
-			ctl_pvect[1] = alu_Z;
+			ctl_pvect.Z = alu_Z;
 		if (setC)
-			ctl_pvect[0] = alu_C;
+			ctl_pvect.C = alu_C;
 		P_ld = 1;
 	endfunction
 
@@ -375,8 +377,8 @@ module control_signal (
 				setMemBusSource(Spagem, Sm);
 				S_dec = 1;
 				setDataBusSource(db_src_Pd);
-				ctl_pvect[2] = 1;
-				ctl_pvect[4] = 1;
+				ctl_pvect.I = 1;
+				ctl_pvect.B = 1;
 				P_ld = 1;
 			end
 			BRK_IMP_5: begin
@@ -673,19 +675,19 @@ module control_signal (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			CLC_IMP: begin
-				ctl_pvect[0] = 0;
+				ctl_pvect.C = 0;
 				P_ld = 1;
 			end
 			CLD_IMP: begin
-				ctl_pvect[3] = 0;
+				ctl_pvect.D = 0;
 				P_ld = 1;
 			end
 			CLI_IMP: begin
-				ctl_pvect[2] = 0;
+				ctl_pvect.I = 0;
 				P_ld = 1;
 			end
 			CLV_IMP: begin
-				ctl_pvect[6] = 0;
+				ctl_pvect.V = 0;
 				P_ld = 1;
 			end
 			DEX_IMP: begin
@@ -740,15 +742,15 @@ module control_signal (
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			SEC_IMP: begin
-				ctl_pvect[0] = 1;
+				ctl_pvect.C = 1;
 				P_ld = 1;
 			end
 			SED_IMP: begin
-				ctl_pvect[3] = 1;
+				ctl_pvect.D = 1;
 				P_ld = 1;
 			end
 			SEI_IMP: begin
-				ctl_pvect[2] = 1;
+				ctl_pvect.I = 1;
 				P_ld = 1;
 			end
 			TAX_IMP: begin
@@ -830,8 +832,8 @@ module control_signal (
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
 				// Copy in memory NV bits. Not set by ALU
-				ctl_pvect[7] = mem_data[7];
-				ctl_pvect[6] = mem_data[6];
+				ctl_pvect.N = mem_data[7];
+				ctl_pvect.V = mem_data[6];
 				maskNvzcFromALU(0, 0, 1, 0);
 			end
 			CMP_ABX, CMP_ABY: begin

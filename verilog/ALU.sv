@@ -3,6 +3,7 @@
 module ALU (
 	input [7:0] a,
 	input [7:0] b,
+	// Lets us share logic with add and consolidate a lot of logic
 	input b_invert,
 	input carryIn,
 

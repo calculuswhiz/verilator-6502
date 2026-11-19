@@ -1,3 +1,4 @@
+`include "./svh/PFlags.svh"
 `include "./svh/aluops.svh"
 `include "./svh/opCodeHex.svh"
 `include "./svh/muxSignals.svh"
@@ -91,7 +92,7 @@ module topLevel (
     wire [7:0] DLmbuf_out, DLdbuf_out, DHmbuf_out, DHdbuf_out;
     wire [7:0] TL_out, TH_out;
     wire [7:0] TLmbuf_out, TLdbuf_out, THmbuf_out, THdbuf_out;
-    wire [7:0] ctl_pvect;
+    wire PFlags ctl_pvect;
     wire [7:0] P_out;
     wire [7:0] Pbuf_out;
     wire [7:0] ctl_irvect;
