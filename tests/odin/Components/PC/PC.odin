@@ -18,26 +18,26 @@ foreign MyVPC {
 	eval :: proc(instance: VPC) ---
 
 	@(link_name = "VPC_get_state")
-	get_state :: proc(instance: VPC) -> c.ushort ---
+	get_state :: proc(instance: VPC) -> u16 ---
 
 	@(link_name = "VPC_get_clk")
-	get_clk :: proc(instance: VPC) -> c.uchar ---
+	get_clk :: proc(instance: VPC) -> u8 ---
 	@(link_name = "VPC_set_clk")
-	set_clk :: proc(instance: VPC, value: c.uchar) ---
+	set_clk :: proc(instance: VPC, value: u8) ---
 	@(link_name = "VPC_set_load_pc_l")
-	set_load_pc_l :: proc(instance: VPC, value: c.uchar) ---
+	set_load_pc_l :: proc(instance: VPC, value: u8) ---
 	@(link_name = "VPC_set_load_pc_h")
-	set_load_pc_h :: proc(instance: VPC, value: c.uchar) ---
+	set_load_pc_h :: proc(instance: VPC, value: u8) ---
 	@(link_name = "VPC_set_L_inc")
-	set_L_inc :: proc(instance: VPC, value: c.uchar) ---
+	set_L_inc :: proc(instance: VPC, value: u8) ---
 	@(link_name = "VPC_set_H_inc")
-	set_H_inc :: proc(instance: VPC, value: c.uchar) ---
+	set_H_inc :: proc(instance: VPC, value: u8) ---
 	@(link_name = "VPC_set_H_dec")
-	set_H_dec :: proc(instance: VPC, value: c.uchar) ---
+	set_H_dec :: proc(instance: VPC, value: u8) ---
 	@(link_name = "VPC_set_reset_n")
-	set_reset_n :: proc(instance: VPC, value: c.uchar) ---
+	set_reset_n :: proc(instance: VPC, value: u8) ---
 	@(link_name = "VPC_set_PC_in")
-	set_PC_in :: proc(instance: VPC, value: c.ushort) ---
+	set_PC_in :: proc(instance: VPC, value: u16) ---
 }
 
 cycle_clock :: proc(reg: VPC) {
@@ -55,7 +55,7 @@ test :: proc(t: ^testing.T) {
 	reg := create()
 	defer destroy(reg)
 
-	regState: c.ushort
+	regState: u16
 
 	set_clk(reg, 0)
 	set_load_pc_h(reg, 0)

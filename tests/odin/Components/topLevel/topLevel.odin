@@ -6,9 +6,7 @@ import "../../LibVerilator/VerilatedContext"
 import "../../LibVerilator/VerilatedVcdC"
 import "../../PcState"
 import "../../TestMap"
-import "core:c"
 import "core:fmt"
-import "core:log"
 import "core:os"
 import "core:testing"
 
@@ -28,39 +26,39 @@ foreign MytopLevel {
 	trace :: proc(instance: VtopLevel, vcdFile: VerilatedVcdC.ptr, levels: i32) ---
 
 	@(link_name = "VtopLevel_get_clk")
-	get_clk :: proc(instance: VtopLevel) -> c.char ---
+	get_clk :: proc(instance: VtopLevel) -> u8 ---
 	@(link_name = "VtopLevel_set_clk")
-	set_clk :: proc(instance: VtopLevel, value: c.char) ---
+	set_clk :: proc(instance: VtopLevel, value: u8) ---
 	@(link_name = "VtopLevel_set_forceReset_n")
-	set_forceReset_n :: proc(instance: VtopLevel, value: c.char) ---
+	set_forceReset_n :: proc(instance: VtopLevel, value: u8) ---
 	@(link_name = "VtopLevel_set_mem_rData")
-	set_mem_rData :: proc(instance: VtopLevel, value: c.char) ---
+	set_mem_rData :: proc(instance: VtopLevel, value: u8) ---
 	@(link_name = "VtopLevel_get_mem_rW")
-	get_mem_rW :: proc(instance: VtopLevel) -> c.char ---
+	get_mem_rW :: proc(instance: VtopLevel) -> u8 ---
 	@(link_name = "VtopLevel_get_mem_wData")
-	get_mem_wData :: proc(instance: VtopLevel) -> c.char ---
+	get_mem_wData :: proc(instance: VtopLevel) -> u8 ---
 	@(link_name = "VtopLevel_get_dbg_IR_out")
-	get_dbg_IR_out :: proc(instance: VtopLevel) -> c.char ---
+	get_dbg_IR_out :: proc(instance: VtopLevel) -> u8 ---
 	@(link_name = "VtopLevel_get_dbg_A_out")
-	get_dbg_A_out :: proc(instance: VtopLevel) -> c.char ---
+	get_dbg_A_out :: proc(instance: VtopLevel) -> u8 ---
 	@(link_name = "VtopLevel_get_dbg_X_out")
-	get_dbg_X_out :: proc(instance: VtopLevel) -> c.char ---
+	get_dbg_X_out :: proc(instance: VtopLevel) -> u8 ---
 	@(link_name = "VtopLevel_get_dbg_Y_out")
-	get_dbg_Y_out :: proc(instance: VtopLevel) -> c.char ---
+	get_dbg_Y_out :: proc(instance: VtopLevel) -> u8 ---
 	@(link_name = "VtopLevel_get_dbg_S_out")
-	get_dbg_S_out :: proc(instance: VtopLevel) -> c.char ---
+	get_dbg_S_out :: proc(instance: VtopLevel) -> u8 ---
 	@(link_name = "VtopLevel_get_dbg_P_out")
-	get_dbg_P_out :: proc(instance: VtopLevel) -> c.char ---
+	get_dbg_P_out :: proc(instance: VtopLevel) -> u8 ---
 	@(link_name = "VtopLevel_get_mem_address")
-	get_mem_address :: proc(instance: VtopLevel) -> c.ushort ---
+	get_mem_address :: proc(instance: VtopLevel) -> u16 ---
 	@(link_name = "VtopLevel_get_dbg_D_out")
-	get_dbg_D_out :: proc(instance: VtopLevel) -> c.ushort ---
+	get_dbg_D_out :: proc(instance: VtopLevel) -> u16 ---
 	@(link_name = "VtopLevel_get_dbg_T_out")
-	get_dbg_T_out :: proc(instance: VtopLevel) -> c.ushort ---
+	get_dbg_T_out :: proc(instance: VtopLevel) -> u16 ---
 	@(link_name = "VtopLevel_get_dbg_PC_out")
-	get_dbg_PC_out :: proc(instance: VtopLevel) -> c.ushort ---
+	get_dbg_PC_out :: proc(instance: VtopLevel) -> u16 ---
 	@(link_name = "VtopLevel_get_dbg_state_out")
-	get_dbg_state_out :: proc(instance: VtopLevel) -> c.ushort ---
+	get_dbg_state_out :: proc(instance: VtopLevel) -> u16 ---
 }
 
 // NV1BDIZC

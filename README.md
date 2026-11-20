@@ -5,7 +5,7 @@ This project is a continuation on the work I did [here](https://github.com/calcu
 This is a purely digital SystemVerilog simulation. It is not a hardware copy of a 6502. It has different architecture, for example:
 - The data and memory buses are split (this one's on me as I didn't realize at the time that I could share a bus by making memory reads happen on alternating clock edges)
 - Every CPU is distinct and in theory cannot interfere with others
-    - Unofficial opcodes will be implemented with dedicated hardware
+    - Unofficial opcodes will be implemented with extra dedicated ALU ops
 
 ## Requirements
 

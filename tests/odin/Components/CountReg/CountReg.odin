@@ -18,26 +18,26 @@ foreign MyVCountReg {
 	eval :: proc(instance: VCountReg) ---
 
 	@(link_name = "VCountReg_get_state")
-	get_state :: proc(instance: VCountReg) -> c.ushort ---
+	get_state :: proc(instance: VCountReg) -> u16 ---
 
 	@(link_name = "VCountReg_get_clk")
-	get_clk :: proc(instance: VCountReg) -> c.uchar ---
+	get_clk :: proc(instance: VCountReg) -> u8 ---
 	@(link_name = "VCountReg_set_clk")
-	set_clk :: proc(instance: VCountReg, value: c.uchar) ---
+	set_clk :: proc(instance: VCountReg, value: u8) ---
 	@(link_name = "VCountReg_set_load_l")
-	set_load_l :: proc(instance: VCountReg, value: c.uchar) ---
+	set_load_l :: proc(instance: VCountReg, value: u8) ---
 	@(link_name = "VCountReg_set_load_h")
-	set_load_h :: proc(instance: VCountReg, value: c.uchar) ---
+	set_load_h :: proc(instance: VCountReg, value: u8) ---
 	@(link_name = "VCountReg_set_L_inc")
-	set_L_inc :: proc(instance: VCountReg, value: c.uchar) ---
+	set_L_inc :: proc(instance: VCountReg, value: u8) ---
 	@(link_name = "VCountReg_set_H_inc")
-	set_H_inc :: proc(instance: VCountReg, value: c.uchar) ---
+	set_H_inc :: proc(instance: VCountReg, value: u8) ---
 	@(link_name = "VCountReg_set_H_dec")
-	set_H_dec :: proc(instance: VCountReg, value: c.uchar) ---
+	set_H_dec :: proc(instance: VCountReg, value: u8) ---
 	@(link_name = "VCountReg_set_H_rst_n")
-	set_H_rst_n :: proc(instance: VCountReg, value: c.uchar) ---
+	set_H_rst_n :: proc(instance: VCountReg, value: u8) ---
 	@(link_name = "VCountReg_set_reg_in")
-	set_reg_in :: proc(instance: VCountReg, value: c.ushort) ---
+	set_reg_in :: proc(instance: VCountReg, value: u16) ---
 }
 
 @(private = "file")
@@ -56,7 +56,7 @@ test_CountReg :: proc(t: ^testing.T) {
 	reg := create()
 	defer destroy(reg)
 
-	regState: c.ushort
+	regState: u16
 
 	set_clk(reg, 0)
 	set_load_l(reg, 0)

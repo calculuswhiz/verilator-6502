@@ -18,17 +18,17 @@ foreign MyGpReg {
 	destroy :: proc(instance: VGpReg) ---
 
 	@(link_name = "VGpReg_get_clk")
-	get_clk :: proc(instance: VGpReg) -> c.char ---
+	get_clk :: proc(instance: VGpReg) -> u8 ---
 	@(link_name = "VGpReg_set_clk")
-	set_clk :: proc(instance: VGpReg, value: c.char) ---
+	set_clk :: proc(instance: VGpReg, value: u8) ---
 	@(link_name = "VGpReg_set_load")
-	set_load :: proc(instance: VGpReg, value: c.char) ---
+	set_load :: proc(instance: VGpReg, value: u8) ---
 	@(link_name = "VGpReg_set_rst_n")
-	set_rst_n :: proc(instance: VGpReg, value: c.char) ---
+	set_rst_n :: proc(instance: VGpReg, value: u8) ---
 	@(link_name = "VGpReg_set_in")
-	set_in :: proc(instance: VGpReg, value: c.char) ---
+	set_in :: proc(instance: VGpReg, value: u8) ---
 	@(link_name = "VGpReg_get_state")
-	get_state :: proc(instance: VGpReg) -> c.char ---
+	get_state :: proc(instance: VGpReg) -> u8 ---
 }
 
 @(private = "file")

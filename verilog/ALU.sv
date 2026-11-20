@@ -18,9 +18,7 @@ module ALU (
 	output logic [7:0] f
 );
 
-	/* verilator lint_off UNOPTFLAT */
 	logic [8:0] result;
-	/* verilator lint_on UNOPTFLAT */
 
 	// Determine operation (aluops.sv):
 	/*
@@ -32,50 +30,48 @@ module ALU (
 			2.    or:                 ORA instruction
 			3.    and:                AND instruction, also unofficial SAX/LAX-type
 			4.    rotate right: 			ROR, LSR
+			---
+			5.    slo
+			6.    rla
+			7.    rle
+			8.    rra
+			---
 			f.    pass A              Default
 	*/
 	always @(a, b, carryIn, b_invert, operation) begin
-		casez (operation)
-			/* verilator lint_off WIDTH */
+		case (operation)
 			alu_adc: begin
-				result = {1'b0, a} 
-					+ {1'b0, (b_invert ? ~b : b)} 
-					+ {8'b0, carryIn};
-				carry = result[8];
-				// From NESDEV +: (result ^ A) & (result ^ memory) & $80
-				// From NESDEV -: (result ^ A) & (result ^ ~memory) & $80
-				overflow = (result[7] ^ a[7]) & (result[7] ^ b[7] ^ b_invert);
+				result = 9'(a)
+					+ {1'b0, (b_invert ? ~b : b)}
+					+ 9'(carryIn);
 			end
-			alu_eor: begin
-				result = a ^ b;
-				carry = carryIn;
-				overflow = 0;
-			end
-			alu_ora: begin
-				result = a | b;
-				carry = carryIn;
-				overflow = 0;
-			end
-			alu_and: begin
-				result = a & b;
-				carry = carryIn;
-				overflow = 0;
-			end
-			alu_ror: begin
+			alu_eor: 
+				result = 9'(a) ^ 9'(b);
+			alu_ora: 
+				result = 9'(a) | 9'(b);
+			alu_and: 
+				result = 9'(a) & 9'(b);
+			alu_ror: 
 				result = {b[0], carryIn, b[7:1]};
-				carry = b[0];
-				overflow = 0;
-			end
-			default: begin
-				result = a;
-				carry = carryIn;
-				overflow = 0;
-			end
-			/* verilator lint_on WIDTH */
+			// Unofficial opcodes
+			alu_slo: 
+				result = {b[7:0], 1'b0} | 9'(b);
+			alu_rla: 
+				result = {b[7:0], carryIn} & 9'(b);
+			alu_sre: 
+				result = {b[0], carryIn, b[7:1]} ^ 9'(b);
+			alu_rra: 
+				result = {b[0], carryIn, b[7:1]} + 9'(b) + 9'(carryIn);
+			default: 
+				result = 9'(a);
 		endcase
 
+		// From NESDEV +: (result ^ A) & (result ^ memory) & $80
+		// From NESDEV -: (result ^ A) & (result ^ ~memory) & $80
+		overflow = (result[7] ^ a[7]) & (result[7] ^ b[7] ^ b_invert);
+		carry = result[8];
 		negative = result[7];
-		zero = result[7:0] == 0 ? 1'b1 : 1'b0;
+		zero = result[7:0] == 0;
 		f = result[7:0];
 	end
 

@@ -9,17 +9,25 @@ const opcodeLines = (await fs.readFile(
 
 /** @type [string, string][] */
 const parsed = [];
-
+/** @type Map<string, number> */
+const seenAlready = new Map();
 for (const line of opcodeLines) {
   if (line.startsWith("#") || line.length === 0)
     continue;
-
-  parsed.push(line.split(" "));
+  const [name, value] = line.split(/\s+/);
+  if (!seenAlready.has(name)) {
+    parsed.push([name, value]);
+    seenAlready.set(name, 0);
+  } else {
+    const times = seenAlready.get(name) + 1;
+    parsed.push([`${name}_${times}`, value]);
+    seenAlready.set(name, times);
+  }
 }
 
 await fs.writeFile(
   path.join(import.meta.dirname, "../verilog/opCodeHex.sv"),
-  `/* GENERATED - DO NOT EDIT */
+  `/* GENERATED (${import.meta.filename}) - DO NOT EDIT */
 \`ifndef OP_CODE_HEX_SV
 \`define OP_CODE_HEX_SV
 
@@ -33,7 +41,7 @@ typedef enum logic [11:0] {
 await fs.writeFile(
   path.join(import.meta.dirname, "../tests/odin/PcState/PcState.odin"),
   `package PcState
-/* GENERATED - DO NOT EDIT */
+/* GENERATED (${import.meta.filename}) - DO NOT EDIT */
 ${parsed.map(([name, value]) => `${name} :: 0x${value}`).join("\n")}
 `, "utf-8"
 );
