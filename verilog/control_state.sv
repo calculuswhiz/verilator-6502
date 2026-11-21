@@ -26,6 +26,7 @@ module control_state (
   always @(negedge clk) begin
 		let ir_opcode = (cpu_state)'({4'h0, IR_in});
 		case (state)
+			// For states that are ready to fetch now
 			boot_3, ABSOLUTE_W, ZEROPAGE_W,
 			JSR_ABS, RTS_IMP,
 			BRK_IMP, RTI_IMP,
@@ -44,23 +45,22 @@ module control_state (
 			LDA_ZPX, LDX_ZPY, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
 			STA_ZPX, STX_ZPY, STY_ZPX,
 			LDA_XID, ORA_XID, EOR_XID, AND_XID, ADC_XID, CMP_XID, SBC_XID, STA_XID,
+			ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM,
 			// UO
+			ANC_IMMa, ANC_IMMb, ALR_IMM, ARR_IMM, XAA_IMM, LAX_IMM, AXS_IMM, SBC_IMM_U,
 			LAX_ZPG, LAX_ZPY, SAX_ZPG, SAX_ZPY,
 			LAX_XID, SAX_XID,
 			LAX_ABS, SAX_ABS:
-				next_state <= fetch2;
+				next_state <= fetch;
+			// States that are ready to fetch if page is not invalid
 			ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
 			ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX : begin
 				next_state <= page_invalid_state != page_normal
 					// Transition to ___PG state
 					? (cpu_state)'({4'h2, state[7:0]})
-					: fetch2;
+					: fetch;
 			end
-			ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM,
-			// UO
-			ANC_IMMa, ANC_IMMb, ALR_IMM, ARR_IMM, XAA_IMM, LAX_IMM, AXS_IMM, SBC_IMM:
-				next_state <= fetch2;
-			fetch2, BRANCH_CHECK, BRANCH_TAKEN, BRANCH_PAGE: begin
+			fetch, BRANCH_CHECK, BRANCH_TAKEN, BRANCH_PAGE: begin
 				if (state == BRANCH_TAKEN & page_invalid_state != page_normal) begin
 					next_state <= BRANCH_PAGE;
 				end
@@ -265,7 +265,7 @@ module control_state (
 				next_state <= page_invalid_state != page_normal
 					// Share with ___XID states
 					? (cpu_state)'({4'h0, state[7:4] - 4'h1, state[3:0]})
-					: fetch2;
+					: fetch;
 			end
 			STA_IDY:
 				next_state <= STA_XID;

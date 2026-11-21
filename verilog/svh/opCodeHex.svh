@@ -161,7 +161,7 @@ typedef enum logic [11:0] {
   XAA_IMM = 12'h08B,
   LAX_IMM = 12'h0AB,
   AXS_IMM = 12'h0CB,
-  SBC_IMM_1 = 12'h0EB,
+  SBC_IMM_U = 12'h0EB,
   SLO_ZPG = 12'h007,
   RLA_ZPG = 12'h027,
   SRE_ZPG = 12'h047,
@@ -220,8 +220,7 @@ typedef enum logic [11:0] {
   SHX_ABY = 12'h09E,
   TAS_ABY = 12'h09B,
   LAS_ABY = 12'h0BB,
-  boot_3 = 12'h101,
-  fetch2 = 12'h102,
+  fetch = 12'h102,
   BUS_NOP = 12'h104,
   ABSOLUTE_1 = 12'h105,
   ABSOLUTE_2 = 12'h106,
@@ -288,6 +287,7 @@ typedef enum logic [11:0] {
   JSR_ABS_4 = 12'h520,
   boot_1 = 12'hf00,
   boot_2 = 12'hf01,
+  boot_3 = 12'hf02,
   ERROR = 12'hfff
 } cpu_state;
 `endif

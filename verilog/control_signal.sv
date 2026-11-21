@@ -246,7 +246,7 @@ module control_signal (
 
 		/* State actions: */
 		case (state)
-			fetch2: begin
+			fetch: begin
 				fetchAddressOpcode();
 				IR_ld = 1;
 			end

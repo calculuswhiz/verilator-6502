@@ -194,7 +194,7 @@ reset :: proc(
 	testing.expect_value(t, get_dbg_PC_out(top), StandardProgramRomAddr)
 
 	toggle_clock(top, testMap, vcdOut, &counter, dumpDuringReset)
-	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch2)
+	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch)
 	testing.expect_value(t, get_dbg_PC_out(top), StandardProgramRomAddr)
 
 	return counter
@@ -482,7 +482,7 @@ testLoadStore :: proc(t: ^testing.T) {
 		true,
 	)
 	testing.expect_value(t, get_dbg_A_out(top), 0x3)
-	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch2)
+	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch)
 
 
 	// [](../../6502-code/ROM/loadStore.test.asm:96)
@@ -536,7 +536,7 @@ testLoadStore :: proc(t: ^testing.T) {
 		true,
 	)
 	testing.expect_value(t, get_dbg_A_out(top), 0xfd)
-	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch2)
+	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch)
 
 	run_n_cycles(6, top, testMap, vcdOut, &counter, true)
 }
@@ -656,11 +656,11 @@ testFlagsBranch :: proc(t: ^testing.T) {
 		)
 		run_n_cycles(CycleTimes.JMP_abs_cycles, top, testMap, vcdOut, &counter, true)
 	}
-	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch2)
+	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch)
 
 	// Set flags
 	run_n_cycles(8, top, testMap, vcdOut, &counter, true)
-	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch2)
+	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch)
 
 	branchPageFixOps2 := [?]u8{PcState.BCS_REL, PcState.BEQ_REL, PcState.BMI_REL, PcState.BVS_REL}
 	for i in 0 ..< 4 {
@@ -679,7 +679,7 @@ testFlagsBranch :: proc(t: ^testing.T) {
 		)
 		run_n_cycles(CycleTimes.JMP_abs_cycles, top, testMap, vcdOut, &counter, true)
 	}
-	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch2)
+	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch)
 
 	run_n_cycles(6, top, testMap, vcdOut, &counter, true)
 }
@@ -1080,7 +1080,7 @@ testArithmetic :: proc(t: ^testing.T) {
 	)
 	testing.expect_value(t, get_dbg_A_out(top), 0xff)
 
-	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch2)
+	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch)
 
 	// Absolute, Y
 	run_n_cycles(
@@ -1107,7 +1107,7 @@ testArithmetic :: proc(t: ^testing.T) {
 	run_n_cycles(CycleTimes.ADC_aby_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_A_out(top), 0x80)
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.V | PFlags.N))
-	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch2)
+	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch)
 
 	run_n_cycles(CycleTimes.SBC_aby_cycles, top, testMap, vcdOut, &counter, true)
 	testing.expect_value(t, get_dbg_P_out(top), u8(PFlags.Z | PFlags.V | PFlags.C))
@@ -1133,7 +1133,7 @@ testArithmetic :: proc(t: ^testing.T) {
 		true,
 	)
 	testing.expect_value(t, get_dbg_A_out(top), 0xff)
-	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch2)
+	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch)
 
 	run_n_cycles(6, top, testMap, vcdOut, &counter, true)
 }
@@ -1242,7 +1242,7 @@ testArithmeticIndirects :: proc(t: ^testing.T) {
 		true,
 	)
 	testing.expect_value(t, get_dbg_A_out(top), 0xff)
-	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch2)
+	testing.expect_value(t, get_dbg_state_out(top), PcState.fetch)
 
 	run_n_cycles(6, top, testMap, vcdOut, &counter, true)
 }

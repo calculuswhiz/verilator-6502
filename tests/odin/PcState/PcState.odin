@@ -158,7 +158,7 @@ ARR_IMM :: 0x06B
 XAA_IMM :: 0x08B
 LAX_IMM :: 0x0AB
 AXS_IMM :: 0x0CB
-SBC_IMM_1 :: 0x0EB
+SBC_IMM_U :: 0x0EB
 SLO_ZPG :: 0x007
 RLA_ZPG :: 0x027
 SRE_ZPG :: 0x047
@@ -217,8 +217,7 @@ AHX_ABY :: 0x09F
 SHX_ABY :: 0x09E
 TAS_ABY :: 0x09B
 LAS_ABY :: 0x0BB
-boot_3 :: 0x101
-fetch2 :: 0x102
+fetch :: 0x102
 BUS_NOP :: 0x104
 ABSOLUTE_1 :: 0x105
 ABSOLUTE_2 :: 0x106
@@ -285,4 +284,5 @@ JSR_ABS_3 :: 0x420
 JSR_ABS_4 :: 0x520
 boot_1 :: 0xf00
 boot_2 :: 0xf01
+boot_3 :: 0xf02
 ERROR :: 0xfff
