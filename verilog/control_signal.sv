@@ -97,7 +97,7 @@ module control_signal (
 	endfunction
 
 	// If page crossed, fix page D
-	function void Dpage_invd();
+	function void fix_page_addressor();
 		case (page_invalid_state)
 			page_normal:
 				/* None */;
@@ -111,13 +111,21 @@ module control_signal (
 	endfunction
 
 	// If page cross will happen, set invalid buffer
-	function void set_page_invalid_state();
-		if (~ALUA_sign & alu_C)
-			page_invalid_state = page_inc;
-		else if (ALUA_sign & ~alu_C)
-			page_invalid_state = page_dec;
-		else
-			page_invalid_state = page_normal;
+	function void check_page_invalid_state(bit is_signed);
+		if (is_signed) begin
+			if (~ALUA_sign & alu_C)
+				page_invalid_state = page_inc;
+			else if (ALUA_sign & ~alu_C)
+				page_invalid_state = page_dec;
+			else
+				page_invalid_state = page_normal;
+		end
+		else begin
+			if (alu_C)
+				page_invalid_state = page_inc;
+			else
+				page_invalid_state = page_normal;
+		end
 	endfunction
 
 	/** Fetch PC-addressed location, increment PC.  */
@@ -291,7 +299,7 @@ module control_signal (
 				DLmux_sel = dlSel_ALU_out;
 				DL_ld = 1;
 				PCL_inc = 1;
-				set_page_invalid_state();
+				check_page_invalid_state(1);
 			end
 			ABSOLUTE_Y: begin
 				setReadMem();
@@ -301,13 +309,13 @@ module control_signal (
 				DLmux_sel = dlSel_ALU_out;
 				DL_ld = 1;
 				PCL_inc = 1;
-				set_page_invalid_state();
+				check_page_invalid_state(1);
 			end
 			ABSOLUTE_XYR: begin
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				TL_ld = 1;
-				Dpage_invd();
+				fix_page_addressor();
 			end
 			ABSOLUTE_XYR_PAGE: begin
 				setReadMem();
@@ -333,7 +341,7 @@ module control_signal (
 					PCLmux_sel = pclSel_memory_bus_l;
 					PCL_ld = 1;
 					// Fix PCH: if a: carry on positive addition, or b: no carry on negative addition.
-					set_page_invalid_state();
+					check_page_invalid_state(1);
 				end else begin
 					fetchAddressOpcode();
 					IR_ld = 1;
@@ -398,11 +406,8 @@ module control_signal (
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_adc, aluSel_Y, aluSel_TL);
 				TH_ld = 1;
-				// Do NOT use set_page_invalid_state. That's for signed address addition. This is UNsigned.
+				check_page_invalid_state(0);
 				// If carry is set, that means need to add 1 to TH
-				page_invalid_state = alu_C
-					? page_inc
-					: page_normal;
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 			end
@@ -792,11 +797,10 @@ module control_signal (
 				Amux_sel = aSel_ALU_out;
 				C_ctl = P_in[0];
 				A_ld = 1;
-				Dpage_invd();
+				fix_page_addressor();
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
-			ADC_ZPG, ADC_ZPX,
-			ADC_ABS, ADC_ABX_PG, ADC_ABY_PG: begin
+			ADC_ZPG, ADC_ZPX, ADC_ABS: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(DHm, DLm);
@@ -812,11 +816,11 @@ module control_signal (
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
-				Dpage_invd();
+				fix_page_addressor();
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			AND_ZPG, AND_ZPX,
-			AND_ABS, AND_ABX_PG, AND_ABY_PG: begin
+			AND_ABS: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(DHm, DLm);
@@ -843,11 +847,10 @@ module control_signal (
 				b_invert = 1'b1;
 				Amux_sel = aSel_ALU_out;
 				C_ctl = 1;
-				Dpage_invd();
+				fix_page_addressor();
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
-			CMP_ZPG, CMP_ZPX,
-			CMP_ABS, CMP_ABX_PG, CMP_ABY_PG,
+			CMP_ZPG, CMP_ZPX, CMP_ABS,
 			CPX_ZPG, CPX_ABS, CPY_ZPG, CPY_ABS: begin
 				page_invalid_state = page_normal;
 				setReadMem();
@@ -864,11 +867,10 @@ module control_signal (
 				doAlu(alu_eor, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
-				Dpage_invd();
+				fix_page_addressor();
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
-			EOR_ZPG, EOR_ZPX,
-			EOR_ABS, EOR_ABX_PG, EOR_ABY_PG: begin
+			EOR_ZPG, EOR_ZPX, EOR_ABS: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(DHm, DLm);
@@ -882,11 +884,11 @@ module control_signal (
 				setMemBusSource(DHm, DLm);
 				ALU_Amux_sel = aluSel_data_bus;
 				A_ld = 1;
-				Dpage_invd();
+				fix_page_addressor();
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
 			LDA_ZPG, LDA_ZPX,
-			LDA_ABS, LDA_ABX_PG, LDA_ABY_PG: begin
+			LDA_ABS: begin
 				page_invalid_state = page_normal;
 				setMemBusSource(DHm, DLm);
 				setReadMem();
@@ -899,11 +901,10 @@ module control_signal (
 				setMemBusSource(DHm, DLm);
 				ALU_Amux_sel = aluSel_data_bus;
 				X_ld = 1;
-				Dpage_invd();
+				fix_page_addressor();
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
-			LDX_ZPG, LDX_ZPY,
-			LDX_ABS, LDX_ABY_PG: begin
+			LDX_ZPG, LDX_ZPY, LDX_ABS: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(DHm, DLm);
@@ -916,11 +917,10 @@ module control_signal (
 				setMemBusSource(DHm, DLm);
 				ALU_Amux_sel = aluSel_data_bus;
 				X_ld = 1;
-				Dpage_invd();
+				fix_page_addressor();
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
-			LDY_ZPG, LDY_ZPX,
-			LDY_ABS, LDY_ABX_PG: begin
+			LDY_ZPG, LDY_ZPX, LDY_ABS: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(DHm, DLm);
@@ -934,11 +934,10 @@ module control_signal (
 				doAlu(alu_ora, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
-				Dpage_invd();
+				fix_page_addressor();
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
-			ORA_ZPG, ORA_ZPX,
-			ORA_ABS, ORA_ABX_PG, ORA_ABY_PG: begin
+			ORA_ZPG, ORA_ZPX, ORA_ABS: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(DHm, DLm);
@@ -955,11 +954,10 @@ module control_signal (
 				Amux_sel = aSel_ALU_out;
 				C_ctl = P_in[0];
 				A_ld = 1;
-				Dpage_invd();
+				fix_page_addressor();
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
-			SBC_ZPG, SBC_ZPX,
-			SBC_ABS, SBC_ABX_PG, SBC_ABY_PG: begin
+			SBC_ZPG, SBC_ZPX, SBC_ABS: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(DHm, DLm);

@@ -553,7 +553,7 @@ different kinds of instructions.
                            fix high byte of effective address
                             if TH invalid, TH+=1, else A=op?(M[T])  (depends) (Careful! It's unsigned.)
         6+  address+Y   R  read from effective address
-                            A=op?(M[T])                             (depends_PG = analogous xid)
+                            A=op?(M[T])                             (share with ABS at -0x10)
 
        Notes: The effective address is always fetched from zero page,
               i.e. the zero page boundary crossing is not handled.
@@ -614,7 +614,7 @@ different kinds of instructions.
                            fix high byte of effective address
                             fix(TH)                                 (depends)
         6   address+Y   W  write to effective address
-                            M[T]=A                                  (depends_PG)
+                            M[T]=A                                  (share with ABS)
 
        Notes: The effective address is always fetched from zero page,
               i.e. the zero page boundary crossing is not handled.

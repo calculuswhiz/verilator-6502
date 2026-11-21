@@ -37,8 +37,6 @@ module control_state (
 			JMP_ABS, JMP_IND,
 			ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS,SBC_ABS,
 			STA_ABS, STX_ABS, STY_ABS,
-			LDA_ABX_PG, LDY_ABX_PG, EOR_ABX_PG, AND_ABX_PG, ORA_ABX_PG, ADC_ABX_PG, SBC_ABX_PG, CMP_ABX_PG,
-			ADC_ABY_PG, AND_ABY_PG, CMP_ABY_PG, EOR_ABY_PG, LDA_ABY_PG, LDX_ABY_PG, ORA_ABY_PG, SBC_ABY_PG,
 			STA_ABX, STA_ABY,
 			LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, CPX_ZPG, CPY_ZPG, BIT_ZPG,
 			STA_ZPG, STX_ZPG, STY_ZPG,
@@ -53,13 +51,19 @@ module control_state (
 			LAX_ABS, SAX_ABS:
 				next_state <= fetch;
 			// States that are ready to fetch if page is not invalid
-			ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
 			ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX : begin
 				next_state <= page_invalid_state != page_normal
-					// Transition to ___PG state
-					? (cpu_state)'({4'h2, state[7:0]})
+					// Share with _ABS e.g. 3d -> 2d
+					? (cpu_state)'(state - 12'h10)
 					: fetch;
 			end
+			ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY : begin
+				next_state <= page_invalid_state != page_normal
+					// Share with _ABS, e.g. 39 -> 2d
+					? (cpu_state)'(state - 12'h0c)
+					: fetch;
+			end
+			// Decode
 			fetch, BRANCH_CHECK, BRANCH_TAKEN, BRANCH_PAGE: begin
 				if (state == BRANCH_TAKEN & page_invalid_state != page_normal) begin
 					next_state <= BRANCH_PAGE;
