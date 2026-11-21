@@ -1,5 +1,5 @@
 package PcState
-/* GENERATED (/Users/averagesalamander/Workspace/verilator-6502/scripts/generateOpcodeConstants.js) - DO NOT EDIT */
+/* GENERATED (generateOpcodeConstants.odin) - DO NOT EDIT */
 ADC_IMM :: 0x069
 AND_IMM :: 0x029
 CMP_IMM :: 0x0C9
