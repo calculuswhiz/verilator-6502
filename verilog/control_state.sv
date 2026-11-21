@@ -18,6 +18,11 @@ module control_state (
 
   cpu_state next_state;
 
+	// TODO UO's
+	// TODO XID SLO, SRE, RLA, RRA, ISC, DCP
+	// TODO IDY SLO, SRE, RLA, RRA, ISC, DCP
+	// TODO ABX/ABY
+
   always @(negedge clk) begin
 		let ir_opcode = (cpu_state)'({4'h0, IR_in});
 		case (state)
@@ -38,7 +43,11 @@ module control_state (
 			STA_ZPG, STX_ZPG, STY_ZPG,
 			LDA_ZPX, LDX_ZPY, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
 			STA_ZPX, STX_ZPY, STY_ZPX,
-			LDA_XID, ORA_XID, EOR_XID, AND_XID, ADC_XID, CMP_XID, SBC_XID, STA_XID:
+			LDA_XID, ORA_XID, EOR_XID, AND_XID, ADC_XID, CMP_XID, SBC_XID, STA_XID,
+			// UO
+			LAX_ZPG, LAX_ZPY, SAX_ZPG, SAX_ZPY,
+			LAX_XID, SAX_XID,
+			LAX_ABS, SAX_ABS:
 				next_state <= fetch2;
 			ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
 			ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX : begin
@@ -47,7 +56,9 @@ module control_state (
 					? (cpu_state)'({4'h2, state[7:0]})
 					: fetch2;
 			end
-			ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM:
+			ADC_IMM, AND_IMM, CMP_IMM, CPX_IMM, CPY_IMM, EOR_IMM, LDA_IMM, LDX_IMM, LDY_IMM, ORA_IMM, SBC_IMM,
+			// UO
+			ANC_IMMa, ANC_IMMb, ALR_IMM, ARR_IMM, XAA_IMM, LAX_IMM, AXS_IMM, SBC_IMM:
 				next_state <= fetch2;
 			fetch2, BRANCH_CHECK, BRANCH_TAKEN, BRANCH_PAGE: begin
 				if (state == BRANCH_TAKEN & page_invalid_state != page_normal) begin
@@ -69,7 +80,9 @@ module control_state (
 							ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP,
 							INY_IMP, LSR_ACC, NOP_IMP, ROL_ACC, ROR_ACC,
 							SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP,
-							TXS_IMP, TYA_IMP:
+							TXS_IMP, TYA_IMP,
+							// UO
+							ANC_IMMa, ANC_IMMb, ALR_IMM, ARR_IMM, XAA_IMM, LAX_IMM, AXS_IMM, SBC_IMM:
 								next_state <= (cpu_state)'(next_state_opcode);
 							JSR_ABS:
 								next_state <= JSR_ABS_1;
@@ -85,7 +98,10 @@ module control_state (
 							ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX,
 							ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
 							ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
-							STA_ABX, STA_ABY:
+							STA_ABX, STA_ABY, 
+							// UO
+							LAX_ABS, SAX_ABS,
+							SLO_ABS, SRE_ABS, RLA_ABS, RRA_ABS, ISC_ABS, DCP_ABS:
 								next_state <= ABSOLUTE_1;
 							LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG,
 							CPX_ZPG, CPY_ZPG, BIT_ZPG,
@@ -93,9 +109,16 @@ module control_state (
 							LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
 							ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX,
 							STA_ZPX, STY_ZPX,
-							LDX_ZPY, STX_ZPY:
+							LDX_ZPY, STX_ZPY,
+							// UO
+							SLO_ZPG, SRE_ZPG, RLA_ZPG, RRA_ZPG, ISC_ZPG, DCP_ZPG, SAX_ZPG,
+							LAX_ZPG, SAX_ZPG,
+							SLO_ZPX, SRE_ZPX, RLA_ZPX, RRA_ZPX, ISC_ZPX, DCP_ZPX,
+							LAX_ZPY, SAX_ZPY:
 								next_state <= ZEROPAGE;
-							LDA_XID, ORA_XID, EOR_XID, AND_XID, ADC_XID, CMP_XID, SBC_XID, STA_XID:
+							LDA_XID, ORA_XID, EOR_XID, AND_XID, ADC_XID, CMP_XID, SBC_XID, STA_XID,
+							// UO
+							LAX_XID, SAX_XID:
 								next_state <= XID_1;
 							LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY, STA_IDY:
 								next_state <= IDY_1;
@@ -148,9 +171,13 @@ module control_state (
 			ABSOLUTE_2: begin
 				case (ir_opcode)
 					ADC_ABS, AND_ABS, BIT_ABS, CMP_ABS, CPX_ABS, CPY_ABS, EOR_ABS, LDA_ABS, LDX_ABS, LDY_ABS, ORA_ABS,
-					SBC_ABS, STA_ABS, STX_ABS, STY_ABS:
+					SBC_ABS, STA_ABS, STX_ABS, STY_ABS,
+					// UO
+					LAX_ABS, SAX_ABS:
 						next_state <= ir_opcode;
-					ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS:
+					ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
+					// UO
+					SLO_ABS, SRE_ABS, RLA_ABS, RRA_ABS, ISC_ABS, DCP_ABS:
 						next_state <= ABSOLUTE_R;
 					JMP_IND:
 						next_state <= INDIRECT_1;
@@ -269,18 +296,28 @@ module control_state (
 			ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:
 				next_state <= ABSOLUTE_W;
 			ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG,
-			ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX:
+			ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX,
+			// UO 
+			SLO_ZPG, SRE_ZPG, RLA_ZPG, RRA_ZPG, ISC_ZPG, DCP_ZPG,
+			SLO_ZPX, SRE_ZPX, RLA_ZPX, RRA_ZPX, ISC_ZPX, DCP_ZPX,
+			SLO_ABS, SRE_ABS, RLA_ABS, RRA_ABS, ISC_ABS, DCP_ABS:
 				next_state <= ZEROPAGE_W;
 			ZEROPAGE: begin
 				case (ir_opcode)
 					LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, CPX_ZPG, CPY_ZPG, BIT_ZPG,
-					STA_ZPG, STX_ZPG, STY_ZPG:
+					STA_ZPG, STX_ZPG, STY_ZPG,
+					// UO
+					LAX_ZPG, SAX_ZPG:
 						next_state <= ir_opcode;
-					ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG:
+					ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG,
+					// UO
+					SLO_ZPG, SRE_ZPG, RLA_ZPG, RRA_ZPG, ISC_ZPG, DCP_ZPG:
 						next_state <= ZEROPAGE_R;
 					LDA_ZPX, LDY_ZPX, EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
 					ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX,
-					STA_ZPX, STY_ZPX:
+					STA_ZPX, STY_ZPX, 
+					// UO
+					LAX_ZPY, SAX_ZPY:
 						next_state <= ZEROPAGE_X;
 					LDX_ZPY, STX_ZPY:
 						next_state <= ZEROPAGE_Y;
@@ -294,7 +331,9 @@ module control_state (
 				case (ir_opcode)
 					LDA_ZPX, LDY_ZPX, LDX_ZPY,
 					EOR_ZPX, AND_ZPX, ORA_ZPX, ADC_ZPX, SBC_ZPX, CMP_ZPX,
-					STA_ZPX, STY_ZPX, STX_ZPY:
+					STA_ZPX, STY_ZPX, STX_ZPY,
+					// UO
+					LAX_ZPY, SAX_ZPY:
 						next_state <= ir_opcode;
 					ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX:
 						next_state <= ZEROPAGE_R;

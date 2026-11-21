@@ -77,9 +77,9 @@ module topLevel (
     wire V_out, C_in, C_out, N_out, Z_out;
 
     // GP-Buses:
-    reg [7:0] xfer_bus;
+    logic [7:0] xfer_bus;
     /* verilator lint_off UNOPTFLAT */
-    reg [7:0] data_bus;
+    logic [7:0] data_bus;
     word_t memory_bus;
     /* verilator lint_on UNOPTFLAT */
 
@@ -119,11 +119,11 @@ module topLevel (
     // Mulitplexed data:
     /* verilator lint_off UNOPTFLAT */
     wire [7:0] Smux_out, Amux_out;
-    reg [7:0] ALU_Amux_out, ALU_Bmux_out;
+    logic [7:0] ALU_Amux_out, ALU_Bmux_out;
     /* verilator lint_on UNOPTFLAT */
     wire [7:0] PCLmux_out, PCHmux_out;
     wire [7:0] DLmux_out, DHmux_out;
-    reg [7:0] TLmux_out;
+    logic [7:0] TLmux_out;
     wire [7:0] Pmux_out;
     wire [7:0] IRmux_out;
     wire [7:0] IRQLmux_out;

@@ -597,6 +597,7 @@ different kinds of instructions.
 
      Write instructions (STA,
                         SHA)
+                        // What is SHA??
 
         #    address   R/W description
        --- ----------- --- ------------------------------------------

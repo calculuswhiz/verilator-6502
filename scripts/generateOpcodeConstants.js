@@ -26,7 +26,7 @@ for (const line of opcodeLines) {
 }
 
 await fs.writeFile(
-  path.join(import.meta.dirname, "../verilog/opCodeHex.sv"),
+  path.join(import.meta.dirname, "../verilog/svh/opCodeHex.svh"),
   `/* GENERATED (${import.meta.filename}) - DO NOT EDIT */
 \`ifndef OP_CODE_HEX_SV
 \`define OP_CODE_HEX_SV
