@@ -1,4 +1,5 @@
-Info taken from https://www.oxyron.de/html/opcodes02.html
+Info taken from [here](https://www.oxyron.de/html/opcodes02.html).
+Better info [here](https://www.masswerk.at/nowgobang/2021/6502-illegal-opcodes)
 
 ## What they do
 

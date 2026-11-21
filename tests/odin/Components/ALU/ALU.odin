@@ -23,6 +23,10 @@ AluOp :: enum {
 	alu_ora = 0x2,
 	alu_and = 0x3,
 	alu_ror = 0x4,
+	alu_slo = 0x5,
+	alu_rla = 0x6,
+	alu_sre = 0x7,
+	alu_rra = 0x8,
 	alu_pas = 0xf,
 }
 
@@ -192,14 +196,14 @@ test_ora :: proc(t: ^testing.T) {
 	testing.expect_value(t, alu_state.f, 0xff)
 	testing.expect_value(t, alu_state.negative, 1)
 	testing.expect_value(t, alu_state.zero, 0)
-	
+
 	set_inputs(alu_inst, 0x00, 0x00)
 	eval(alu_inst)
 	alu_state = get_state(alu_inst)
 	testing.expect_value(t, alu_state.f, 0x00)
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 1)
-	}
+}
 
 @(test)
 test_and :: proc(t: ^testing.T) {
@@ -343,3 +347,196 @@ test_lsr :: proc(t: ^testing.T) {
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 0)
 }
+
+@(test)
+test_slo :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+
+	alu_inst := create()
+	defer destroy(alu_inst)
+	alu_state: Alu_State
+
+	set_operation(alu_inst, AluOp.alu_slo)
+
+	set_inputs(alu_inst, 0x00, 0x00)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 1)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0x00, 0x01)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0x02)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0x01, 0x01)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0x03)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0xc0, 0b0100_0000)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0b1100_0000)
+	testing.expect_value(t, alu_state.negative, 1)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0x80, 0b1000_0000)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0b1000_0000)
+	testing.expect_value(t, alu_state.negative, 1)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 1)
+}
+
+@(test)
+test_rla :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+
+	alu_inst := create()
+	defer destroy(alu_inst)
+	alu_state: Alu_State
+
+	set_operation(alu_inst, AluOp.alu_rla)
+
+	set_inputs(alu_inst, 0x00, 0x00)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 1)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0x00, 0x00, 1)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 1)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0x01, 0x01, 1)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 1)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0xff, 0xff, 0)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0xfe)
+	testing.expect_value(t, alu_state.negative, 1)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 1)
+
+	set_inputs(alu_inst, 0xff, 0xff, 1)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0xff)
+	testing.expect_value(t, alu_state.negative, 1)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 1)
+}
+
+@(test)
+test_sre :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+
+	alu_inst := create()
+	defer destroy(alu_inst)
+	alu_state: Alu_State
+
+	set_operation(alu_inst, AluOp.alu_sre)
+
+	set_inputs(alu_inst, 0x00, 0x00)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 1)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0x01, 0x01)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0x01)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 1)
+
+	set_inputs(alu_inst, 0x02, 0x02, 0)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0x03)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0x80, 0xff, 0)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0xff)
+	testing.expect_value(t, alu_state.negative, 1)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 1)
+}
+
+@(test)
+test_rra :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+
+	alu_inst := create()
+	defer destroy(alu_inst)
+	alu_state: Alu_State
+
+	set_operation(alu_inst, AluOp.alu_rra)
+
+	set_inputs(alu_inst, 0x00, 0x00)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 1)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0x01, 0x01, 0)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0x01)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 1)
+
+	set_inputs(alu_inst, 0x02, 0x02, 0)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0x03)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0x00, 0xff, 0)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0x7f)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 1)
+}
+

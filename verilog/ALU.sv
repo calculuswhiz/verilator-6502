@@ -31,6 +31,7 @@ module ALU (
 			3.    and:                AND instruction, also unofficial SAX/LAX-type
 			4.    rotate right: 			ROR, LSR
 			---
+			For these, use operand a for Accumulator, and b for Value
 			5.    slo
 			6.    rla
 			7.    rle
@@ -45,24 +46,24 @@ module ALU (
 					+ {1'b0, (b_invert ? ~b : b)}
 					+ 9'(carryIn);
 			end
-			alu_eor: 
+			alu_eor:
 				result = 9'(a) ^ 9'(b);
-			alu_ora: 
+			alu_ora:
 				result = 9'(a) | 9'(b);
-			alu_and: 
+			alu_and:
 				result = 9'(a) & 9'(b);
-			alu_ror: 
+			alu_ror:
 				result = {b[0], carryIn, b[7:1]};
 			// Unofficial opcodes
-			alu_slo: 
-				result = {b[7:0], 1'b0} | 9'(b);
-			alu_rla: 
-				result = {b[7:0], carryIn} & 9'(b);
-			alu_sre: 
-				result = {b[0], carryIn, b[7:1]} ^ 9'(b);
-			alu_rra: 
-				result = {b[0], carryIn, b[7:1]} + 9'(b) + 9'(carryIn);
-			default: 
+			alu_slo:
+				result = {b[7:0], 1'b0} | {1'b0, a};
+			alu_rla:
+				result = {b[7:0], carryIn} & {1'b1, a};
+			alu_sre:
+				result = {b[0], carryIn, b[7:1]} ^ {1'b0, a};
+			alu_rra:
+				result = {b[0], carryIn, b[7:1]} + 9'(a);
+			default:
 				result = 9'(a);
 		endcase
 
