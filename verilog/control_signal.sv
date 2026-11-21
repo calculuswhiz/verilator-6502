@@ -329,10 +329,10 @@ module control_signal (
 			end
 			BRANCH_CHECK: begin
 				let branch_taken =
-					(IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) // C
-					| (IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in[1])) // Z
-					| (~IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in[6])) // V
-					| (~IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[7])); // N
+					(IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in.C))
+					| (IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in.Z))
+					| (~IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in.V))
+					| (~IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in.N));
 				if (branch_taken) begin
 					IR_ld = 1;
 					setReadMem();

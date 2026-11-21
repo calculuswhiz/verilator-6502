@@ -1,3 +1,4 @@
+`include "./svh/PFlags.svh"
 `include "./svh/page_invalid_state_t.svh"
 
 module control_state (
@@ -5,8 +6,8 @@ module control_state (
   input clk,
   input [7:0] IR_in,
   /* verilator lint_off UNUSEDSIGNAL */
-    // Not all bits used by CPU in 6502
-    P_in,
+	// Not all bits used by CPU in 6502
+	PFlags P_in,
   /* verilator lint_on UNUSEDSIGNAL */
   input page_invalid_state_t page_invalid_state,
 
@@ -18,16 +19,11 @@ module control_state (
 
   cpu_state next_state;
 
-	// TODO UO's
-	// TODO XID SLO, SRE, RLA, RRA, ISC, DCP
-	// TODO IDY SLO, SRE, RLA, RRA, ISC, DCP
-	// TODO ABX/ABY
-
   always @(negedge clk) begin
 		let ir_opcode = (cpu_state)'({4'h0, IR_in});
 		case (state)
 			// For states that are ready to fetch now
-			boot_3, ABSOLUTE_W, ZEROPAGE_W,
+			boot_3, ABSOLUTE_W, ZEROPAGE_W, XID_W, IDY_W,
 			JSR_ABS, RTS_IMP,
 			BRK_IMP, RTI_IMP,
 			ASL_ACC, CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP, DEX_IMP, DEY_IMP, INX_IMP, INY_IMP,
@@ -51,7 +47,10 @@ module control_state (
 			LAX_ABS, SAX_ABS:
 				next_state <= fetch;
 			// States that are ready to fetch if page is not invalid
-			ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX : begin
+			ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX,
+			LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY,
+			//UO
+			LAX_ABY, LAS_ABY: begin
 				next_state <= page_invalid_state != page_normal
 					// Share with _ABS e.g. 3d -> 2d
 					? (cpu_state)'(state - 12'h10)
@@ -70,10 +69,10 @@ module control_state (
 				end
 				else begin
 					let branch_taken =
-						(IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[0])) // C
-						| (IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in[1])) // Z
-						| (~IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in[6])) // V
-						| (~IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in[7])); // N
+						(IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in.C))
+						| (IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in.Z))
+						| (~IR_in[7] & IR_in[6] & ~(IR_in[5] ^ P_in.V))
+						| (~IR_in[7] & ~IR_in[6] & ~(IR_in[5] ^ P_in.N));
 					if (state == BRANCH_CHECK & branch_taken)
 						next_state <= BRANCH_TAKEN;
 					else begin
@@ -105,7 +104,9 @@ module control_state (
 							STA_ABX, STA_ABY, 
 							// UO
 							LAX_ABS, SAX_ABS,
-							SLO_ABS, SRE_ABS, RLA_ABS, RRA_ABS, ISC_ABS, DCP_ABS:
+							SLO_ABS, SRE_ABS, RLA_ABS, RRA_ABS, ISC_ABS, DCP_ABS,
+							SLO_ABX, SRE_ABX, RLA_ABX, RRA_ABX, ISC_ABX, DCP_ABX,
+							SLO_ABY, SRE_ABY, RLA_ABY, RRA_ABY, ISC_ABY, DCP_ABY:
 								next_state <= ABSOLUTE_1;
 							LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG,
 							CPX_ZPG, CPY_ZPG, BIT_ZPG,
@@ -163,10 +164,14 @@ module control_state (
 						next_state <= JMP_ABS;
 					ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX,
 					ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
-					STA_ABX:
+					STA_ABX, 
+					// UO
+					SLO_ABX, SRE_ABX, RLA_ABX, RRA_ABX, ISC_ABX, DCP_ABX:
 						next_state <= ABSOLUTE_X;
 					ADC_ABY, AND_ABY, CMP_ABY, EOR_ABY, LDA_ABY, LDX_ABY, ORA_ABY, SBC_ABY,
-					STA_ABY:
+					STA_ABY,
+					// UO
+					SLO_ABY, SRE_ABY, RLA_ABY, RRA_ABY, ISC_ABY, DCP_ABY:
 						next_state <= ABSOLUTE_Y;
 					default:
 						next_state <= ABSOLUTE_2;
@@ -195,7 +200,9 @@ module control_state (
 				case (ir_opcode)
 					ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX:
 						next_state <= ir_opcode;
-					ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX, STA_ABX:
+					ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX, STA_ABX,
+					// UO
+					SLO_ABX, SRE_ABX, RLA_ABX, RRA_ABX, ISC_ABX, DCP_ABX:
 						next_state <= ABSOLUTE_XYR;
 					default: begin
 						$display("Unrecognized IR code ABSOLUTE_X %x", IR_in);
@@ -217,7 +224,9 @@ module control_state (
 			end
 			ABSOLUTE_XYR: begin
 				case (ir_opcode)
-					ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:
+					ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
+					// UO
+					SLO_ABX, SRE_ABX, RLA_ABX, RRA_ABX, ISC_ABX, DCP_ABX:
 						next_state <= ABSOLUTE_XYR_PAGE;
 					STA_ABX, STA_ABY:
 						next_state <= ir_opcode;
@@ -229,7 +238,9 @@ module control_state (
 			end
 			ABSOLUTE_XYR_PAGE: begin
 				case (ir_opcode)
-					ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:
+					ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
+					// UO
+					SLO_ABX, SRE_ABX, RLA_ABX, RRA_ABX, ISC_ABX, DCP_ABX:
 						next_state <= ir_opcode;
 					default: begin
 						$display("Unrecognized IR code ABSOLUTE_XYR_PAGE %x", IR_in);
@@ -249,8 +260,19 @@ module control_state (
 			XID_1: next_state <= XID_2;
 			XID_2: next_state <= XID_3;
 			XID_3: next_state <= XID_4;
-			XID_4:
+			XID_4: begin
+				case (ir_opcode)
+					// UO
+					SLO_XID, SRE_XID, RLA_XID, RRA_XID, ISC_XID, DCP_XID:
+						next_state <= XID_R;
+					default:
+						next_state <= ir_opcode;
+				endcase
+			end
+			XID_R:
 				next_state <= ir_opcode;
+			SLO_XID, SRE_XID, RLA_XID, RRA_XID, ISC_XID, DCP_XID:
+				next_state <= XID_W;
 
 			IDY_1: next_state <= IDY_2;
 			IDY_2: next_state <= IDY_3;
@@ -258,6 +280,9 @@ module control_state (
 				case (ir_opcode)
 					LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY, STA_IDY:
 						next_state <= ir_opcode;
+					// UO
+					SLO_IDY, SRE_IDY, RLA_IDY, RRA_IDY, ISC_IDY, DCP_IDY:
+						next_state <= IDY_R;
 					default: begin
 						$display("Unrecognized IR code IDY_3 %x", IR_in);
 						next_state <= ERROR;
@@ -265,14 +290,14 @@ module control_state (
 				endcase
 			end
 
-			LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY: begin
-				next_state <= page_invalid_state != page_normal
-					// Share with ___XID states
-					? (cpu_state)'({4'h0, state[7:4] - 4'h1, state[3:0]})
-					: fetch;
-			end
+			IDY_R:
+				next_state <= ir_opcode;
+
 			STA_IDY:
 				next_state <= STA_XID;
+
+			SLO_IDY, SRE_IDY, RLA_IDY, RRA_IDY, ISC_IDY, DCP_IDY:
+				next_state <= IDY_W;
 
 			BRK_IMP_1: next_state <= BRK_IMP_2;
 			BRK_IMP_2: next_state <= BRK_IMP_3;
@@ -297,7 +322,9 @@ module control_state (
 			PLP_IMP_1: next_state <= PLP_IMP;
 
 			ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
-			ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX:
+			ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
+			// UO
+			SLO_ABX, SRE_ABX, RLA_ABX, RRA_ABX, ISC_ABX, DCP_ABX:
 				next_state <= ABSOLUTE_W;
 			ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG,
 			ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX,
