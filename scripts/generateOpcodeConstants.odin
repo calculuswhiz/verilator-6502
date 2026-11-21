@@ -137,4 +137,24 @@ generate_toml :: proc(parsed: [dynamic]Opcode, script_dir: string) {
 	output_path :=
 		filepath.join({script_dir, "filters/6502-state.toml"}) or_else panic("Cannot join")
 	os.write_entire_file(output_path, sb.buf[:]) or_else panic("Cannot write")
+
+	when ODIN_OS == .Darwin {
+		home_dir, home_dir_err := os.user_home_dir(context.allocator)
+		if home_dir_err != nil {
+			fmt.eprintln("No home directory", home_dir_err)
+		}
+		join, _ := filepath.join(
+			{
+				home_dir,
+				"/Library/Application Support/org.surfer-project.surfer/mappings/6502-state.toml",
+			},
+		)
+		writeResult := os.write_entire_file(join, sb.buf[:])
+		if writeResult != nil {
+			fmt.eprintln("Cannot write surfer file. Do you have surfer installed?", writeResult)
+		}
+		fmt.println(
+			"Wrote to '~/Library/Application Support/org.surfer-project.surfer/mappings/6502-state.toml'",
+		)
+	}
 }
