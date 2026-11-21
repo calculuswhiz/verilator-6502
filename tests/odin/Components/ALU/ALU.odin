@@ -538,5 +538,14 @@ test_rra :: proc(t: ^testing.T) {
 	testing.expect_value(t, alu_state.negative, 0)
 	testing.expect_value(t, alu_state.zero, 0)
 	testing.expect_value(t, alu_state.carry, 1)
+
+	set_inputs(alu_inst, 0x40, 0x80, 0)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0x80)
+	testing.expect_value(t, alu_state.negative, 1)
+	testing.expect_value(t, alu_state.overflow, 1)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 0)
 }
 

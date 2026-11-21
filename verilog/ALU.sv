@@ -20,6 +20,25 @@ module ALU (
 
 	logic [8:0] result;
 
+	wire [8:0] b_prime = {1'b0, (b_invert ? ~b : b)};
+
+	logic [8:0] b_2_prime;
+
+	always @(b_prime, operation, carryIn) begin
+		case (operation)
+			alu_slo:
+				b_2_prime = {b_prime[7:0], 1'b0};
+			alu_rla:
+				b_2_prime = {b_prime[7:0], carryIn};
+			alu_sre:
+				b_2_prime = {b_prime[0], 1'b0, b_prime[7:1]};
+			alu_rra:
+				b_2_prime = {b_prime[0], carryIn, b_prime[7:1]};
+			default:
+				b_2_prime = b_prime;
+		endcase
+	end
+
 	// Determine operation (aluops.sv):
 	/*
 		Only needs to support basic operations:
@@ -39,37 +58,25 @@ module ALU (
 			---
 			f.    pass A              Default
 	*/
-	always @(a, b, carryIn, b_invert, operation) begin
+	always @(a, carryIn, b_2_prime, operation) begin
 		case (operation)
-			alu_adc: begin
-				result = 9'(a)
-					+ {1'b0, (b_invert ? ~b : b)}
-					+ 9'(carryIn);
-			end
-			alu_eor:
-				result = 9'(a) ^ 9'(b);
-			alu_ora:
-				result = 9'(a) | 9'(b);
-			alu_and:
-				result = 9'(a) & 9'(b);
+			alu_adc, alu_rra: 
+				result = 9'(a) + b_2_prime + 9'(carryIn);
+			alu_eor, alu_sre:
+				result = 9'(a) ^ b_2_prime;
+			alu_ora, alu_slo:
+				result = 9'(a) | b_2_prime;
+			alu_and, alu_rla:
+				result = {1'b1, a} & b_2_prime;
 			alu_ror:
-				result = {b[0], carryIn, b[7:1]};
-			// Unofficial opcodes
-			alu_slo:
-				result = {b[7:0], 1'b0} | {1'b0, a};
-			alu_rla:
-				result = {b[7:0], carryIn} & {1'b1, a};
-			alu_sre:
-				result = {b[0], carryIn, b[7:1]} ^ {1'b0, a};
-			alu_rra:
-				result = {b[0], carryIn, b[7:1]} + 9'(a);
+				result = {b_2_prime[0], carryIn, b_2_prime[7:1]};
 			default:
 				result = 9'(a);
 		endcase
 
 		// From NESDEV +: (result ^ A) & (result ^ memory) & $80
 		// From NESDEV -: (result ^ A) & (result ^ ~memory) & $80
-		overflow = (result[7] ^ a[7]) & (result[7] ^ b[7] ^ b_invert);
+		overflow = (result[7] ^ a[7]) & (result[7] ^ b_2_prime[7]);
 		carry = result[8];
 		negative = result[7];
 		zero = result[7:0] == 0;
