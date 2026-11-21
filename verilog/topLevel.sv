@@ -84,7 +84,8 @@ module topLevel (
     /* verilator lint_on UNOPTFLAT */
 
     // Output data:
-    wire [7:0] X_out, Y_out, S_out, A_out, ALU_out;
+    logic [7:0] X_out, Y_out, A_out;
+    wire [7:0] S_out, ALU_out;
     wire [7:0] Xbuf_out, Ybuf_out, Smbuf_out, Spagebuf_out, Sdbuf_out, Abuf_out;
     wire [7:0] ALUdbuf_out, ALUmbuf_out;
     wire word_t PC_out;
@@ -97,10 +98,10 @@ module topLevel (
     wire word_t Tmbuf_out;
     wire word_t Tdbuf_out;
     wire PFlags ctl_pvect;
-    wire [7:0] P_out;
+    logic [7:0] P_out;
     wire [7:0] Pbuf_out;
     wire [7:0] ctl_irvect;
-    wire [7:0] IR_out;
+    logic [7:0] IR_out;
     wire [7:0] IRbuf_out;
     wire [7:0] xferubuf_out, xferdbuf_out;
     wire word_t IRQbuf_out;
@@ -145,13 +146,10 @@ module topLevel (
 
     // #region X
 
-    GpReg X_reg(
-        .clk(clkDiv[divFactor]),
-        .load(X_ld),
-        .rst_n(1'b1),
-        .in(data_bus),
-        .out(X_out)
-    );
+    always @ (posedge clkDiv[divFactor]) begin 
+        if (X_ld)
+            X_out <= data_bus;
+    end
 
     assign Xbuf_out = X_en ? X_out : 8'bz;
 
@@ -159,13 +157,10 @@ module topLevel (
 
     // #region Y
 
-    GpReg Y_reg(
-        .clk(clkDiv[divFactor]),
-        .load(Y_ld),
-        .rst_n(1'b1),
-        .in(data_bus),
-        .out(Y_out)
-    );
+    always @ (posedge clkDiv[divFactor]) begin 
+        if (Y_ld)
+            Y_out <= data_bus;
+    end
 
     assign Ybuf_out = Y_en ? Y_out : 8'bz;
 
@@ -258,13 +253,10 @@ module topLevel (
 
     assign Amux_out = Amux_sel == aSel_data_bus ? data_bus : ALU_out;
 
-    GpReg A_reg(
-        .clk(clkDiv[divFactor]),
-        .load(A_ld),
-        .rst_n(1'b1),
-        .in(Amux_out),
-        .out(A_out)
-    );
+    always @ (posedge clkDiv[divFactor]) begin 
+        if (A_ld)
+            A_out <= Amux_out;
+    end
 
     assign Abuf_out = A_en ? A_out : 8'bz;
 
@@ -370,13 +362,10 @@ module topLevel (
     assign Pmux_out =  8'b0010_0000 
         | (Pmux_sel == pSel_ctl_pvect ? ctl_pvect : data_bus);
 
-    GpReg P_reg(
-        .clk(clkDiv[divFactor]),
-        .load(P_ld),
-        .rst_n(1'b1),
-        .in(Pmux_out),
-        .out(P_out)
-    );
+    always @ (posedge clkDiv[divFactor]) begin 
+        if (P_ld)
+            P_out <= Pmux_out;
+    end
 
     assign Pbuf_out = Pd_en ? P_out : 8'bz;
 
@@ -386,13 +375,10 @@ module topLevel (
 
     assign IRmux_out = IRmux_sel == irSel_xfer_bus ? xfer_bus : ctl_irvect;
 
-    GpReg IR_reg(
-        .clk(clkDiv[divFactor]),
-        .load(IR_ld),
-        .rst_n(1'b1),
-        .in(IRmux_out),
-        .out(IR_out)
-    );
+    always @ (posedge clkDiv[divFactor]) begin 
+        if (IR_ld)
+            IR_out <= IRmux_out;
+    end
 
     assign IRbuf_out = IR_en ? IR_out : 8'bz;
 

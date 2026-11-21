@@ -18,7 +18,6 @@ all:
 
 	make ./obj_dir/libALU.a
 	make ./obj_dir/libCountReg.a
-	make ./obj_dir/libGpReg.a
 	make ./obj_dir/libPC.a
 	make ./obj_dir/libSPReg.a
 	make ./obj_dir/libtopLevel.a
@@ -28,7 +27,6 @@ all:
 	make ./obj_dir/VerilatorStatic.binding.a
 	make ./obj_dir/VALU.binding.a
 	make ./obj_dir/VCountReg.binding.a
-	make ./obj_dir/VGpReg.binding.a
 	make ./obj_dir/VPC.binding.a
 	make ./obj_dir/VSPReg.binding.a
 	make ./obj_dir/VtopLevel.binding.a
@@ -41,10 +39,6 @@ all:
 	verilator --cc -Wall --trace --build -I"./verilog" \
 		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
 		./verilog/CountReg.sv $(VERILATOR_FLAGS)
-./obj_dir/libGpReg.a: ./verilog/GpReg.sv
-	verilator --cc -Wall --trace --build -I"./verilog" \
-		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
-		./verilog/GpReg.sv $(VERILATOR_FLAGS)
 ./obj_dir/libPC.a: ./verilog/PC.sv
 	verilator --cc -Wall --trace --build -I"./verilog" \
 		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
@@ -89,12 +83,6 @@ all:
 		-I./obj_dir \
 		-o ./obj_dir/VCountReg.binding.o
 	ar rcs ./obj_dir/VCountReg.binding.a ./obj_dir/VCountReg.binding.o
-./obj_dir/VGpReg.binding.a: ./tests/bindings/GpReg.binding.cpp
-	clang++ -fPIC -c ./tests/bindings/GpReg.binding.cpp \
-		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \
-		-I./obj_dir \
-		-o ./obj_dir/VGpReg.binding.o
-	ar rcs ./obj_dir/VGpReg.binding.a ./obj_dir/VGpReg.binding.o
 ./obj_dir/VPC.binding.a: ./tests/bindings/PC.binding.cpp
 	clang++ -fPIC -c ./tests/bindings/PC.binding.cpp \
 		-I/opt/homebrew/Cellar/verilator/5.054/share/verilator/include \

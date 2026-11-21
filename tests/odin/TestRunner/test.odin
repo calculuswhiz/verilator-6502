@@ -4,7 +4,6 @@ package TestRunner
 
 @(require) import "../Components/ALU"
 @(require) import "../Components/CountReg"
-@(require) import "../Components/GpReg"
 @(require) import "../Components/PC"
 @(require) import "../Components/SPReg"
 @(require) import "../Components/topLevel"
