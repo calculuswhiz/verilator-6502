@@ -592,7 +592,7 @@ module control_signal (
 				fetchAddressOpcode();
 				// A-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-				b_invert = 1'b1;
+				b_invert = 1;
 				// Since we're subtracting.
 				C_ctl = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
@@ -601,7 +601,7 @@ module control_signal (
 				fetchAddressOpcode();
 				// X-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_adc, aluSel_X, aluSel_data_bus);
-				b_invert = 1'b1;
+				b_invert = 1;
 				// Since we're subtracting.
 				C_ctl = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
@@ -610,7 +610,7 @@ module control_signal (
 				fetchAddressOpcode();
 				// Y-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_adc, aluSel_Y, aluSel_data_bus);
-				b_invert = 1'b1;
+				b_invert = 1;
 				// Since we're subtracting.
 				C_ctl = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
@@ -652,7 +652,7 @@ module control_signal (
 				fetchAddressOpcode();
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				A_ld = 1;
-				b_invert = 1'b1;
+				b_invert = 1;
 				C_ctl = P_in.C;
 				Amux_sel = aSel_ALU_out;
 				maskNvzcFromALU(1, 1, 1, 1);
@@ -671,6 +671,24 @@ module control_signal (
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
+			ARR_IMM: begin
+				fetchAddressOpcode();
+				doAlu(alu_alr, aluSel_A, aluSel_data_bus);
+				C_ctl = 1;
+				A_ld = 1;
+				maskNvzcFromALU(1, 0, 1, 1);
+			end
+			LAX_IMM: begin
+				fetchAddressOpcode();
+				A_ld = 1;
+				X_ld = 1;
+				ALU_Amux_sel = aluSel_data_bus;
+			end
+			XAA_IMM: 
+				$error("XAA is not supported");
+			/* 
+				TODO AXS_IMM (special hardware needed)
+			*/
 			// #endregion IMM
 			// #region IMP/ACC
 			ASL_ACC: begin
@@ -697,7 +715,7 @@ module control_signal (
 			end
 			DEX_IMP: begin
 				doAlu(alu_adc, aluSel_X, aluSel_1);
-				b_invert = 1'b1;
+				b_invert = 1;
 				C_ctl = 1'b1;
 				setDataBusSource(db_src_ALUd);
 				X_ld = 1;
@@ -705,7 +723,7 @@ module control_signal (
 			end
 			DEY_IMP: begin
 				doAlu(alu_adc, aluSel_Y, aluSel_1);
-				b_invert = 1'b1;
+				b_invert = 1;
 				C_ctl = 1'b1;
 				setDataBusSource(db_src_ALUd);
 				Y_ld = 1;
@@ -844,7 +862,7 @@ module control_signal (
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-				b_invert = 1'b1;
+				b_invert = 1;
 				Amux_sel = aSel_ALU_out;
 				C_ctl = 1;
 				fix_page_addressor();
@@ -856,7 +874,7 @@ module control_signal (
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-				b_invert = 1'b1;
+				b_invert = 1;
 				Amux_sel = aSel_ALU_out;
 				C_ctl = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
@@ -950,7 +968,7 @@ module control_signal (
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-				b_invert = 1'b1;
+				b_invert = 1;
 				Amux_sel = aSel_ALU_out;
 				C_ctl = P_in.C;
 				A_ld = 1;
@@ -962,7 +980,7 @@ module control_signal (
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-				b_invert = 1'b1;
+				b_invert = 1;
 				Amux_sel = aSel_ALU_out;
 				C_ctl = P_in.C;
 				A_ld = 1;
@@ -981,7 +999,7 @@ module control_signal (
 			DEC_ZPG, DEC_ZPX,
 			DEC_ABS, DEC_ABX: begin
 				doAlu(alu_adc, aluSel_TL, aluSel_1);
-				b_invert = 1'b1;
+				b_invert = 1;
 				C_ctl = 1'b1;
 				setDataBusSource(db_src_ALUd);
 				TLmux_sel = tlSel_ALU_out;
@@ -1029,10 +1047,10 @@ module control_signal (
 			// #endregion
 			// #region ABS/ZPG-W
 			STA_ZPG, STA_ZPX,
-			STA_ABS, STA_ABX: begin
+			STA_ABS, STA_ABX, STA_ABY: begin
 				setWriteMem();
 				setMemBusSource(DHm, DLm);
-				A_en = 1;
+				setDataBusSource(db_src_A);
 			end
 			STX_ZPG, STX_ZPY,
 			STX_ABS: begin
@@ -1102,7 +1120,7 @@ module control_signal (
 				setMemBusSource(THm, TLm);
 				// A-M (Don't set flags, don't use carry, don't store A)
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-				b_invert = 1'b1;
+				b_invert = 1;
 				// Since we're subtracting.
 				C_ctl = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
@@ -1112,7 +1130,7 @@ module control_signal (
 				setReadMem();
 				setMemBusSource(THm, TLm);
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-				b_invert = 1'b1;
+				b_invert = 1;
 				Amux_sel = aSel_ALU_out;
 				C_ctl = P_in.C;
 				A_ld = 1;
@@ -1197,7 +1215,7 @@ module control_signal (
 					setMemBusSource(THm, TLm);
 					// A-M (Don't set flags, don't use carry, don't store A)
 					doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-					b_invert = 1'b1;
+					b_invert = 1;
 					// Since we're subtracting.
 					C_ctl = 1;
 					maskNvzcFromALU(1, 0, 1, 1);
@@ -1210,7 +1228,7 @@ module control_signal (
 					setReadMem();
 					setMemBusSource(THm, TLm);
 					doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-					b_invert = 1'b1;
+					b_invert = 1;
 					Amux_sel = aSel_ALU_out;
 					C_ctl = P_in.C;
 					A_ld = 1;
