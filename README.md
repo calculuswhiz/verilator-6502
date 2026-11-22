@@ -33,6 +33,11 @@ For a single file, e.g., ALU:
 - All compiled objects go in the `obj_dir` folder (run `make` first)
 - Test 6502 programs go in the `6502-code` folder
 
+## Left to implement
+
+- LAX_ZPG, LAX_ZPY, SAX_ZPG, SAX_ZPY, LAX_XID, SAX_XID, LAX_ABS, SAX_ABS
+- LAX_ABY, LAS_ABY
+
 ## Left to test
 
 Any unofficial opcodes. Reference: https://www.oxyron.de/html/opcodes02.html

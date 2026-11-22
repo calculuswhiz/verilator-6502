@@ -49,7 +49,7 @@ module control_state (
 			// States that are ready to fetch if page is not invalid
 			ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX,
 			LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY,
-			//UO
+			// UO
 			LAX_ABY, LAS_ABY: begin
 				next_state <= page_invalid_state != page_normal
 					// Share with _ABS e.g. 3d -> 2d
@@ -62,6 +62,24 @@ module control_state (
 					? (cpu_state)'(state - 12'h0c)
 					: fetch;
 			end
+			ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
+			ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
+			// UO
+			SLO_ABX, SRE_ABX, RLA_ABX, RRA_ABX, ISC_ABX, DCP_ABX:
+				next_state <= ABSOLUTE_W;
+			ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG,
+			ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX,
+			// UO 
+			SLO_ZPG, SRE_ZPG, RLA_ZPG, RRA_ZPG, ISC_ZPG, DCP_ZPG,
+			SLO_ZPX, SRE_ZPX, RLA_ZPX, RRA_ZPX, ISC_ZPX, DCP_ZPX,
+			SLO_ABS, SRE_ABS, RLA_ABS, RRA_ABS, ISC_ABS, DCP_ABS:
+				next_state <= ZEROPAGE_W;
+			BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVS_REL, BVC_REL:
+				next_state <= BRANCH;
+			STA_IDY: next_state <= STA_XID;
+			SLO_IDY, SRE_IDY, RLA_IDY, RRA_IDY, ISC_IDY, DCP_IDY:
+				next_state <= IDY_W;
+
 			// Decode. Instruction will be pre-decoded for certain non-fetch states
 			fetch, BRANCH_CHECK, BRANCH_TAKEN: begin
 				if (state == BRANCH_TAKEN & page_invalid_state != page_normal) begin
@@ -143,6 +161,13 @@ module control_state (
 					end
 				end
 			end
+
+			boot_1: next_state <= boot_2;
+			boot_2: next_state <= boot_3;
+
+			BRANCH: next_state <= BRANCH_CHECK;
+			
+
 			BUS_NOP: begin
 				// Original hardware required this due to having one bus
 				case (ir_opcode)
@@ -290,14 +315,7 @@ module control_state (
 				endcase
 			end
 
-			IDY_R:
-				next_state <= ir_opcode;
-
-			STA_IDY:
-				next_state <= STA_XID;
-
-			SLO_IDY, SRE_IDY, RLA_IDY, RRA_IDY, ISC_IDY, DCP_IDY:
-				next_state <= IDY_W;
+			IDY_R: next_state <= ir_opcode;
 
 			BRK_IMP_1: next_state <= BRK_IMP_2;
 			BRK_IMP_2: next_state <= BRK_IMP_3;
@@ -321,18 +339,6 @@ module control_state (
 			PLA_IMP_1: next_state <= PLA_IMP;
 			PLP_IMP_1: next_state <= PLP_IMP;
 
-			ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
-			ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
-			// UO
-			SLO_ABX, SRE_ABX, RLA_ABX, RRA_ABX, ISC_ABX, DCP_ABX:
-				next_state <= ABSOLUTE_W;
-			ASL_ZPG, LSR_ZPG, ROL_ZPG, ROR_ZPG, INC_ZPG, DEC_ZPG,
-			ASL_ZPX, LSR_ZPX, ROL_ZPX, ROR_ZPX, INC_ZPX, DEC_ZPX,
-			// UO 
-			SLO_ZPG, SRE_ZPG, RLA_ZPG, RRA_ZPG, ISC_ZPG, DCP_ZPG,
-			SLO_ZPX, SRE_ZPX, RLA_ZPX, RRA_ZPX, ISC_ZPX, DCP_ZPX,
-			SLO_ABS, SRE_ABS, RLA_ABS, RRA_ABS, ISC_ABS, DCP_ABS:
-				next_state <= ZEROPAGE_W;
 			ZEROPAGE: begin
 				case (ir_opcode)
 					LDA_ZPG, LDX_ZPG, LDY_ZPG, EOR_ZPG, AND_ZPG, ORA_ZPG, ADC_ZPG, SBC_ZPG, CMP_ZPG, CPX_ZPG, CPY_ZPG, BIT_ZPG,
@@ -374,14 +380,6 @@ module control_state (
 					end
 				endcase
 			end
-			BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVS_REL, BVC_REL:
-				next_state <= BRANCH;
-			BRANCH:
-				next_state <= BRANCH_CHECK;
-			boot_1:
-				next_state <= boot_2;
-			boot_2:
-				next_state <= boot_3;
 			ERROR: begin
 				$display("Machine is in error state. Halting...");
 				$finish;

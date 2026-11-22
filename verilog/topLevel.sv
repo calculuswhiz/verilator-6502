@@ -54,7 +54,8 @@ module topLevel (
     s_mux_src Smux_sel;
     a_mux_src Amux_sel;
     // wire SID_sel;
-    alu_mux_src ALU_Amux_sel, ALU_Bmux_sel;
+    alu_mux_src_a ALU_Amux_sel;
+    alu_mux_src_b ALU_Bmux_sel;
     pcl_mux_src PCLmux_sel;
     pch_mux_src PCHmux_sel;
     dl_mux_src DLmux_sel;
@@ -185,19 +186,19 @@ module topLevel (
 
     always @(*) begin
         case (ALU_Amux_sel)
-            aluSel_A: 
+            aluSel_a_A: 
                 ALU_Amux_out = A_out;
-            aluSel_X: 
+            aluSel_a_X: 
                 ALU_Amux_out = X_out;
-            aluSel_Y: 
+            aluSel_a_Y: 
                 ALU_Amux_out = Y_out;
-            aluSel_DL: 
+            aluSel_a_DL: 
                 ALU_Amux_out = D_out.l;
-            aluSel_data_bus: 
+            aluSel_a_data_bus: 
                 ALU_Amux_out = data_bus;
-            aluSel_PCL: 
-                ALU_Amux_out = PC_out.l;
-            aluSel_1: 
+            aluSel_a_AX: 
+                ALU_Amux_out = A_out & X_out;
+            aluSel_a_1: 
                 ALU_Amux_out = 8'h1;
             default: 
                 ALU_Amux_out = T_out.l;
@@ -206,19 +207,19 @@ module topLevel (
 
     always @(*) begin
         case (ALU_Bmux_sel)
-            aluSel_A: 
+            aluSel_b_A: 
                 ALU_Bmux_out = A_out;
-            aluSel_X: 
+            aluSel_b_X: 
                 ALU_Bmux_out = X_out;
-            aluSel_Y: 
+            aluSel_b_Y: 
                 ALU_Bmux_out = Y_out;
-            aluSel_DL: 
+            aluSel_b_DL: 
                 ALU_Bmux_out = D_out.l;
-            aluSel_data_bus: 
+            aluSel_b_data_bus: 
                 ALU_Bmux_out = data_bus;
-            aluSel_PCL: 
+            aluSel_b_PCL: 
                 ALU_Bmux_out = PC_out.l;
-            aluSel_1: 
+            aluSel_b_1: 
                 ALU_Bmux_out = 8'h1;
             default: 
                 ALU_Bmux_out = T_out.l;

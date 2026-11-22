@@ -2,15 +2,28 @@
 `define MUX_SIGNALS_SV
 
 typedef enum logic [2:0] {
-	aluSel_A = 0,
-	aluSel_X = 1,
-	aluSel_Y = 2,
-	aluSel_DL = 3,
-	aluSel_data_bus = 4,
-	aluSel_PCL = 5,
-	aluSel_1 = 6,
-	aluSel_TL = 7
-} alu_mux_src;
+	aluSel_a_A = 0,
+	aluSel_a_X = 1,
+	aluSel_a_Y = 2,
+	aluSel_a_DL = 3,
+	aluSel_a_data_bus = 4,
+	// UO, e.g. AXS
+	aluSel_a_AX = 5,
+	// Currently unused
+	aluSel_a_1 = 6,
+	aluSel_a_TL = 7
+} alu_mux_src_a;
+
+typedef enum logic [2:0] {
+	aluSel_b_A = 0,
+	aluSel_b_X = 1,
+	aluSel_b_Y = 2,
+	aluSel_b_DL = 3,
+	aluSel_b_data_bus = 4,
+	aluSel_b_PCL = 5,
+	aluSel_b_1 = 6,
+	aluSel_b_TL = 7
+} alu_mux_src_b;
 
 typedef enum logic [1:0] {
 	pclSel_data_bus = 0,
