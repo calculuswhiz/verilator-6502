@@ -21,6 +21,8 @@ typedef enum logic [3:0] {
   alu_sre = 4'h7,
   // ROR + ADC
   alu_rra = 4'h8,
+  // AND + LSR
+  alu_alr = 4'h9,
   // Pass input A
   alu_pas = 4'hf
 } aluop_t;

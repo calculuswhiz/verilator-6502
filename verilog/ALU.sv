@@ -24,6 +24,27 @@ module ALU (
 
 	logic [8:0] b_2_prime;
 
+	// Determine operation (aluops.sv):
+	/*
+		Only needs to support basic operations for standard instructions:
+			(The control unit will handle when to use each one.)
+			0. carry-addition:		Anything that requires addition/subtraction.
+														Includes INC/DEC/ASL/ROL
+			1. exclusive or:			EOR instruction
+			2. or:          			ORA instruction
+			3. and:         			AND instruction, also unofficial SAX/LAX-type
+			4. rotate right: 			ROR, LSR
+			---
+			For these, use operand a for Accumulator, and b for Value
+			5. slo
+			6. rla
+			7. rle
+			8. rra
+			9. alr
+			---
+			f. pass A             Default
+	*/
+
 	always @(b_prime, operation, carryIn) begin
 		case (operation)
 			alu_slo:
@@ -34,33 +55,16 @@ module ALU (
 				b_2_prime = {b_prime[0], 1'b0, b_prime[7:1]};
 			alu_rra:
 				b_2_prime = {b_prime[0], carryIn, b_prime[7:1]};
+			alu_alr:
+				b_2_prime = 9'(a) & b_prime;
 			default:
 				b_2_prime = b_prime;
 		endcase
 	end
 
-	// Determine operation (aluops.sv):
-	/*
-		Only needs to support basic operations:
-		(The control unit will handle when to use each one.)
-			0.    carry-addition:     Anything that requires addition/subtraction.
-																Includes INC/DEC/ASL/ROL
-			1.    exclusive or:       EOR instruction
-			2.    or:                 ORA instruction
-			3.    and:                AND instruction, also unofficial SAX/LAX-type
-			4.    rotate right: 			ROR, LSR
-			---
-			For these, use operand a for Accumulator, and b for Value
-			5.    slo
-			6.    rla
-			7.    rle
-			8.    rra
-			---
-			f.    pass A              Default
-	*/
 	always @(a, carryIn, b_2_prime, operation) begin
 		case (operation)
-			alu_adc, alu_rra: 
+			alu_adc, alu_rra:
 				result = 9'(a) + b_2_prime + 9'(carryIn);
 			alu_eor, alu_sre:
 				result = 9'(a) ^ b_2_prime;
@@ -68,7 +72,7 @@ module ALU (
 				result = 9'(a) | b_2_prime;
 			alu_and, alu_rla:
 				result = {1'b1, a} & b_2_prime;
-			alu_ror:
+			alu_ror, alu_alr:
 				result = {b_2_prime[0], carryIn, b_2_prime[7:1]};
 			default:
 				result = 9'(a);

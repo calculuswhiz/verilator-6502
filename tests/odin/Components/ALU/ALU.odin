@@ -27,6 +27,7 @@ AluOp :: enum {
 	alu_rla = 0x6,
 	alu_sre = 0x7,
 	alu_rra = 0x8,
+	alu_alr = 0x9,
 	alu_pas = 0xf,
 }
 
@@ -549,3 +550,38 @@ test_rra :: proc(t: ^testing.T) {
 	testing.expect_value(t, alu_state.carry, 0)
 }
 
+@(test)
+test_alr :: proc(t: ^testing.T) {
+	verilatorContext := VerilatedContext.create()
+	defer VerilatedContext.destroy(verilatorContext)
+
+	alu_inst := create()
+	defer destroy(alu_inst)
+	alu_state: Alu_State
+
+	set_operation(alu_inst, AluOp.alu_alr)
+
+	set_inputs(alu_inst, 0x00, 0x00)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 1)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0xff, 0b1010_1010)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0b0101_0101)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 0)
+
+	set_inputs(alu_inst, 0xff, 0b0101_0101)
+	eval(alu_inst)
+	alu_state = get_state(alu_inst)
+	testing.expect_value(t, alu_state.f, 0b0010_1010)
+	testing.expect_value(t, alu_state.negative, 0)
+	testing.expect_value(t, alu_state.zero, 0)
+	testing.expect_value(t, alu_state.carry, 1)
+}
