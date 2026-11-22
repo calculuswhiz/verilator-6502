@@ -447,7 +447,7 @@ different kinds of instructions.
         4+    PC*     R  Fetch opcode of next instruction.          (BRANCH_TAKEN)
                          Fix PCH. If it did not change, increment PC.
                             IR=M[PC], If PCH invalid, PCH+=1, else PC+=1 and done
-        5!    PC      R  Fetch opcode of next instruction,          (BRANCH_PAGE)
+        5!    PC      R  Fetch opcode of next instruction,          (fetch)
                          increment PC.
                             IR=M[PC], PC+=1
 

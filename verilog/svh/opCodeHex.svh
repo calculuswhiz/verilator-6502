@@ -232,7 +232,6 @@ typedef enum logic [11:0] {
   BRANCH = 12'h10c,
   BRANCH_CHECK = 12'h10d,
   BRANCH_TAKEN = 12'h10e,
-  BRANCH_PAGE = 12'h10f,
   ZEROPAGE_X = 12'h111,
   ZEROPAGE_Y = 12'h112,
   ABSOLUTE_X = 12'h113,

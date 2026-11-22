@@ -363,7 +363,6 @@ module control_signal (
 						$display("Error in branch taken.");
 				endcase
 			end
-			BRANCH_PAGE,
 			BRK_IMP_1: begin
 				fetchAddressOpcode();
 				IR_ld = 1;
@@ -445,9 +444,8 @@ module control_signal (
 				setDataBusSource(db_src_PCLd);
 				S_dec = 1;
 			end
-			PLA_IMP_1, PLP_IMP_1:
-				S_inc = 1;
-			RTI_IMP_1:
+			PLA_IMP_1, PLP_IMP_1,
+			RTI_IMP_1, RTS_IMP_1:
 				S_inc = 1;
 			RTI_IMP_2: begin
 				setReadMem();
@@ -456,21 +454,13 @@ module control_signal (
 				P_ld = 1;
 				S_inc = 1;
 			end
-			RTI_IMP_3: begin
-				setReadMem();
-				setMemBusSource(Spagem, Sm);
-				PCL_ld = 1;
-				S_inc = 1;
-			end
-			RTS_IMP_1:
-				S_inc = 1;
-			RTS_IMP_2: begin
+			RTI_IMP_3, RTS_IMP_2: begin
 				S_inc = 1;
 				setReadMem();
 				setMemBusSource(Spagem, Sm);
 				PCL_ld = 1;
 			end
-			RTS_IMP_3: begin
+			RTS_IMP_3, RTI_IMP: begin
 				setReadMem();
 				setMemBusSource(Spagem, Sm);
 				PCH_ld = 1;
@@ -542,11 +532,6 @@ module control_signal (
 				IRQH_en = 1;
 				PCH_ld = 1;
 			end
-			RTI_IMP: begin
-				setReadMem();
-				setMemBusSource(Spagem, Sm);
-				PCH_ld = 1;
-			end
 			RTS_IMP:
 				PCL_inc = 1;
 			PHA_IMP: begin
@@ -591,7 +576,7 @@ module control_signal (
 				fetchAddressOpcode();
 				A_ld = 1;
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				Amux_sel = aSel_ALU_out;
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
@@ -667,7 +652,7 @@ module control_signal (
 				A_ld = 1;
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				b_invert = 1'b1;
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				Amux_sel = aSel_ALU_out;
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
@@ -736,14 +721,14 @@ module control_signal (
 				doAlu(alu_adc, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			ROR_ACC: begin
 				doAlu(alu_ror, aluSel_A, aluSel_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			SEC_IMP: begin
@@ -795,7 +780,7 @@ module control_signal (
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				A_ld = 1;
 				fix_page_addressor();
 				maskNvzcFromALU(1, 1, 1, 1);
@@ -806,7 +791,7 @@ module control_signal (
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				Amux_sel = aSel_ALU_out;
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				A_ld = 1;
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
@@ -952,7 +937,7 @@ module control_signal (
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				b_invert = 1'b1;
 				Amux_sel = aSel_ALU_out;
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				A_ld = 1;
 				fix_page_addressor();
 				maskNvzcFromALU(1, 1, 1, 1);
@@ -964,7 +949,7 @@ module control_signal (
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				b_invert = 1'b1;
 				Amux_sel = aSel_ALU_out;
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				A_ld = 1;
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
@@ -1013,7 +998,7 @@ module control_signal (
 				doAlu(alu_adc, aluSel_TL, aluSel_TL);
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			ROR_ZPG, ROR_ZPX,
@@ -1023,7 +1008,7 @@ module control_signal (
 				doAlu(alu_ror, aluSel_A, aluSel_TL);
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
 			// #endregion
@@ -1091,7 +1076,7 @@ module control_signal (
 				setMemBusSource(THm, TLm);
 				// A+M+C
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
 				maskNvzcFromALU(1, 1, 1, 1);
@@ -1114,7 +1099,7 @@ module control_signal (
 				doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 				b_invert = 1'b1;
 				Amux_sel = aSel_ALU_out;
-				C_ctl = P_in[0];
+				C_ctl = P_in.C;
 				A_ld = 1;
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
@@ -1183,7 +1168,7 @@ module control_signal (
 					setMemBusSource(THm, TLm);
 					// A+M+C
 					doAlu(alu_adc, aluSel_A, aluSel_data_bus);
-					C_ctl = P_in[0];
+					C_ctl = P_in.C;
 					Amux_sel = aSel_ALU_out;
 					A_ld = 1;
 					maskNvzcFromALU(1, 1, 1, 1);
@@ -1212,7 +1197,7 @@ module control_signal (
 					doAlu(alu_adc, aluSel_A, aluSel_data_bus);
 					b_invert = 1'b1;
 					Amux_sel = aSel_ALU_out;
-					C_ctl = P_in[0];
+					C_ctl = P_in.C;
 					A_ld = 1;
 					maskNvzcFromALU(1, 1, 1, 1);
 				end

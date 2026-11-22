@@ -62,10 +62,10 @@ module control_state (
 					? (cpu_state)'(state - 12'h0c)
 					: fetch;
 			end
-			// Decode
-			fetch, BRANCH_CHECK, BRANCH_TAKEN, BRANCH_PAGE: begin
+			// Decode. Instruction will be pre-decoded for certain non-fetch states
+			fetch, BRANCH_CHECK, BRANCH_TAKEN: begin
 				if (state == BRANCH_TAKEN & page_invalid_state != page_normal) begin
-					next_state <= BRANCH_PAGE;
+					next_state <= fetch;
 				end
 				else begin
 					let branch_taken =
@@ -85,7 +85,7 @@ module control_state (
 							SEC_IMP, SED_IMP, SEI_IMP, TAX_IMP, TAY_IMP, TSX_IMP, TXA_IMP,
 							TXS_IMP, TYA_IMP,
 							// UO
-							ANC_IMMa, ANC_IMMb, ALR_IMM, ARR_IMM, XAA_IMM, LAX_IMM, AXS_IMM, SBC_IMM:
+							ANC_IMMa, ANC_IMMb, ALR_IMM, ARR_IMM, XAA_IMM, LAX_IMM, AXS_IMM, SBC_IMM_U:
 								next_state <= (cpu_state)'(next_state_opcode);
 							JSR_ABS:
 								next_state <= JSR_ABS_1;
