@@ -1,4 +1,5 @@
 `include "./svh/PFlags.svh"
+`include "./svh/alu_flags.svh"
 `include "./svh/muxSignals.svh"
 `include "./svh/page_invalid_state_t.svh"
 
@@ -11,7 +12,7 @@ module control (
 
 	input [7:0] P_in,
 	input [7:0] IR_in,
-	input alu_V, alu_C, alu_N, alu_Z,
+	input alu_flags_t alu_flags_in,
 	// Tells us if positive or negative
 	input ALUA_sign,
 	input [7:0] mem_data,
@@ -83,7 +84,7 @@ module control (
 
 	control_signal CtlSignal(
 		.P_in(P_in), .IR_in(IR_in),
-		.alu_V(alu_V), .alu_C(alu_C), .alu_N(alu_N), .alu_Z(alu_Z),
+		.alu_flags_in(alu_flags_in),
 		.ALUA_sign(ALUA_sign),
 		.mem_data(mem_data),
 

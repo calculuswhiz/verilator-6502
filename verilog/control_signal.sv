@@ -1,4 +1,5 @@
 `include "./svh/PFlags.svh"
+`include "./svh/alu_flags.svh"
 `include "./svh/muxSignals.svh"
 `include "./svh/page_invalid_state_t.svh"
 `include "./svh/bus_sources.svh"
@@ -9,7 +10,7 @@ typedef enum { d, t, s, pc } addressor_t;
 module control_signal (
   input PFlags P_in,
 	input [7:0] IR_in,
-	input alu_V, alu_C, alu_N, alu_Z,
+	input alu_flags_t alu_flags_in,
   input ALUA_sign,
 	input [7:0] mem_data,
 
@@ -86,13 +87,13 @@ module control_signal (
 	// Flag setting functions:
 	function void maskNvzcFromALU(bit setN, bit setV, bit setZ, bit setC);
 		if (setN)
-			ctl_pvect.N = alu_N;
+			ctl_pvect.N = alu_flags_in.N;
 		if (setV)
-			ctl_pvect.V = alu_V;
+			ctl_pvect.V = alu_flags_in.V;
 		if (setZ)
-			ctl_pvect.Z = alu_Z;
+			ctl_pvect.Z = alu_flags_in.Z;
 		if (setC)
-			ctl_pvect.C = alu_C;
+			ctl_pvect.C = alu_flags_in.C;
 		P_ld = 1;
 	endfunction
 
@@ -113,15 +114,15 @@ module control_signal (
 	// If page cross will happen, set invalid buffer
 	function void check_page_invalid_state(bit is_signed);
 		if (is_signed) begin
-			if (~ALUA_sign & alu_C)
+			if (~ALUA_sign & alu_flags_in.C)
 				page_invalid_state = page_inc;
-			else if (ALUA_sign & ~alu_C)
+			else if (ALUA_sign & ~alu_flags_in.C)
 				page_invalid_state = page_dec;
 			else
 				page_invalid_state = page_normal;
 		end
 		else begin
-			if (alu_C)
+			if (alu_flags_in.C)
 				page_invalid_state = page_inc;
 			else
 				page_invalid_state = page_normal;
@@ -188,7 +189,7 @@ module control_signal (
 		endcase
 	endfunction
 
-  always @ (state, P_in, alu_N, alu_V, alu_Z, alu_C, IR_in, mem_data) begin
+  always @ (state, P_in, alu_flags_in, IR_in, mem_data) begin
 		/* Default output assignments */
 		ctl_pvect = P_in;
 		ctl_irvect = 8'h00;
@@ -662,7 +663,7 @@ module control_signal (
 				doAlu(alu_and, aluSel_A, aluSel_data_bus);
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
-				ctl_pvect.C = alu_N;
+				ctl_pvect.C = alu_flags_in.N;
 			end
 			ALR_IMM: begin
 				fetchAddressOpcode();

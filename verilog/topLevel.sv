@@ -1,4 +1,5 @@
 `include "./svh/PFlags.svh"
+`include "./svh/alu_flags.svh"
 `include "./svh/word.svh"
 `include "./svh/aluops.svh"
 `include "./svh/opCodeHex.svh"
@@ -26,14 +27,6 @@ module topLevel (
     output word_t dbg_PC_out,
     output cpu_state dbg_state_out
 );
-
-    // Clock divider:
-    // 12MHz/2^17 = 96Hz
-    // Higher divFactor = slower processor.
-    // 0 = lowest delay
-    parameter divFactor = 0;
-    logic [divFactor:0] clkDiv;
-    assign clkDiv = clk;
 
     // #region Internal Signals
     // Enable:
@@ -74,7 +67,8 @@ module topLevel (
     // Other ALU signals:
     aluop_t aluop;
     wire b_invert;
-    wire V_out, C_in, C_out, N_out, Z_out;
+    alu_flags_t alu_flags;
+    wire C_in;
 
     // GP-Buses:
     logic [7:0] xfer_bus;
@@ -146,7 +140,7 @@ module topLevel (
 
     // #region X
 
-    always @ (posedge clkDiv[divFactor]) begin 
+    always @ (posedge clk) begin 
         if (X_ld)
             X_out <= data_bus;
     end
@@ -157,7 +151,7 @@ module topLevel (
 
     // #region Y
 
-    always @ (posedge clkDiv[divFactor]) begin 
+    always @ (posedge clk) begin 
         if (Y_ld)
             Y_out <= data_bus;
     end
@@ -171,7 +165,7 @@ module topLevel (
     assign Smux_out = Smux_sel == sSel_data_bus ? data_bus : memory_bus.l;
 
     SPReg S_reg(
-        .clk(clkDiv[divFactor]),
+        .clk(clk),
         .load(S_ld),
         .inc(S_inc),
         .dec(S_dec),
@@ -237,10 +231,10 @@ module topLevel (
         .b_invert(b_invert),
         .carryIn(C_in),
         .operation(aluop),
-        .negative(N_out),
-        .overflow(V_out),
-        .zero(Z_out),
-        .carry(C_out),
+        .negative(alu_flags.N),
+        .overflow(alu_flags.V),
+        .zero(alu_flags.Z),
+        .carry(alu_flags.C),
         .f(ALU_out[7:0])
     );
 
@@ -253,7 +247,7 @@ module topLevel (
 
     assign Amux_out = Amux_sel == aSel_data_bus ? data_bus : ALU_out;
 
-    always @ (posedge clkDiv[divFactor]) begin 
+    always @ (posedge clk) begin 
         if (A_ld)
             A_out <= Amux_out;
     end
@@ -274,7 +268,7 @@ module topLevel (
 
     // 0xfffe is where the reset vector is
     PC PC_reg(
-        .clk(clkDiv[divFactor]),
+        .clk(clk),
         .load_pc_h(PCH_ld),
         .load_pc_l(PCL_ld),
         .L_inc(PCL_inc),
@@ -305,7 +299,7 @@ module topLevel (
     assign DHmux_out = DHmux_sel == dhSel_data_bus ? data_bus : 0;
 
     CountReg D_reg(
-        .clk(clkDiv[divFactor]),
+        .clk(clk),
         .load_h(DH_ld),
         .load_l(DL_ld),
         .L_inc(DL_inc),
@@ -336,7 +330,7 @@ module topLevel (
     end
 
     CountReg T_reg(
-        .clk(clkDiv[divFactor]),
+        .clk(clk),
         .load_h(TH_ld),
         .load_l(TL_ld),
         .L_inc(1'b0),
@@ -362,7 +356,7 @@ module topLevel (
     assign Pmux_out =  8'b0010_0000 
         | (Pmux_sel == pSel_ctl_pvect ? ctl_pvect : data_bus);
 
-    always @ (posedge clkDiv[divFactor]) begin 
+    always @ (posedge clk) begin 
         if (P_ld)
             P_out <= Pmux_out;
     end
@@ -375,7 +369,7 @@ module topLevel (
 
     assign IRmux_out = IRmux_sel == irSel_xfer_bus ? xfer_bus : ctl_irvect;
 
-    always @ (posedge clkDiv[divFactor]) begin 
+    always @ (posedge clk) begin 
         if (IR_ld)
             IR_out <= IRmux_out;
     end
@@ -395,10 +389,10 @@ module topLevel (
 
     control CTL(
         .forceReset_n(forceReset_n),
-        .clk(clkDiv[divFactor]),
+        .clk(clk),
         .P_in(P_out),
         .IR_in(IR_out),
-        .alu_V(V_out), .alu_C(C_out), .alu_N(N_out), .alu_Z(Z_out),
+        .alu_flags_in(alu_flags),
         .ALUA_sign(ALU_Amux_out[7]),
         .mem_data(mem_rData),
 

@@ -18,12 +18,6 @@ module ALU (
 	output logic [7:0] f
 );
 
-	logic [8:0] result;
-
-	wire [8:0] b_prime = {1'b0, (b_invert ? ~b : b)};
-
-	logic [8:0] b_2_prime;
-
 	// Determine operation (aluops.sv):
 	/*
 		Only needs to support basic operations for standard instructions:
@@ -45,6 +39,9 @@ module ALU (
 			f. pass A             Default
 	*/
 
+	wire [8:0] b_prime = {1'b0, (b_invert ? ~b : b)};
+	logic [8:0] b_2_prime;
+
 	always @(b_prime, operation, carryIn) begin
 		case (operation)
 			alu_slo:
@@ -61,6 +58,8 @@ module ALU (
 				b_2_prime = b_prime;
 		endcase
 	end
+
+	logic [8:0] result;
 
 	always @(a, carryIn, b_2_prime, operation) begin
 		case (operation)
