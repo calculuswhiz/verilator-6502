@@ -412,6 +412,16 @@ module control_signal (
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 			end
+			IDY_R: begin
+				setReadMem();
+				setMemBusSource(THm, TLm);
+				DL_ld = 1;
+			end
+			IDY_W: begin
+				setWriteMem();
+				setMemBusSource(THm, TLm);
+				setDataBusSource(db_src_DLd);
+			end
 			boot_3, BUS_NOP: begin
 				// No operand, so PC is already in the right place.
 				setReadMem();
