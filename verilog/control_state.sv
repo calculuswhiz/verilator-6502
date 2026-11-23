@@ -46,6 +46,7 @@ module control_state (
 			LAX_XID, SAX_XID,
 			LAX_ABS, SAX_ABS:
 				next_state <= fetch;
+
 			// States that are ready to fetch if page is not invalid
 			ADC_ABX, AND_ABX, CMP_ABX, EOR_ABX, LDA_ABX, LDY_ABX, ORA_ABX, SBC_ABX,
 			LDA_IDY, EOR_IDY, AND_IDY, ORA_IDY, ADC_IDY, SBC_IDY, CMP_IDY,
@@ -62,6 +63,7 @@ module control_state (
 					? (cpu_state)'(state - 12'h0c)
 					: fetch;
 			end
+
 			ASL_ABS, DEC_ABS, INC_ABS, LSR_ABS, ROL_ABS, ROR_ABS,
 			ASL_ABX, DEC_ABX, INC_ABX, LSR_ABX, ROL_ABX, ROR_ABX,
 			// UO
@@ -77,6 +79,8 @@ module control_state (
 			BCC_REL, BCS_REL, BNE_REL, BEQ_REL, BPL_REL, BMI_REL, BVS_REL, BVC_REL:
 				next_state <= BRANCH;
 			STA_IDY: next_state <= STA_XID;
+			SLO_XID, SRE_XID, RLA_XID, RRA_XID, ISC_XID, DCP_XID:
+				next_state <= XID_W;
 			SLO_IDY, SRE_IDY, RLA_IDY, RRA_IDY, ISC_IDY, DCP_IDY:
 				next_state <= IDY_W;
 
@@ -167,7 +171,6 @@ module control_state (
 
 			BRANCH: next_state <= BRANCH_CHECK;
 			
-
 			BUS_NOP: begin
 				// Original hardware required this due to having one bus
 				case (ir_opcode)
@@ -296,8 +299,6 @@ module control_state (
 			end
 			XID_R:
 				next_state <= ir_opcode;
-			SLO_XID, SRE_XID, RLA_XID, RRA_XID, ISC_XID, DCP_XID:
-				next_state <= XID_W;
 
 			IDY_1: next_state <= IDY_2;
 			IDY_2: next_state <= IDY_3;

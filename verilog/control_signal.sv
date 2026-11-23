@@ -813,39 +813,28 @@ module control_signal (
 				S_ld = 1;
 			end
 			// #endregion IMP/ACC
-			// #region ZPG, ABS-R, ABX[XY]
-			ADC_ABX, ADC_ABY: begin
-				setReadMem();
-				setMemBusSource(DHm, DLm);
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				C_ctl = P_in.C;
-				A_ld = 1;
-				fix_page_addressor();
-				maskNvzcFromALU(1, 1, 1, 1);
-			end
+			// #region ZPG, ABS-R, AB[XY]
+			ADC_ABX, ADC_ABY,
 			ADC_ZPG, ADC_ZPX, ADC_ABS: begin
-				page_invalid_state = page_normal;
+				if (state[4] & ~state[3])
+					page_invalid_state = page_normal;
+				else 
+					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
 				Amux_sel = aSel_ALU_out;
 				C_ctl = P_in.C;
 				A_ld = 1;
+				fix_page_addressor();
 				maskNvzcFromALU(1, 1, 1, 1);
 			end
-			AND_ABX, AND_ABY: begin
-				setReadMem();
-				setMemBusSource(DHm, DLm);
-				doAlu(alu_and, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				fix_page_addressor();
-				maskNvzcFromALU(1, 0, 1, 0);
-			end
-			AND_ZPG, AND_ZPX,
-			AND_ABS: begin
-				page_invalid_state = page_normal;
+			AND_ABX, AND_ABY,
+			AND_ZPG, AND_ZPX, AND_ABS: begin
+				if (state[4] & ~state[3])
+					page_invalid_state = page_normal;
+				else 
+					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_and, aluSel_a_A, aluSel_b_data_bus);
@@ -853,8 +842,7 @@ module control_signal (
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
-			BIT_ZPG,
-			BIT_ABS: begin
+			BIT_ZPG, BIT_ABS: begin
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_and, aluSel_a_A, aluSel_b_data_bus);
@@ -885,17 +873,12 @@ module control_signal (
 				C_ctl = 1;
 				maskNvzcFromALU(1, 0, 1, 1);
 			end
-			EOR_ABX, EOR_ABY: begin
-				setReadMem();
-				setMemBusSource(DHm, DLm);
-				doAlu(alu_eor, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				fix_page_addressor();
-				maskNvzcFromALU(1, 0, 1, 0);
-			end
+			EOR_ABX, EOR_ABY,
 			EOR_ZPG, EOR_ZPX, EOR_ABS: begin
-				page_invalid_state = page_normal;
+				if (state[4] & ~state[3])
+					page_invalid_state = page_normal;
+				else 
+					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_eor, aluSel_a_A, aluSel_b_data_bus);
@@ -903,19 +886,14 @@ module control_signal (
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
-			LDA_ABX, LDA_ABY: begin
+			LDA_ABX, LDA_ABY,
+			LDA_ZPG, LDA_ZPX, LDA_ABS: begin
+				if (state[4] & ~state[3])
+					page_invalid_state = page_normal;
+				else 
+					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				ALU_Amux_sel = aluSel_a_data_bus;
-				A_ld = 1;
-				fix_page_addressor();
-				maskNvzcFromALU(1, 0, 1, 0);
-			end
-			LDA_ZPG, LDA_ZPX,
-			LDA_ABS: begin
-				page_invalid_state = page_normal;
-				setMemBusSource(DHm, DLm);
-				setReadMem();
 				ALU_Amux_sel = aluSel_a_data_bus;
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
@@ -952,17 +930,12 @@ module control_signal (
 				Y_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
-			ORA_ABX, ORA_ABY: begin
-				setReadMem();
-				setMemBusSource(DHm, DLm);
-				doAlu(alu_ora, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				fix_page_addressor();
-				maskNvzcFromALU(1, 0, 1, 0);
-			end
+			ORA_ABX, ORA_ABY,
 			ORA_ZPG, ORA_ZPX, ORA_ABS: begin
-				page_invalid_state = page_normal;
+				if (state[4] & ~state[3])
+					page_invalid_state = page_normal;
+				else 
+					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_ora, aluSel_a_A, aluSel_b_data_bus);
@@ -970,19 +943,12 @@ module control_signal (
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
-			SBC_ABX, SBC_ABY: begin
-				setReadMem();
-				setMemBusSource(DHm, DLm);
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				b_invert = 1;
-				Amux_sel = aSel_ALU_out;
-				C_ctl = P_in.C;
-				A_ld = 1;
-				fix_page_addressor();
-				maskNvzcFromALU(1, 1, 1, 1);
-			end
+			SBC_ABX, SBC_ABY,
 			SBC_ZPG, SBC_ZPX, SBC_ABS: begin
-				page_invalid_state = page_normal;
+				if (state[4] & ~state[3])
+					page_invalid_state = page_normal;
+				else 
+					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
