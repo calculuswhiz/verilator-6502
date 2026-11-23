@@ -852,19 +852,13 @@ module control_signal (
 				ctl_pvect.V = mem_data[6];
 				maskNvzcFromALU(0, 0, 1, 0);
 			end
-			CMP_ABX, CMP_ABY: begin
-				setReadMem();
-				setMemBusSource(DHm, DLm);
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				b_invert = 1;
-				Amux_sel = aSel_ALU_out;
-				C_ctl = 1;
-				fix_page_addressor();
-				maskNvzcFromALU(1, 0, 1, 1);
-			end
+			CMP_ABX, CMP_ABY,
 			CMP_ZPG, CMP_ZPX, CMP_ABS,
 			CPX_ZPG, CPX_ABS, CPY_ZPG, CPY_ABS: begin
-				page_invalid_state = page_normal;
+				if (state[5] | ~state[4] | ~state[3])
+					page_invalid_state = page_normal;
+				else 
+					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
@@ -898,32 +892,24 @@ module control_signal (
 				A_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
-			LDX_ABY: begin
-				setReadMem();
-				setMemBusSource(DHm, DLm);
-				ALU_Amux_sel = aluSel_a_data_bus;
-				X_ld = 1;
-				fix_page_addressor();
-				maskNvzcFromALU(1, 0, 1, 0);
-			end
+			LDX_ABY,
 			LDX_ZPG, LDX_ZPY, LDX_ABS: begin
-				page_invalid_state = page_normal;
+				if (state[4] & ~state[3])
+					page_invalid_state = page_normal;
+				else 
+					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				ALU_Amux_sel = aluSel_a_data_bus;
 				X_ld = 1;
 				maskNvzcFromALU(1, 0, 1, 0);
 			end
-			LDY_ABX: begin
-				setReadMem();
-				setMemBusSource(DHm, DLm);
-				ALU_Amux_sel = aluSel_a_data_bus;
-				X_ld = 1;
-				fix_page_addressor();
-				maskNvzcFromALU(1, 0, 1, 0);
-			end
+			LDY_ABX,
 			LDY_ZPG, LDY_ZPX, LDY_ABS: begin
-				page_invalid_state = page_normal;
+				if (state[4] & ~state[3])
+					page_invalid_state = page_normal;
+				else 
+					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
 				ALU_Amux_sel = aluSel_a_data_bus;
