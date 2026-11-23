@@ -315,7 +315,6 @@ module control_state (
 					end
 				endcase
 			end
-
 			IDY_R: next_state <= ir_opcode;
 
 			BRK_IMP_1: next_state <= BRK_IMP_2;
