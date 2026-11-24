@@ -133,7 +133,7 @@ module control_signal (
 		PCL_inc = 1;
 	endfunction
 
-	function void doAlu(aluop_t op, alu_mux_src_a a_src, alu_mux_src_b b_src);
+	function void do_alu(aluop_t op, alu_mux_src_a a_src, alu_mux_src_b b_src);
 		aluop = op;
 		ALU_Amux_sel = a_src;
 		ALU_Bmux_sel = b_src;
@@ -184,6 +184,90 @@ module control_signal (
 			default: 
 				$error("Not a source %d", source_l);
 		endcase
+	endfunction
+
+	function void do_adc();
+		do_alu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
+		A_ld = 1;
+		C_ctl = P_in.C;
+		Amux_sel = aSel_ALU_out;
+		mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
+	endfunction
+
+	function void do_sbc();
+		do_alu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
+		A_ld = 1;
+		b_invert = 1;
+		C_ctl = P_in.C;
+		Amux_sel = aSel_ALU_out;
+		mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
+	endfunction
+
+	function void do_and();
+		do_alu(alu_and, aluSel_a_A, aluSel_b_data_bus);
+		A_ld = 1;
+		Amux_sel = aSel_ALU_out;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+	endfunction
+
+	// _-M (Don't set flags, don't use carry, don't store A)
+	function void do_compare(alu_mux_src_a src);
+		do_alu(alu_adc, src, aluSel_b_data_bus);
+		b_invert = 1;
+		// Since we're subtracting.
+		C_ctl = 1;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+	endfunction
+
+	function void do_eor();
+		do_alu(alu_eor, aluSel_a_A, aluSel_b_data_bus);
+		A_ld = 1;
+		Amux_sel = aSel_ALU_out;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+	endfunction
+
+	typedef struct packed { logic A, X, Y; } axy_t;
+
+	function void do_load(axy_t dest);
+		A_ld = dest.A;
+		X_ld = dest.X;
+		Y_ld = dest.Y;
+		ALU_Amux_sel = aluSel_a_data_bus;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+	endfunction
+
+	function void do_ora();
+		do_alu(alu_ora, aluSel_a_A, aluSel_b_data_bus);
+		A_ld = 1;
+		Amux_sel = aSel_ALU_out;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+	endfunction
+
+	function void do_anc();
+		do_alu(alu_and, aluSel_a_A, aluSel_b_data_bus);
+		A_ld = 1;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: alu_flags_in.N});
+	endfunction
+
+	function void do_alr();
+		do_alu(alu_alr, aluSel_a_A, aluSel_b_data_bus);
+		A_ld = 1;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+	endfunction
+
+	function void do_arr();
+		do_alu(alu_alr, aluSel_a_A, aluSel_b_data_bus);
+		C_ctl = 1;
+		A_ld = 1;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+	endfunction
+
+	function void do_axs();
+		do_alu(alu_adc, aluSel_a_AX, aluSel_b_data_bus);
+		b_invert = 1;
+		C_ctl = 1;
+		X_ld = 1;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
 	endfunction
 
   always @ (state, P_in, alu_flags_in, IR_in, mem_data) begin
@@ -297,7 +381,7 @@ module control_signal (
 				setReadMem();
 				setMemBusSource(PCHm, PCLm);
 				DH_ld = 1;
-				doAlu(alu_adc, aluSel_a_X, aluSel_b_DL);
+				do_alu(alu_adc, aluSel_a_X, aluSel_b_DL);
 				DLmux_sel = dlSel_ALU_out;
 				DL_ld = 1;
 				PCL_inc = 1;
@@ -307,7 +391,7 @@ module control_signal (
 				setReadMem();
 				setMemBusSource(PCHm, PCLm);
 				DH_ld = 1;
-				doAlu(alu_adc, aluSel_a_Y, aluSel_b_DL);
+				do_alu(alu_adc, aluSel_a_Y, aluSel_b_DL);
 				DLmux_sel = dlSel_ALU_out;
 				DL_ld = 1;
 				PCL_inc = 1;
@@ -339,7 +423,7 @@ module control_signal (
 					IR_ld = 1;
 					setReadMem();
 					setMemBusSource(PCHm, ALUm);
-					doAlu(alu_adc, aluSel_a_DL, aluSel_b_PCL);
+					do_alu(alu_adc, aluSel_a_DL, aluSel_b_PCL);
 					PCLmux_sel = pclSel_memory_bus_l;
 					PCL_ld = 1;
 					// Fix PCH: if a: carry on positive addition, or b: no carry on negative addition.
@@ -405,7 +489,7 @@ module control_signal (
 				// TH=M[D], TL+=Y
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_adc, aluSel_a_Y, aluSel_b_TL);
+				do_alu(alu_adc, aluSel_a_Y, aluSel_b_TL);
 				TH_ld = 1;
 				check_page_invalid_state(0);
 				// If carry is set, that means need to add 1 to TH
@@ -485,7 +569,7 @@ module control_signal (
 				DH_rst_n = 0;
 			end
 			XID_2: begin
-				doAlu(alu_adc, aluSel_a_DL, aluSel_b_X);
+				do_alu(alu_adc, aluSel_a_DL, aluSel_b_X);
 				setDataBusSource(db_src_ALUd);
 				DL_ld = 1;
 			end
@@ -521,7 +605,7 @@ module control_signal (
 			ZEROPAGE_X: begin
 				// D += X
 				setDataBusSource(db_src_DLd);
-				doAlu(alu_adc, aluSel_a_data_bus, aluSel_b_X);
+				do_alu(alu_adc, aluSel_a_data_bus, aluSel_b_X);
 				setMemBusSource(NONE_h, ALUm);
 				DLmux_sel = dlSel_memory_bus_l;
 				DL_ld = 1;
@@ -529,7 +613,7 @@ module control_signal (
 			ZEROPAGE_Y: begin
 				// D += Y
 				setDataBusSource(db_src_DLd);
-				doAlu(alu_adc, aluSel_a_data_bus, aluSel_b_Y);
+				do_alu(alu_adc, aluSel_a_data_bus, aluSel_b_Y);
 				setMemBusSource(NONE_h, ALUm);
 				DLmux_sel = dlSel_memory_bus_l;
 				DL_ld = 1;
@@ -585,150 +669,88 @@ module control_signal (
 			// #region IMM
 			ADC_IMM: begin
 				fetchAddressOpcode();
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				A_ld = 1;
-				C_ctl = P_in.C;
-				Amux_sel = aSel_ALU_out;
-				mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
+				do_adc();
 			end
 			AND_IMM: begin
 				fetchAddressOpcode();
-				doAlu(alu_and, aluSel_a_A, aluSel_b_data_bus);
-				A_ld = 1;
-				Amux_sel = aSel_ALU_out;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_and();
 			end
 			CMP_IMM: begin
 				fetchAddressOpcode();
-				// A-M (Don't set flags, don't use carry, don't store A)
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				b_invert = 1;
-				// Since we're subtracting.
-				C_ctl = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+				do_compare(aluSel_a_A);
 			end
 			CPX_IMM: begin
 				fetchAddressOpcode();
-				// X-M (Don't set flags, don't use carry, don't store A)
-				doAlu(alu_adc, aluSel_a_X, aluSel_b_data_bus);
-				b_invert = 1;
-				// Since we're subtracting.
-				C_ctl = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+				do_compare(aluSel_a_X);
 			end
 			CPY_IMM: begin
 				fetchAddressOpcode();
-				// Y-M (Don't set flags, don't use carry, don't store A)
-				doAlu(alu_adc, aluSel_a_Y, aluSel_b_data_bus);
-				b_invert = 1;
-				// Since we're subtracting.
-				C_ctl = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+				do_compare(aluSel_a_Y);
 			end
 			EOR_IMM: begin
 				fetchAddressOpcode();
-				A_ld = 1;
-				doAlu(alu_eor, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_eor();
 			end
 			LDA_IMM: begin
 				fetchAddressOpcode();
-				A_ld = 1;
-				ALU_Amux_sel = aluSel_a_data_bus;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_load('{A: 1, X: 0, Y: 0});
 			end
 			LDX_IMM: begin
 				fetchAddressOpcode();
-				X_ld = 1;
-				ALU_Amux_sel = aluSel_a_data_bus;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_load('{A: 0, X: 1, Y: 0});
 			end
 			LDY_IMM: begin
 				fetchAddressOpcode();
-				Y_ld = 1;
-				ALU_Amux_sel = aluSel_a_data_bus;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_load('{A: 0, X: 0, Y: 1});
 			end
 			ORA_IMM: begin
 				fetchAddressOpcode();
-				doAlu(alu_ora, aluSel_a_A, aluSel_b_data_bus);
-				A_ld = 1;
-				Amux_sel = aSel_ALU_out;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_ora();
 			end
 			SBC_IMM, SBC_IMM_U: begin
 				fetchAddressOpcode();
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				A_ld = 1;
-				b_invert = 1;
-				C_ctl = P_in.C;
-				Amux_sel = aSel_ALU_out;
-				mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
+				do_sbc();
 			end
 			// UO
 			ANC_IMMa, ANC_IMMb: begin
 				fetchAddressOpcode();
-				doAlu(alu_and, aluSel_a_A, aluSel_b_data_bus);
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
-				ctl_pvect.C = alu_flags_in.N;
+				do_anc();
 			end
 			ALR_IMM: begin
 				fetchAddressOpcode();
-				doAlu(alu_alr, aluSel_a_A, aluSel_b_data_bus);
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+				do_alr();
 			end
 			ARR_IMM: begin
 				fetchAddressOpcode();
-				doAlu(alu_alr, aluSel_a_A, aluSel_b_data_bus);
-				C_ctl = 1;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+				do_arr();
 			end
 			LAX_IMM: begin
 				fetchAddressOpcode();
-				A_ld = 1;
-				X_ld = 1;
-				ALU_Amux_sel = aluSel_a_data_bus;
+				do_load('{A: 1, X: 1, Y: 0});
 			end
 			XAA_IMM: 
 				$error("XAA is not supported");
 			AXS_IMM: begin
 				fetchAddressOpcode();
-				doAlu(alu_adc, aluSel_a_AX, aluSel_b_data_bus);
-				b_invert = 1;
-				C_ctl = 1;
-				X_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+				do_axs();
 			end
 			// #endregion IMM
 			// #region IMP/ACC
 			ASL_ACC: begin
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_A);
+				do_alu(alu_adc, aluSel_a_A, aluSel_b_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
 				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
 			end
-			CLC_IMP: begin
-				ctl_pvect.C = 0;
-				P_ld = 1;
-			end
-			CLD_IMP: begin
-				ctl_pvect.D = 0;
-				P_ld = 1;
-			end
-			CLI_IMP: begin
-				ctl_pvect.I = 0;
-				P_ld = 1;
-			end
-			CLV_IMP: begin
-				ctl_pvect.V = 0;
+			CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP: begin
+				ctl_pvect.C ^= state[7:5] == 3'b000;
+				ctl_pvect.D ^= state[7:5] == 3'b110;
+				ctl_pvect.I ^= state[7:5] == 3'b010;
+				ctl_pvect.V ^= state[7:5] == 3'b101;
 				P_ld = 1;
 			end
 			DEX_IMP: begin
-				doAlu(alu_adc, aluSel_a_X, aluSel_b_1);
+				do_alu(alu_adc, aluSel_a_X, aluSel_b_1);
 				b_invert = 1;
 				C_ctl = 1'b1;
 				setDataBusSource(db_src_ALUd);
@@ -736,7 +758,7 @@ module control_signal (
 				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
 			end
 			DEY_IMP: begin
-				doAlu(alu_adc, aluSel_a_Y, aluSel_b_1);
+				do_alu(alu_adc, aluSel_a_Y, aluSel_b_1);
 				b_invert = 1;
 				C_ctl = 1'b1;
 				setDataBusSource(db_src_ALUd);
@@ -744,19 +766,19 @@ module control_signal (
 				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
 			end
 			INX_IMP: begin
-				doAlu(alu_adc, aluSel_a_X, aluSel_b_1);
+				do_alu(alu_adc, aluSel_a_X, aluSel_b_1);
 				setDataBusSource(db_src_ALUd);
 				X_ld = 1;
 				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
 			end
 			INY_IMP: begin
-				doAlu(alu_adc, aluSel_a_Y, aluSel_b_1);
+				do_alu(alu_adc, aluSel_a_Y, aluSel_b_1);
 				setDataBusSource(db_src_ALUd);
 				Y_ld = 1;
 				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
 			end
 			LSR_ACC: begin
-				doAlu(alu_ror, aluSel_a_A, aluSel_b_A);
+				do_alu(alu_ror, aluSel_a_A, aluSel_b_A);
 				C_ctl = 0;
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
@@ -765,29 +787,23 @@ module control_signal (
 			NOP_IMP: begin
 			end
 			ROL_ACC: begin
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_A);
+				do_alu(alu_adc, aluSel_a_A, aluSel_b_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
 				C_ctl = P_in.C;
 				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
 			end
 			ROR_ACC: begin
-				doAlu(alu_ror, aluSel_a_A, aluSel_b_A);
+				do_alu(alu_ror, aluSel_a_A, aluSel_b_A);
 				Amux_sel = aSel_ALU_out;
 				A_ld = 1;
 				C_ctl = P_in.C;
 				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
 			end
-			SEC_IMP: begin
-				ctl_pvect.C = 1;
-				P_ld = 1;
-			end
-			SED_IMP: begin
-				ctl_pvect.D = 1;
-				P_ld = 1;
-			end
-			SEI_IMP: begin
-				ctl_pvect.I = 1;
+			SEC_IMP, SED_IMP, SEI_IMP: begin
+				ctl_pvect.C |= state[7:5] == 3'b001;
+				ctl_pvect.D |= state[7:5] == 3'b111;
+				ctl_pvect.I |= state[7:5] == 3'b011;
 				P_ld = 1;
 			end
 			TAX_IMP: begin
@@ -830,12 +846,7 @@ module control_signal (
 					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				C_ctl = P_in.C;
-				A_ld = 1;
-				fix_page_addressor();
-				mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
+				do_adc();
 			end
 			AND_ABX, AND_ABY,
 			AND_ZPG, AND_ZPX, AND_ABS: begin
@@ -845,15 +856,12 @@ module control_signal (
 					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_and, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_and();
 			end
 			BIT_ZPG, BIT_ABS: begin
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_and, aluSel_a_A, aluSel_b_data_bus);
+				do_alu(alu_and, aluSel_a_A, aluSel_b_data_bus);
 				Amux_sel = aSel_ALU_out;
 				// Copy in memory NV bits. Not set by ALU
 				ctl_pvect.N = mem_data[7];
@@ -869,11 +877,7 @@ module control_signal (
 					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				b_invert = 1;
-				Amux_sel = aSel_ALU_out;
-				C_ctl = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+				do_compare(aluSel_a_A);
 			end
 			EOR_ABX, EOR_ABY,
 			EOR_ZPG, EOR_ZPX, EOR_ABS: begin
@@ -883,10 +887,7 @@ module control_signal (
 					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_eor, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_eor();
 			end
 			LDA_ABX, LDA_ABY,
 			LDA_ZPG, LDA_ZPX, LDA_ABS: begin
@@ -932,10 +933,7 @@ module control_signal (
 					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_ora, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_ora();
 			end
 			SBC_ABX, SBC_ABY,
 			SBC_ZPG, SBC_ZPX, SBC_ABS: begin
@@ -945,26 +943,21 @@ module control_signal (
 					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				b_invert = 1;
-				Amux_sel = aSel_ALU_out;
-				C_ctl = P_in.C;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
+				do_sbc();
 			end
 			/* rmw/zpg-abs */
 			ASL_ZPG, ASL_ZPX,
 			ASL_ABS, ASL_ABX: begin
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_adc, aluSel_a_TL, aluSel_b_TL);
+				do_alu(alu_adc, aluSel_a_TL, aluSel_b_TL);
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
 			end
 			DEC_ZPG, DEC_ZPX,
 			DEC_ABS, DEC_ABX: begin
-				doAlu(alu_adc, aluSel_a_TL, aluSel_b_1);
+				do_alu(alu_adc, aluSel_a_TL, aluSel_b_1);
 				b_invert = 1;
 				C_ctl = 1'b1;
 				setDataBusSource(db_src_ALUd);
@@ -974,7 +967,7 @@ module control_signal (
 			end
 			INC_ZPG, INC_ZPX,
 			INC_ABS, INC_ABX: begin
-				doAlu(alu_adc, aluSel_a_TL, aluSel_b_1);
+				do_alu(alu_adc, aluSel_a_TL, aluSel_b_1);
 				setDataBusSource(db_src_ALUd);
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
@@ -984,7 +977,7 @@ module control_signal (
 			LSR_ABS, LSR_ABX: begin
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_ror, aluSel_a_A, aluSel_b_TL);
+				do_alu(alu_ror, aluSel_a_A, aluSel_b_TL);
 				C_ctl = 0;
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
@@ -994,7 +987,7 @@ module control_signal (
 			ROL_ABS, ROL_ABX: begin
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_adc, aluSel_a_TL, aluSel_b_TL);
+				do_alu(alu_adc, aluSel_a_TL, aluSel_b_TL);
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 				C_ctl = P_in.C;
@@ -1004,7 +997,7 @@ module control_signal (
 			ROR_ABS, ROR_ABX: begin
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				doAlu(alu_ror, aluSel_a_A, aluSel_b_TL);
+				do_alu(alu_ror, aluSel_a_A, aluSel_b_TL);
 				TLmux_sel = tlSel_ALU_out;
 				TL_ld = 1;
 				C_ctl = P_in.C;
@@ -1012,7 +1005,13 @@ module control_signal (
 			end
 			// UO
 			LAX_ZPG: begin
-				// TODO
+				if (state[4] & ~state[3])
+					page_invalid_state = page_normal;
+				else 
+					fix_page_addressor();
+				setReadMem();
+				setMemBusSource(DHm, DLm);
+				do_load('{A: 1, X: 1, Y: 0});
 			end
 			// #endregion
 			// #region ABS/ZPG-W
@@ -1041,70 +1040,43 @@ module control_signal (
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(THm, TLm);
-				// Put it through alu to set flags
-				ALU_Amux_sel = aluSel_a_data_bus;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_load('{A: 1, X: 0, Y: 0});
 			end
 			ORA_XID: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(THm, TLm);
-				doAlu(alu_ora, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_ora();
 			end
 			EOR_XID: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(THm, TLm);
-				doAlu(alu_eor, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_eor();
 			end
 			AND_XID: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(THm, TLm);
-				doAlu(alu_and, aluSel_a_A, aluSel_b_data_bus);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_and();
 			end
 			ADC_XID: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(THm, TLm);
-				// A+M+C
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				C_ctl = P_in.C;
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
+				do_adc();
 			end
 			CMP_XID: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(THm, TLm);
-				// A-M (Don't set flags, don't use carry, don't store A)
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				b_invert = 1;
-				// Since we're subtracting.
-				C_ctl = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+				do_compare(aluSel_a_A);
 			end
 			SBC_XID: begin
 				page_invalid_state = page_normal;
 				setReadMem();
 				setMemBusSource(THm, TLm);
-				doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-				b_invert = 1;
-				Amux_sel = aSel_ALU_out;
-				C_ctl = P_in.C;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
+				do_sbc();
 			end
 			STA_XID: begin
 				page_invalid_state = page_normal;
@@ -1121,10 +1093,7 @@ module control_signal (
 				else begin
 					setReadMem();
 					setMemBusSource(THm, TLm);
-					// Put it through alu to set flags
-					ALU_Amux_sel = aluSel_a_data_bus;
-					A_ld = 1;
-					mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+					do_load('{A: 1, X: 0, Y: 0});
 				end
 			end
 			ORA_IDY: begin
@@ -1133,10 +1102,7 @@ module control_signal (
 				else begin
 					setReadMem();
 					setMemBusSource(THm, TLm);
-					doAlu(alu_ora, aluSel_a_A, aluSel_b_data_bus);
-					Amux_sel = aSel_ALU_out;
-					A_ld = 1;
-					mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+					do_ora();
 				end
 			end
 			EOR_IDY: begin
@@ -1145,10 +1111,7 @@ module control_signal (
 				else begin
 					setReadMem();
 					setMemBusSource(THm, TLm);
-					doAlu(alu_eor, aluSel_a_A, aluSel_b_data_bus);
-					Amux_sel = aSel_ALU_out;
-					A_ld = 1;
-					mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+					do_eor();
 				end
 			end
 			AND_IDY: begin
@@ -1157,10 +1120,7 @@ module control_signal (
 				else begin
 					setReadMem();
 					setMemBusSource(THm, TLm);
-					doAlu(alu_and, aluSel_a_A, aluSel_b_data_bus);
-					Amux_sel = aSel_ALU_out;
-					A_ld = 1;
-					mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+					do_and();
 				end
 			end
 			ADC_IDY: begin
@@ -1169,12 +1129,7 @@ module control_signal (
 				else begin
 					setReadMem();
 					setMemBusSource(THm, TLm);
-					// A+M+C
-					doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-					C_ctl = P_in.C;
-					Amux_sel = aSel_ALU_out;
-					A_ld = 1;
-					mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
+					do_adc();
 				end
 			end
 			CMP_IDY: begin
@@ -1183,12 +1138,7 @@ module control_signal (
 				else begin
 					setReadMem();
 					setMemBusSource(THm, TLm);
-					// A-M (Don't set flags, don't use carry, don't store A)
-					doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-					b_invert = 1;
-					// Since we're subtracting.
-					C_ctl = 1;
-					mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+					do_compare(aluSel_a_A);
 				end
 			end
 			SBC_IDY: begin
@@ -1197,12 +1147,7 @@ module control_signal (
 				else begin
 					setReadMem();
 					setMemBusSource(THm, TLm);
-					doAlu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-					b_invert = 1;
-					Amux_sel = aSel_ALU_out;
-					C_ctl = P_in.C;
-					A_ld = 1;
-					mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
+					do_sbc();
 				end
 			end
 			STA_IDY: begin
