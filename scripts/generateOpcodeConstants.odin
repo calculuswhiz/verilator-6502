@@ -1,4 +1,4 @@
-package main
+package scripts
 
 // From the top: odin run -file ./scripts/generateOpcodeConstants.odin
 
@@ -13,6 +13,7 @@ Opcode :: struct {
 	value: string,
 }
 
+@(private = "file")
 main :: proc() {
 	script_dir :=
 		os.get_executable_directory(context.allocator) or_else fmt.panicf(
@@ -108,7 +109,7 @@ generate_odin :: proc(parsed: [dynamic]Opcode, script_dir: string) {
 	sb := strings.builder_make()
 	defer strings.builder_destroy(&sb)
 
-	strings.write_string(&sb, "package PcState\n")
+	strings.write_string(&sb, "package Lib6502\n")
 	strings.write_string(&sb, "/* GENERATED (generateOpcodeConstants.odin) - DO NOT EDIT */\n")
 
 	for opcode in parsed {
@@ -116,7 +117,7 @@ generate_odin :: proc(parsed: [dynamic]Opcode, script_dir: string) {
 	}
 
 	output_path :=
-		filepath.join({script_dir, "tests/odin/PcState/PcState.odin"}) or_else panic("Cannot join")
+		filepath.join({script_dir, "tests/odin/Lib6502/Lib6502.odin"}) or_else panic("Cannot join")
 	os.write_entire_file(output_path, sb.buf[:]) or_else panic("Cannot write")
 }
 

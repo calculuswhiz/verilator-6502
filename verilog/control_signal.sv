@@ -195,12 +195,8 @@ module control_signal (
 	endfunction
 
 	function void do_sbc();
-		do_alu(alu_adc, aluSel_a_A, aluSel_b_data_bus);
-		A_ld = 1;
+		do_adc();
 		b_invert = 1;
-		C_ctl = P_in.C;
-		Amux_sel = aSel_ALU_out;
-		mask_alu_p('{N: 1, V: 1, Z: 1, C: 1});
 	endfunction
 
 	function void do_and();
@@ -243,6 +239,20 @@ module control_signal (
 		mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
 	endfunction
 
+	function void do_asl_acc();
+		do_alu(alu_adc, aluSel_a_A, aluSel_b_A);
+		Amux_sel = aSel_ALU_out;
+		A_ld = 1;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+	endfunction
+
+	function void do_lsr_acc();
+		do_alu(alu_ror, aluSel_a_A, aluSel_b_A);
+		Amux_sel = aSel_ALU_out;
+		A_ld = 1;
+		mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+	endfunction
+
 	function void do_anc();
 		do_alu(alu_and, aluSel_a_A, aluSel_b_data_bus);
 		A_ld = 1;
@@ -256,15 +266,12 @@ module control_signal (
 	endfunction
 
 	function void do_arr();
-		do_alu(alu_alr, aluSel_a_A, aluSel_b_data_bus);
+		do_alr();
 		C_ctl = 1;
-		A_ld = 1;
-		mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
 	endfunction
 
 	function void do_axs();
-		do_alu(alu_adc, aluSel_a_AX, aluSel_b_data_bus);
-		b_invert = 1;
+		do_sbc();
 		C_ctl = 1;
 		X_ld = 1;
 		mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
@@ -737,10 +744,7 @@ module control_signal (
 			// #endregion IMM
 			// #region IMP/ACC
 			ASL_ACC: begin
-				do_alu(alu_adc, aluSel_a_A, aluSel_b_A);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+				do_asl_acc();
 			end
 			CLC_IMP, CLD_IMP, CLI_IMP, CLV_IMP: begin
 				ctl_pvect.C ^= state[7:5] == 3'b000;
@@ -749,56 +753,35 @@ module control_signal (
 				ctl_pvect.V ^= state[7:5] == 3'b101;
 				P_ld = 1;
 			end
-			DEX_IMP: begin
-				do_alu(alu_adc, aluSel_a_X, aluSel_b_1);
+			DEX_IMP, DEY_IMP: begin
+				// Technically bits 6 and 2, but in this scope, it doesn't matter.
+				do_alu(alu_adc, state[6] ? aluSel_a_X : aluSel_a_Y, aluSel_b_1);
 				b_invert = 1;
 				C_ctl = 1'b1;
 				setDataBusSource(db_src_ALUd);
-				X_ld = 1;
+				X_ld = state[6];
+				Y_ld = ~state[6];
 				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
 			end
-			DEY_IMP: begin
-				do_alu(alu_adc, aluSel_a_Y, aluSel_b_1);
-				b_invert = 1;
-				C_ctl = 1'b1;
+			INX_IMP, INY_IMP: begin
+				do_alu(alu_adc, state[5] ? aluSel_a_X : aluSel_a_Y, aluSel_b_1);
 				setDataBusSource(db_src_ALUd);
-				Y_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
-			end
-			INX_IMP: begin
-				do_alu(alu_adc, aluSel_a_X, aluSel_b_1);
-				setDataBusSource(db_src_ALUd);
-				X_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
-			end
-			INY_IMP: begin
-				do_alu(alu_adc, aluSel_a_Y, aluSel_b_1);
-				setDataBusSource(db_src_ALUd);
-				Y_ld = 1;
+				X_ld = state[5];
+				Y_ld = ~state[5];
 				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
 			end
 			LSR_ACC: begin
-				do_alu(alu_ror, aluSel_a_A, aluSel_b_A);
-				C_ctl = 0;
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
+				do_lsr_acc();
 			end
 			NOP_IMP: begin
 			end
 			ROL_ACC: begin
-				do_alu(alu_adc, aluSel_a_A, aluSel_b_A);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
+				do_asl_acc();
 				C_ctl = P_in.C;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
 			end
 			ROR_ACC: begin
-				do_alu(alu_ror, aluSel_a_A, aluSel_b_A);
-				Amux_sel = aSel_ALU_out;
-				A_ld = 1;
+				do_lsr_acc();
 				C_ctl = P_in.C;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 1});
 			end
 			SEC_IMP, SED_IMP, SEI_IMP: begin
 				ctl_pvect.C |= state[7:5] == 3'b001;
@@ -897,9 +880,7 @@ module control_signal (
 					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				ALU_Amux_sel = aluSel_a_data_bus;
-				A_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_load('{A: 1, X: 0, Y:0});
 			end
 			LDX_ABY,
 			LDX_ZPG, LDX_ZPY, LDX_ABS: begin
@@ -909,9 +890,7 @@ module control_signal (
 					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				ALU_Amux_sel = aluSel_a_data_bus;
-				X_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_load('{A: 0, X: 1, Y:0});
 			end
 			LDY_ABX,
 			LDY_ZPG, LDY_ZPX, LDY_ABS: begin
@@ -921,9 +900,7 @@ module control_signal (
 					fix_page_addressor();
 				setReadMem();
 				setMemBusSource(DHm, DLm);
-				ALU_Amux_sel = aluSel_a_data_bus;
-				Y_ld = 1;
-				mask_alu_p('{N: 1, V: 0, Z: 1, C: 0});
+				do_load('{A: 0, X: 0, Y:1});
 			end
 			ORA_ABX, ORA_ABY,
 			ORA_ZPG, ORA_ZPX, ORA_ABS: begin
@@ -1015,23 +992,17 @@ module control_signal (
 			end
 			// #endregion
 			// #region ABS/ZPG-W
-			STA_ZPG, STA_ZPX,
-			STA_ABS, STA_ABX, STA_ABY: begin
+			STA_ZPG, STA_ZPX, STA_ABS, STA_ABX, STA_ABY,
+			STX_ZPG, STX_ZPY, STX_ABS,
+			STY_ZPG, STY_ZPX, STY_ABS: begin
 				setWriteMem();
 				setMemBusSource(DHm, DLm);
-				setDataBusSource(db_src_A);
-			end
-			STX_ZPG, STX_ZPY,
-			STX_ABS: begin
-				setWriteMem();
-				setMemBusSource(DHm, DLm);
-				setDataBusSource(db_src_X);
-			end
-			STY_ZPG, STY_ZPX,
-			STY_ABS: begin
-				setWriteMem();
-				setMemBusSource(DHm, DLm);
-				setDataBusSource(db_src_Y);
+				if (~state[1] & state[0])
+					setDataBusSource(db_src_A);
+				else if (state[1] & !state[0])
+					setDataBusSource(db_src_X);
+				else if (~state[1] & ~state[0])
+					setDataBusSource(db_src_Y);
 			end
 			// #endregion
 			// #region XID

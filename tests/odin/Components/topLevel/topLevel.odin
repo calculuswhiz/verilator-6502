@@ -1,10 +1,10 @@
 package topLevel
 
-import "../../CycleTimes"
+import "../../Lib6502/CycleTimes"
 import "../../LibVerilator/Verilated"
 import "../../LibVerilator/VerilatedContext"
 import "../../LibVerilator/VerilatedVcdC"
-import "../../PcState"
+import "../../Lib6502/PcState"
 import "../../TestMap"
 import "core:fmt"
 import "core:os"

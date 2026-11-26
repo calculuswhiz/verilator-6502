@@ -221,16 +221,16 @@ different kinds of instructions.
         1    PC     R  fetch opcode, increment PC
                         IR=M[PC], PC+=1
         2    PC     R  fetch low byte of address, increment PC
-                        DL=M[PC], PC+=1
+                        DL=M[PC], PC+=1     (ABSOLUTE_1)
         3    PC     R  fetch high byte of address, increment PC
-                        DH=M[PC], PC+=1
+                        DH=M[PC], PC+=1     (ABSOLUTE_2)
         4  address  R  read from effective address
-                        TL=M[D]
+                        TL=M[D]              (ABSOLUTE_R)
         5  address  W  write the value back to effective address,
                        and do the operation on it
-                        TL=ALU.op(TL)
+                        TL=ALU.op(TL)        (depends)
         6  address  W  write the new value to effective address
-                        M[D]=TL
+                        M[D]=TL              (ABSOLUTE_W)
 
      Write instructions (STA, STX, STY, SAX)
 

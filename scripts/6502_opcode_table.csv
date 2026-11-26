@@ -1,0 +1,16 @@
+BRK imp,ORA xid,JAM ___,SLO xid,NOP zpg,ORA zpg,ASL zpg,SLO zpg,PHP imp,ORA imm,ASL acc,ANC imm,NOP abs,ORA abs,ASL abs,SLO abs
+BPL rel,ORA idy,JAM ___,SLO idy,NOP zpx,ORA zpx,ASL zpx,SLO zpx,CLC imp,ORA aby,NOP imp,SLO aby,NOP abx,ORA abx,ASL abx,SLO abx
+JSR abs,AND xid,JAM ___,RLA xid,BIT zpg,AND zpg,ROL zpg,RLA zpg,PLP imp,AND imm,ROL acc,ANC imm,BIT abs,AND abs,ROL abs,RLA abs
+BMI rel,AND idy,JAM ___,RLA idy,NOP zpx,AND zpx,ROL zpx,RLA zpx,SEC imp,AND aby,NOP imp,RLA aby,NOP abx,AND abx,ROL abx,RLA abx
+RTI imp,EOR xid,JAM ___,SRE xid,NOP zpg,EOR zpg,LSR zpg,SRE zpg,PHA imp,EOR imm,LSR acc,ALR imm,JMP abs,EOR abs,LSR abs,SRE abs
+BVC rel,EOR idy,JAM ___,SRE idy,NOP zpx,EOR zpx,LSR zpx,SRE zpx,CLI imp,EOR aby,NOP imp,SRE aby,NOP abx,EOR abx,LSR abx,SRE abx
+RTS imp,ADC xid,JAM ___,RRA xid,NOP zpg,ADC zpg,ROR zpg,RRA zpg,PLA imp,ADC imm,ROR acc,ARR imm,JMP ind,ADC abs,ROR abs,RRA abs
+BVS rel,ADC idy,JAM ___,RRA idy,NOP zpx,ADC zpx,ROR zpx,RRA zpx,SEI imp,ADC aby,NOP imp,RRA aby,NOP abx,ADC abx,ROR abx,RRA abx
+NOP imm,STA xid,NOP imm,SAX xid,STY zpg,STA zpg,STX zpg,SAX zpg,DEY imp,NOP imm,TXA imp,ANE imm,STY abs,STA abs,STX abs,SAX abs
+BCC rel,STA idy,JAM ___,SHA idy,STY zpx,STA zpx,STX zpy,SAX zpy,TYA imp,STA aby,TXS imp,TAS aby,SHY abx,STA abx,SHX aby,SHA aby
+LDY imm,LDA xid,LDX imm,LAX xid,LDY zpg,LDA zpg,LDX zpg,LAX zpg,TAY imp,LDA imm,TAX imp,LXA imm,LDY abs,LDA abs,LDX abs,LAX abs
+BCS rel,LDA idy,JAM ___,LAX idy,LDY zpx,LDA zpx,LDX zpy,LAX zpy,CLV imp,LDA aby,TSX imp,LAS aby,LDY abx,LDA abx,LDX aby,LAX aby
+CPY imm,CMP xid,NOP imm,DCP xid,CPY zpg,CMP zpg,DEC zpg,DCP zpg,INY imp,CMP imm,DEX imp,SBX imm,CPY abs,CMP abs,DEC abs,DCP abs
+BNE rel,CMP idy,JAM ___,DCP idy,NOP zpx,CMP zpx,DEC zpx,DCP zpx,CLD imp,CMP aby,NOP imp,DCP aby,NOP abx,CMP abx,DEC abx,DCP abx
+CPX imm,SBC xid,NOP imm,ISC xid,CPX zpg,SBC zpg,INC zpg,ISC zpg,INX imp,SBC imm,NOP imp,USBC imm,CPX abs,SBC abs,INC abs,ISC abs
+BEQ rel,SBC idy,JAM ___,ISC idy,NOP zpx,SBC zpx,INC zpx,ISC zpx,SED imp,SBC aby,NOP imp,ISC aby,NOP abx,SBC abx,INC abx,ISC abx

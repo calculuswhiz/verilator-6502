@@ -1,7 +1,6 @@
 package PC
 
 import "../../LibVerilator/VerilatedContext"
-import "core:c"
 import "core:testing"
 
 foreign import MyVPC {"../../../../obj_dir/VPC.binding.a", "../../../../obj_dir/libVPC.a"}

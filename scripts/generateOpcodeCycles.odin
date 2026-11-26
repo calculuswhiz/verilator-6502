@@ -1,4 +1,4 @@
-package main
+package scripts
 
 // From the top: odin run -file ./scripts/generateOpcodeCycles.odin
 
@@ -8,8 +8,8 @@ import "core:path/filepath"
 import "core:strconv"
 import "core:strings"
 
-@(private="file")
-Mode :: enum {
+@(private = "file")
+AddressMode :: enum {
 	imp,
 	imm,
 	zp,
@@ -24,23 +24,24 @@ Mode :: enum {
 	rel,
 }
 
-@(private="file")
+@(private = "file")
 Opcode :: struct {
 	opcode:         int,
 	mnemonic:       string,
 	cycles:         int,
-	mode:           Mode,
+	mode:           AddressMode,
 	is_branch:      bool,
 	has_page_check: bool,
 }
 
+@(private = "file")
 main :: proc() {
 	dir :=
 		os.get_executable_directory(context.allocator) or_else fmt.panicf(
 			"Cannot get executable dir",
 		)
 	src_path :=
-		filepath.join({dir, "scripts/6502_opcode_matrix.csv"}) or_else fmt.panicf(
+		filepath.join({dir, "scripts/6502_opcode_cycles.csv"}) or_else fmt.panicf(
 			"Failed to get srcPath",
 		)
 	data :=
@@ -55,24 +56,21 @@ main :: proc() {
 
 	row_addr_idx := 0
 	contents := string(data)
-	// Skip
-	_, _ = strings.split_lines_iterator(&contents)
 	for line in strings.split_lines_iterator(&contents) {
 		defer row_addr_idx += 1
 
 		trimmed := strings.trim(line, " \t")
 		col_addr_idx := 0
 
-		_, _ = strings.split_iterator(&trimmed, ",")
 		for row_data in strings.split_iterator(&trimmed, ",") {
 			defer col_addr_idx += 1
 
 			entry := strings.split(row_data, " ")
 			mnemonic := entry[0]
-			mode := Mode.imp
+			mode := AddressMode.imp
 			if len(entry) >= 3 {
 				mode =
-					fmt.string_to_enum_value(Mode, entry[1]) or_else fmt.panicf(
+					fmt.string_to_enum_value(AddressMode, entry[1]) or_else fmt.panicf(
 						"Could not convert enum string, %s",
 						entry[1],
 					)
@@ -89,7 +87,7 @@ main :: proc() {
 			}
 
 			// Branches are the only rel instructions
-			is_branch := mode == Mode.rel
+			is_branch := mode == AddressMode.rel
 			opcode := row_addr_idx << 4 + col_addr_idx
 			parsed[opcode] = {
 				opcode         = opcode,
@@ -105,14 +103,14 @@ main :: proc() {
 	emitted_already := make(map[string]bool)
 	defer delete(emitted_already)
 
-	out_path := filepath.join({dir, "tests/odin/CycleTimes/CycleTimes.odin"}) or_else os.exit(-1)
+	out_path := filepath.join({dir, "tests/odin/Lib6502/Lib6502.odin"}) or_else os.exit(-1)
 	out_file := os.open(out_path, {.Write, .Trunc}) or_else os.exit(-1)
 	defer os.close(out_file)
 
 	os.write_string(
 		out_file,
 		"""
-    package CycleTimes
+    package Lib6502
     /* GENERATED - DO NOT EDIT */
 
     branch_taken_cycles :: 1
